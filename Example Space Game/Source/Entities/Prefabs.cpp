@@ -1,4 +1,8 @@
 #include "Prefabs.h"
+#include <map>
+#include <string>
+#include "../Precompiled.h"
+
 
 // nameless namespaces are a way to restrict/control global data
 // I prefer them to the singleton design pattern 

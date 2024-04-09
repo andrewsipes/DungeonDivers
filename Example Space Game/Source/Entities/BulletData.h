@@ -4,6 +4,7 @@
 
 // Contains our global game settings
 #include "../GameConfig.h"
+#include <memory>
 
 // example space game (avoid name collisions)
 namespace ESG

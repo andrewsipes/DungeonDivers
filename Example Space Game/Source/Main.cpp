@@ -1,5 +1,6 @@
 // handles everything
 #include "Application.h"
+
 // program entry point
 int main()
 {

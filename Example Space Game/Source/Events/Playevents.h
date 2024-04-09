@@ -1,6 +1,8 @@
 #ifndef PLAYEVENTS_H
 #define PLAYEVENTS_H
 
+#include "../Precompiled.h"
+
 // example space game (avoid name collisions)
 namespace ESG
 {

@@ -8,13 +8,15 @@ set(PRE_COMPILED
 
 set(VERTEX_SHADERS 
 	# add vertex shader (.glsl) files here
-	Shaders/VertexShader.glsl
+	./Shaders/VertexShader.glsl
 )
 
 set(PIXEL_SHADERS 
 	# add pixel shader (.glsl) files here
-	Shaders/FragmentShader.glsl
+	./Shaders/FragmentShader.glsl
 )
+
+
 
 # Add any new C/C++ source code here
 file(
@@ -42,8 +44,12 @@ if(WIN32)
 	# by default CMake selects "ALL_BUILD" as the startup project 
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
 		 PROPERTY VS_STARTUP_PROJECT UntitledGame)
-	
-	source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SOURCE_FILES})
+
+	#VULKAN ONLY KEEP COMMENTED
+	#source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SOURCE_FILES})
+	#target_include_directories(UntitledGame PUBLIC $ENV{VULKAN_SDK}/Include/)
+	#target_link_directories(UntitledGame PUBLIC $ENV{VULKAN_SDK}/Lib/)
+	#target_compile_options(UntitledGame PRIVATE "/MD")
 
 	#this will tell Visual Studio to put the shaders under their own group in the solution explorer 
 	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -68,6 +74,17 @@ endif()
 add_executable (UntitledGame
 	${SOURCE_CODE}
 	${VERTEX_SHADERS}
-	${PIXEL_SHADERS}
+	${PIXEL_SHADERS})
+
+target_compile_features(UntitledGame PUBLIC cxx_std_17)
+
+# adding gateware.h and other librairies as a precompiled headers to reduce compile times
+target_precompile_headers(UntitledGame PRIVATE ${PRE_COMPILED})
+
+# Disable all shaders from compiling since they may have OpenGL specifics
+file(
+	GLOB_RECURSE SHADER_FILES CONFIGURE_DEPENDS
+    ./Shaders/*.glsl
 )
+
 

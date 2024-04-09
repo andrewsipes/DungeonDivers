@@ -1,6 +1,8 @@
 #ifndef GAMECONFIG_H
 #define GAMECONFIG_H
 
+#include "Precompiled.h"
+
 // Loads the existing configuration file, creates a default one if none exists
 class GameConfig : public ini::IniFile // for const correctness use ".at()" on read
 { 

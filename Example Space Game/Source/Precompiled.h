@@ -7,7 +7,7 @@
 #define GATEWARE_ENABLE_INPUT // Enables all Input Libraries
 #define GATEWARE_ENABLE_AUDIO // Enables all Audio Libraries
 #define G_PASS				 // For Gateware Returns
-#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION //for stb
 // Ignore some GRAPHICS libraries we aren't going to use
 #define GATEWARE_DISABLE_GDIRECTX11SURFACE 
 #define GATEWARE_DISABLE_GDIRECTX12SURFACE 
@@ -28,15 +28,12 @@
 // used to compile shaders for Vulkan
 //#include "shaderc/shaderc.h" // needed for compiling shaders at runtime
 
-// used for adding OpenGL Extensions
-#include "OpenGLExtensions.h"
-
 // used for reading files into strings
-#include "FileIntoString.h"
+//#include "./FileIntoString.h"
 
-//for rendering
-#include "renderer.h" 
+//Parses H2b files
+#include "./h2bParser.h"
 
-#ifdef _WIN32 // must use MT platform DLL libraries on windows
-	#pragma comment(lib, "shaderc_combined.lib")
-#endif
+//#ifdef _WIN32 // must use MT platform DLL libraries on windows
+//	#pragma comment(lib, "shaderc_combined.lib")
+//#endif

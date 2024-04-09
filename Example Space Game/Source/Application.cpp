@@ -1,6 +1,12 @@
-#include "Application.h"
+#include "./Application.h"
+#include "./renderer.h"
+
 // open some Gateware namespaces for conveinence 
 // NEVER do this in a header file!
+
+#define WIN_HEIGHT 600;
+#define WIN_WIDTH 800;
+
 using namespace GW;
 using namespace CORE;
 using namespace SYSTEM;
@@ -21,55 +27,104 @@ bool Application::Init()
 		return false;
 	if (InitAudio() == false)
 		return false;
-	if (InitGraphics() == false)
-		return false;
+	//if (InitGraphics() == false)
+		//return false;
 	if (InitEntities() == false)
 		return false;
-	if (InitSystems() == false)
-		return false;
+	//if (InitSystems() == false)
+		//return false;
 	return true;
 }
 
-bool Application::Run() 
-{
-	VkClearValue clrAndDepth[2];
-	clrAndDepth[0].color = { {0, 0, 0, 1} };
-	clrAndDepth[1].depthStencil = { 1.0f, 0u };
-	// grab vsync selection
-	bool vsync = gameConfig->at("Window").at("vsync").as<bool>();
-	// set background color from settings
-	const char* channels[] = { "red", "green", "blue" };
-	for (int i = 0; i < std::size(channels); ++i) {
-		clrAndDepth[0].color.float32[i] =
-			gameConfig->at("BackGroundColor").at(channels[i]).as<float>();
-	}
-	// create an event handler to see if the window was closed early
-	bool winClosed = false;
-	GW::CORE::GEventResponder winHandler;
-	winHandler.Create([&winClosed](GW::GEvent e) {
-		GW::SYSTEM::GWindow::Events ev;
-		if (+e.Read(ev) && ev == GW::SYSTEM::GWindow::Events::DESTROY)
-			winClosed = true;
-	});	
-	window.Register(winHandler);
-	while (+window.ProcessWindowEvents())
+//bool Application::Run() 
+//{
+//	
+// 
+// 
+// ClearValue clrAndDepth[2];
+//	clrAndDepth[0].color = { {0, 0, 0, 1} };
+//	clrAndDepth[1].depthStencil = { 1.0f, 0u };
+//	// grab vsync selection
+//	bool vsync = gameConfig->at("Window").at("vsync").as<bool>();
+//	// set background color from settings
+//	const char* channels[] = { "red", "green", "blue" };
+//	for (int i = 0; i < std::size(channels); ++i) {
+//		clrAndDepth[0].color.float32[i] =
+//			gameConfig->at("BackGroundColor").at(channels[i]).as<float>();
+//	}
+//	// create an event handler to see if the window was closed early
+//	bool winClosed = false;
+//	GW::CORE::GEventResponder winHandler;
+//	winHandler.Create([&winClosed](GW::GEvent e) {
+//		GW::SYSTEM::GWindow::Events ev;
+//		if (+e.Read(ev) && ev == GW::SYSTEM::GWindow::Events::DESTROY)
+//			winClosed = true;
+//	});	
+//	window.Register(winHandler);
+//	while (+window.ProcessWindowEvents())
+//	{
+//		if (winClosed == true)
+//			return true;
+//		if (+vulkan.StartFrame(2, clrAndDepth))
+//		{
+//			if (GameLoop() == false) {
+//				vulkan.EndFrame(vsync);
+//				return false;
+//			}
+//			if (-vulkan.EndFrame(vsync)) {
+//				// failing EndFrame is not always a critical error, see the GW docs for specifics
+//			}
+//		}
+//		else
+//			return false;
+//	}
+//	return true;
+//}
+
+bool Application::Run() {
+
+	GEventResponder msgs;
+
+	int width = WIN_WIDTH;
+	int height = WIN_HEIGHT;
+
+	if (+win.Create(0, 0, width, height, GWindowStyle::WINDOWEDBORDERED))
 	{
-		if (winClosed == true)
-			return true;
-		if (+vulkan.StartFrame(2, clrAndDepth))
+
+
+		float clr[] = { 194.0f / 255.0f, 51.0f / 255.0f, 29.0f / 255.0f, 1 }; // Buffer
+
+		win.SetWindowName("UntitledGame - Blue2404"); //Set Window Name
+
+		msgs.Create([&](const GW::GEvent& e) {
+			GW::SYSTEM::GWindow::Events q;
+			if (+e.Read(q) && q == GWindow::Events::RESIZE)
+				clr[2] += 0.01f;
+			});
+		win.Register(msgs);
+		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
-			if (GameLoop() == false) {
-				vulkan.EndFrame(vsync);
-				return false;
-			}
-			if (-vulkan.EndFrame(vsync)) {
-				// failing EndFrame is not always a critical error, see the GW docs for specifics
+			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
+			RendererManager rendererManager(win, ogl);
+
+			while (+win.ProcessWindowEvents())
+			{
+				glClearColor(clr[0], clr[1], clr[2], clr[3]);
+
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				//Update camera then render
+				rendererManager.UpdateCamera(width, height);
+				rendererManager.Render();
+
+				ogl.UniversalSwapBuffers();
+
+
 			}
 		}
-		else
-			return false;
 	}
-	return true;
+	return 0;
+
 }
 
 bool Application::Shutdown() 
@@ -79,8 +134,8 @@ bool Application::Shutdown()
 		return false;
 	if (levelSystem.Shutdown() == false)
 		return false;
-	if (vkRenderingSystem.Shutdown() == false)
-		return false;
+	/*if (vkRenderingSystem.Shutdown() == false)
+		return false;*/
 	if (physicsSystem.Shutdown() == false)
 		return false;
 	if (bulletSystem.Shutdown() == false)
@@ -100,8 +155,8 @@ bool Application::InitWindow()
 	int ystart = gameConfig->at("Window").at("ystart").as<int>();
 	std::string title = gameConfig->at("Window").at("title").as<std::string>();
 	// open window
-	if (+window.Create(xstart, ystart, width, height, GWindowStyle::WINDOWEDLOCKED) &&
-		+window.SetWindowName(title.c_str())) {
+	if (+win.Create(xstart, ystart, width, height, GWindowStyle::WINDOWEDLOCKED) &&
+		+win.SetWindowName(title.c_str())) {
 		return true;
 	}
 	return false;
@@ -111,9 +166,9 @@ bool Application::InitInput()
 {
 	if (-gamePads.Create())
 		return false;
-	if (-immediateInput.Create(window))
+	if (-immediateInput.Create(win))
 		return false;
-	if (-bufferedInput.Create(window))
+	if (-bufferedInput.Create(win))
 		return false;
 	return true;
 }
@@ -125,23 +180,23 @@ bool Application::InitAudio()
 	return true;
 }
 
-bool Application::InitGraphics()
-{
-#ifndef NDEBUG
-	const char* debugLayers[] = {
-		"VK_LAYER_KHRONOS_validation", // standard validation layer
-		//"VK_LAYER_RENDERDOC_Capture" // add this if you have installed RenderDoc
-	};
-	if (+vulkan.Create(window, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT,
-		sizeof(debugLayers) / sizeof(debugLayers[0]),
-		debugLayers, 0, nullptr, 0, nullptr, false))
-		return true;
-#else
-	if (+vulkan.Create(window, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
-		return true;
-#endif
-	return false;
-}
+//bool Application::InitGraphics()
+//{
+//#ifndef NDEBUG
+//	const char* debugLayers[] = {
+//		"VK_LAYER_KHRONOS_validation", // standard validation layer
+//		//"VK_LAYER_RENDERDOC_Capture" // add this if you have installed RenderDoc
+//	};
+//	if (+vulkan.Create(window, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT,
+//		sizeof(debugLayers) / sizeof(debugLayers[0]),
+//		debugLayers, 0, nullptr, 0, nullptr, false))
+//		return true;
+//#else
+//	if (+vulkan.Create(window, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+//		return true;
+//#endif
+//	return false;
+//}
 
 bool Application::InitEntities()
 {
@@ -158,25 +213,25 @@ bool Application::InitEntities()
 	return true;
 }
 
-bool Application::InitSystems()
-{
-	// connect systems to global ECS
-	if (playerSystem.Init(	game, gameConfig, immediateInput, bufferedInput, 
-							gamePads, audioEngine, eventPusher) == false)
-		return false;
-	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
-		return false;
-	if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
-		return false;
-	if (physicsSystem.Init(game, gameConfig) == false)
-		return false;
-	if (bulletSystem.Init(game, gameConfig) == false)
-		return false;
-	if (enemySystem.Init(game, gameConfig, eventPusher) == false)
-		return false;
-
-	return true;
-}
+//bool Application::InitSystems()
+//{
+//	// connect systems to global ECS
+//	if (playerSystem.Init(	game, gameConfig, immediateInput, bufferedInput, 
+//							gamePads, audioEngine, eventPusher) == false)
+//		return false;
+//	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
+//		return false;
+//	if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
+//		return false;
+//	if (physicsSystem.Init(game, gameConfig) == false)
+//		return false;
+//	if (bulletSystem.Init(game, gameConfig) == false)
+//		return false;
+//	if (enemySystem.Init(game, gameConfig, eventPusher) == false)
+//		return false;
+//
+//	return true;
+//}
 
 bool Application::GameLoop()
 {

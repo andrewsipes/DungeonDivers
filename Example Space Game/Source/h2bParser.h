@@ -3,7 +3,7 @@
 #include <fstream>
 #include <vector>
 #include <set>
-#include "gateware-main/Gateware.h"
+#include "../gateware-main/Gateware.h"
 
 namespace H2B {
 

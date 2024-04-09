@@ -1,8 +1,5 @@
-
 #include "./h2bParser.h"
 #include "./load_object_oriented.h"
-
-
 
 // Creation, Rendering & Cleanup
 class RendererManager
@@ -130,7 +127,7 @@ public:
 		gController.GetState(0, G_RX_AXIS, rStickX);
 
 		//check if mouse value is redundant - if so do nothing
-		if (G_PASS(mouse) && mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
+		if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
 		{
 			// do nothing
 		}

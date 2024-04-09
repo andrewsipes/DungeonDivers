@@ -2,6 +2,8 @@
 #ifndef PREFABS_H
 #define PREFABS_H
 
+#include "../Precompiled.h"
+
 // example space game (avoid name collisions)
 namespace ESG
 {

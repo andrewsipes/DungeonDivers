@@ -1,3 +1,4 @@
+#include <memory>
 #include "BulletData.h"
 #include "../Components/Identification.h"
 #include "../Components/Visuals.h"

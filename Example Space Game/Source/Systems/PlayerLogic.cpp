@@ -5,6 +5,8 @@
 #include "../Components/Gameplay.h"
 #include "../Entities/Prefabs.h"
 #include "../Events/Playevents.h"
+#include "../../gateware-main/Gateware.h"
+#include "../../flecs-3.1.4/flecs.h"
 
 using namespace ESG; // Example Space Game
 using namespace GW::INPUT; // input libs

@@ -1,10 +1,6 @@
-// This is a sample of how to load a level in a object oriented fashion.
-// Feel free to use this code as a base and tweak it for your needs.
-
-// This reads .h2b files which are optimized binary .obj+.mtl files
-#include "h2bParser.h"
-#include "./stb_image.h" 
-
+#include "./FileIntoString.h"
+#include "./stb_image.h"
+#include "./OpenGLExtensions.h"
 
 //credit to stb image for their image uploader https://github.com/nothings/stb
 //credit to LearnOpenGL for the skybox tutorial and skybox images //credits to learnOpenGL https://learnopengl.com/Advanced-OpenGL/Cubemaps
@@ -186,7 +182,7 @@ public:
 		// TODO: Use chosen API to setup the pipeline for this model and draw it
 
 		//Get Block Index, and Bind the Buffer
-		int blockIndex = glGetUniformBlockIndex(shaderExecutable, "UboData");
+		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBufferObject);
 		glUniformBlockBinding(shaderExecutable, blockIndex, 0);
 

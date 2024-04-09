@@ -13,7 +13,6 @@ bool Application::Init()
 {
 	eventPusher.Create();
 
-
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>(); 
 	// create the ECS system
@@ -36,9 +35,6 @@ bool Application::Init()
 
 //bool Application::Run() 
 //{
-//	
-// 
-// 
 // ClearValue clrAndDepth[2];
 //	clrAndDepth[0].color = { {0, 0, 0, 1} };
 //	clrAndDepth[1].depthStencil = { 1.0f, 0u };

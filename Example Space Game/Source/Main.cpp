@@ -5,8 +5,10 @@
 int main()
 {
 	Application exampleSpaceGame;
-	if (exampleSpaceGame.Init()) {
-		if (exampleSpaceGame.Run()) {
+	if (exampleSpaceGame.Init()) 
+	{
+		if (exampleSpaceGame.Run()) 
+		{
 			return exampleSpaceGame.Shutdown() ? 0 : 1;
 		}
 	}

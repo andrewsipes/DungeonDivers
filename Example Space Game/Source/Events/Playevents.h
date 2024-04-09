@@ -6,11 +6,14 @@
 // example space game (avoid name collisions)
 namespace ESG
 {
-	enum PLAY_EVENT {
+	enum PLAY_EVENT 
+	{
 		ENEMY_DESTROYED,
 		EVENT_COUNT
 	};
-	struct PLAY_EVENT_DATA {
+
+	struct PLAY_EVENT_DATA 
+	{
 		flecs::id entity_id; // which entity was affected?
 	};
 }

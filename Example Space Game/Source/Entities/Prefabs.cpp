@@ -17,7 +17,8 @@ namespace ESG
 	bool RegisterPrefab(const char* prefabName, const flecs::entity inPrefab)
 	{
 		auto iter = prefabMap.find(prefabName);
-		if (iter == prefabMap.end()) {
+		if (iter == prefabMap.end()) 
+		{
 			prefabMap[std::string(prefabName)] = inPrefab;
 			return true;
 		}
@@ -26,7 +27,8 @@ namespace ESG
 	bool RetreivePrefab(const char* prefabName, flecs::entity& outPrefab)
 	{
 		auto iter = prefabMap.find(prefabName);
-		if (iter != prefabMap.end()) {
+		if (iter != prefabMap.end()) 
+		{
 			outPrefab = prefabMap[std::string(prefabName)];
 			return true;
 		}
@@ -35,7 +37,8 @@ namespace ESG
 	bool UnregisterPrefab(const char* prefabName)
 	{
 		auto iter = prefabMap.find(prefabName);
-		if (iter != prefabMap.end()) {
+		if (iter != prefabMap.end()) 
+		{
 			prefabMap.erase(iter);
 			return true;
 		}

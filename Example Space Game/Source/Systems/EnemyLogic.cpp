@@ -8,9 +8,7 @@
 using namespace ESG; // Example Space Game
 
 // Connects logic to traverse any players and allow a controller to manipulate them
-bool ESG::EnemyLogic::Init(std::shared_ptr<flecs::world> _game,
-	std::weak_ptr<const GameConfig> _gameConfig,
-	GW::CORE::GEventGenerator _eventPusher)
+bool ESG::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::CORE::GEventGenerator _eventPusher)
 {
 	// save a handle to the ECS & game settings
 	game = _game;
@@ -19,9 +17,11 @@ bool ESG::EnemyLogic::Init(std::shared_ptr<flecs::world> _game,
 
 	// destroy any bullets that have the CollidedWith relationship
 	game->system<Enemy, Health>("Enemy System")
-		.each([this](flecs::entity e, Enemy, Health& h) {
+		.each([this](flecs::entity e, Enemy, Health& h) 
+	{
 			// if you have no health left be destroyed
-			if (e.get<Health>()->value <= 0) {
+			if (e.get<Health>()->value <= 0) 
+			{
 				// play explode sound
 				e.destruct();
 				ESG::PLAY_EVENT_DATA x;
@@ -47,10 +47,12 @@ bool ESG::EnemyLogic::Shutdown()
 // Toggle if a system's Logic is actively running
 bool ESG::EnemyLogic::Activate(bool runSystem)
 {
-	if (runSystem) {
+	if (runSystem) 
+	{
 		game->entity("Enemy System").enable();
 	}
-	else {
+	else 
+	{
 		game->entity("Enemy System").disable();
 	}
 	return false;

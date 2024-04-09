@@ -79,42 +79,38 @@ bool Application::Init()
 //	return true;
 //}
 
-bool Application::Run() {
-
+bool Application::Run() 
+{
 	GEventResponder msgs;
 	float clr[] = { 194.0f / 255.0f, 51.0f / 255.0f, 29.0f / 255.0f, 1 }; // Buffer
 
-		msgs.Create([&](const GW::GEvent& e) {
-			GW::SYSTEM::GWindow::Events q;
-			if (+e.Read(q) && q == GWindow::Events::RESIZE)
-				clr[2] += 0.01f;
-			});
-		win.Register(msgs);
+	msgs.Create([&](const GW::GEvent& e) 
+	{
+		GW::SYSTEM::GWindow::Events q;
+		if (+e.Read(q) && q == GWindow::Events::RESIZE)
+			clr[2] += 0.01f;
+	});
+	win.Register(msgs);
 
-		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+	{
+		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
+		RendererManager rendererManager(win, ogl);
+
+		while (+win.ProcessWindowEvents())
 		{
-			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-			RendererManager rendererManager(win, ogl);
+			glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
-			while (+win.ProcessWindowEvents())
-			{
-				glClearColor(clr[0], clr[1], clr[2], clr[3]);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-				//Update camera then render
-				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
-				rendererManager.Render();
-
+			//Update camera then render
+			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+			rendererManager.Render();
 				
-				ogl.UniversalSwapBuffers();
-
-
-			}
+			ogl.UniversalSwapBuffers();
 		}
-	//}
+	}
 	return 0;
-
 }
 
 bool Application::Shutdown() 

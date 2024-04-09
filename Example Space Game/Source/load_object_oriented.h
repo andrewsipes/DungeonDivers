@@ -5,13 +5,11 @@
 //credit to stb image for their image uploader https://github.com/nothings/stb
 //credit to LearnOpenGL for the skybox tutorial and skybox images //credits to learnOpenGL https://learnopengl.com/Advanced-OpenGL/Cubemaps
 
-
 //converts degrees to radians
 float toRad(float degrees)
 {
 	return (degrees * 3.14159265358979323846 / 180);
 }
-
 
 // Used to print debug infomation from OpenGL, pulled straight from the official OpenGL wiki.
 void PrintLabeledDebugString(const char* label, const char* toPrint)
@@ -23,14 +21,10 @@ void PrintLabeledDebugString(const char* label, const char* toPrint)
 #endif
 }
 
-
 #ifndef NDEBUG
 void APIENTRY
-MessageCallback(GLenum source, GLenum type, GLuint id,
-	GLenum severity, GLsizei length,
-	const GLchar* message, const void* userParam) {
-
-
+MessageCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam) 
+{
 	std::string errMessage;
 	errMessage = (type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "");
 	errMessage += " type = ";
@@ -50,8 +44,8 @@ struct SUNLIGHT_DATA
 	GW::MATH::GVECTORF color, direction, ambient;
 };
 
-class Light {
-
+class Light 
+{
 public:
 	std::string name;
 	std::string type;
@@ -62,31 +56,36 @@ public:
 	float size;
 	float blend;
 
-	inline void SetName(std::string lightName) {
+	inline void SetName(std::string lightName) 
+	{
 		name = lightName;
 	}
 
-	inline void SetType(std::string lightType) {
+	inline void SetType(std::string lightType) 
+	{
 		type = lightType;
 	}
 
-	inline void setPosition(GW::MATH::GVECTORF lightPosition) {
+	inline void setPosition(GW::MATH::GVECTORF lightPosition) 
+	{
 		position = lightPosition;
 	}
 
-	inline void SetColor(GW::MATH::GVECTORF lightColor) {
+	inline void SetColor(GW::MATH::GVECTORF lightColor)
+	{
 		color = lightColor;
 	}
 
-	inline void SetPos(GW::MATH::GVECTORF lightPos) {
+	inline void SetPos(GW::MATH::GVECTORF lightPos) 
+	{
 		position = lightPos;
 	}
 
 	//takes in light power, and converts it to intensity
-	inline void SetIntensity(float lightPower) {
+	inline void SetIntensity(float lightPower) 
+	{
 		intensity = lightPower;
 	}
-
 };
 
 //this is what we can send to the shader for lighting
@@ -118,7 +117,8 @@ std::vector<LIGHT_DATA> lbo;
 unsigned int CubeMapTexture;
 
 // class Model contains everyhting needed to draw a single 3D model
-class Model {
+class Model 
+{
 public:
 
 	// Name of the Model in the GameLevel (useful for debugging)
@@ -148,21 +148,24 @@ public:
 		float  x, y, z, w;
 	};
 
-
-	inline void SetName(std::string modelName) {
+	inline void SetName(std::string modelName) 
+	{
 		name = modelName;
 	}
-	inline void SetWorldMatrix(GW::MATH::GMATRIXF worldMatrix) {
+
+	inline void SetWorldMatrix(GW::MATH::GMATRIXF worldMatrix) 
+	{
 		world = worldMatrix;
 	}
 
-	bool LoadModelDataFromDisk(const char* h2bPath) {
+	bool LoadModelDataFromDisk(const char* h2bPath) 
+	{
 		// if this succeeds "cpuModel" should now contain all the model's info
 		return cpuModel.Parse(h2bPath);
 	}
 
-	bool UploadModelData2GPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, std::vector<LIGHT_DATA> _lights) {
-
+	bool UploadModelData2GPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, std::vector<LIGHT_DATA> _lights) 
+	{
 		// TODO: Use chosen API to upload this model's graphics data to GPU
 		lbo = updateLights(_lights);
 		ubo = updateUboInstance(cpuModel.materials[0], world, _camera, _view, _projection, _sLight);
@@ -173,11 +176,10 @@ public:
 			createCubeMap(skyBox);  //credits to learnOpenGL for the skybox image https://learnopengl.com/Advanced-OpenGL/Cubemaps
 
 		return true;
-
 	}
 
-	bool DrawModel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) {
-
+	bool DrawModel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) 
+	{
 		// TODO: Use chosen API to setup the pipeline for this model and draw it
 
 		//Get Block Index, and Bind the Buffer
@@ -190,37 +192,37 @@ public:
 		glBindBufferBase(GL_UNIFORM_BUFFER, 1, lightBufferObject);
 		glUniformBlockBinding(shaderExecutable, lightBlockIndex, 1);
 		
-			//updates the buffers 
-			updateLightBufferObject(_lights);
-			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+		//updates the buffers 
+		updateLightBufferObject(_lights);
+		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 
-			//draw using elements instead for skybox
-			if (name == "skyBox"){
+		//draw using elements instead for skybox
+		if (name == "skyBox")
+		{
+			SetUpPipeline();
+			glDrawElements(GL_TRIANGLES, 36 * 2, GL_UNSIGNED_INT, 0); // we need to double the # of indices since we are using triangles since the mesh's index count 
+																	  // doesn't draw all triangles
+
+		}
+		else 
+		{
+			//Draw meshes - iterates through the meshes and materials to draw them individually.
+			for (int j = 0; j < cpuModel.meshCount; j++) 
+			{
+				updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], world, _camera, _view, _projection, _sLight);
 				SetUpPipeline();
-				glDrawElements(GL_TRIANGLES, 36 * 2, GL_UNSIGNED_INT, 0); // we need to double the # of indices since we are using triangles since the mesh's index count 
-																		  // doesn't draw all triangles
-
+				glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
 			}
-
-			else {
-
-				//Draw meshes - iterates through the meshes and materials to draw them individually.
-				for (int j = 0; j < cpuModel.meshCount; j++) {
-					updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], world, _camera, _view, _projection, _sLight);
-					SetUpPipeline();
-					glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
-				}
-			}
+		}
 			
 		glBindVertexArray(0);
 		glUseProgram(0);
 
-	
-
 		return true;
 	}
 
-	bool FreeResources(/*specific API device for unloading*/) {
+	bool FreeResources(/*specific API device for unloading*/) 
+	{
 		// TODO: Use chosen API to free all GPU resources used by this model
 
 		glDeleteBuffers(1, &vertexBufferObject);
@@ -287,7 +289,6 @@ public:
 		}
 	}
 
-
 	void CompileFragmentShader()
 	{
 		char errors[1024];
@@ -330,8 +331,8 @@ public:
 	}
 
 	//assigns ubo data to send to the shader
-	UBO_DATA updateUboInstance(H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
-
+	UBO_DATA updateUboInstance(H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) 
+	{
 		UBO_DATA _ubo;
 
 		_ubo.sunColor = _sLight.color;
@@ -388,7 +389,6 @@ public:
 		glGenBuffers(1, &indexBufferObject);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeInBytes, data, GL_STATIC_DRAW);
-
 	}
 
 	void CreateUBOBuffer(const void* data, unsigned int sizeInBytes)
@@ -396,36 +396,37 @@ public:
 		glGenBuffers(1, &UBOBufferObject);
 		glBindBuffer(GL_UNIFORM_BUFFER, UBOBufferObject);
 		glBufferData(GL_UNIFORM_BUFFER, sizeInBytes, data, GL_DYNAMIC_DRAW);
-
 	}
 
-	void CreateLightBuffer(const void* data, unsigned int sizeInBytes)	{
+	void CreateLightBuffer(const void* data, unsigned int sizeInBytes)	
+	{
 		glGenBuffers(1, &lightBufferObject);
 		glBindBuffer(GL_UNIFORM_BUFFER, lightBufferObject);
 		glBufferData(GL_UNIFORM_BUFFER, sizeInBytes, data, GL_DYNAMIC_DRAW);
-
 	}
-	void updateLightBufferObject(const std::vector <LIGHT_DATA>& _lights) {
 
+	void updateLightBufferObject(const std::vector <LIGHT_DATA>& _lights) 
+	{
 		glBindBuffer(GL_UNIFORM_BUFFER, lightBufferObject);
 		lbo = _lights;
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, (lbo.size() * sizeof(LIGHT_DATA)), lbo.data());
-
 	}
 
-	void updateVertexBufferObject(const void* newData, GLsizei dataSize) {
+	void updateVertexBufferObject(const void* newData, GLsizei dataSize) 
+	{
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBufferObject);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, dataSize, newData);
 	}
 
-	void updateIndexBufferObject(const void* newData, GLsizei dataSize) {
+	void updateIndexBufferObject(const void* newData, GLsizei dataSize) 
+	{
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBufferObject);
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, newData);
 	}
 
-	void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
-
+	void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) 
+	{
 		glBindBuffer(GL_UNIFORM_BUFFER, UBOBufferObject);
 		ubo = updateUboInstance(_material, _world, _camera, _view, _projection, _sLight);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ubo), &ubo);
@@ -433,11 +434,9 @@ public:
 
 	void SetUpPipeline()
 	{
-
 		glUseProgram(shaderExecutable);
 		glBindVertexArray(vertexArray);
 		SetVertexAttributes();
-
 
 		if (name == "skyBox")
 		{	
@@ -458,9 +457,9 @@ public:
 		glEnableVertexAttribArray(2);
 	}
 
-	// creats the texture id, and assigns the faces the texture in a loop
-	void createCubeMap(std::string filepath) {
-		
+	// creates the texture id, and assigns the faces the texture in a loop
+	void createCubeMap(std::string filepath) 
+	{
 		unsigned int texture;
 		int width, height, channels;
 		unsigned char* data;
@@ -495,14 +494,12 @@ public:
 		CubeMapTexture = texture;
 	}
 
-
 	//converts degrees to radians
 	float toRad(float degrees)
 	{
 		return (degrees * 3.14159265358979323846 / 180);
 	}
 };
-
 
 // * NOTE: *
 // Unlike the DOP version, this class was not designed to reuse data in anyway or process it efficiently.
@@ -515,8 +512,8 @@ public:
 // Effects like these expect your model set to be processed/traversed in unique ways which can be awkward.   
 
 // class Level_Objects is simply a list of all the Models currently used by the level
-class Level_Objects {
-
+class Level_Objects 
+{
 	// store all our models
 	std::list<Model> allObjectsInLevel;
 	// TODO: This could be a good spot for any global data like cameras or lights
@@ -532,16 +529,10 @@ class Level_Objects {
 	std::vector<LIGHT_DATA> LIGHTDATA;	//this vector uses the structure for lighting in the lbo, we use this to hold the necessary data until moved
 	std::vector<Light> lights;			//this vector will show all the data pulled from the textfile
 
-
-
 public:
-
-
 	// Imports the default level txt format and creates a Model from each .h2b
-	bool LoadLevel(const char* gameLevelPath,
-		const char* h2bFolderPath,
-		GW::SYSTEM::GLog log, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
-
+	bool LoadLevel(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) 
+	{
 		//light stuff RGBA
 		sunLightDir = { 1.0f, -1.0f, 2.0f, 0.0f };
 		GW::MATH::GVector::NormalizeF(sunLightDir, sunLightDir);
@@ -565,7 +556,8 @@ public:
 		UnloadLevel();// clear previous level data if there is any
 		GW::SYSTEM::GFile file;
 		file.Create();
-		if (-file.OpenTextRead(gameLevelPath)) {
+		if (-file.OpenTextRead(gameLevelPath)) 
+		{
 			log.LogCategorized(
 				"ERROR", (std::string("Game level not found: ") + gameLevelPath).c_str());
 			return false;
@@ -588,7 +580,8 @@ public:
 				modelFile += ".h2b";
 
 				//if the name of model is skybox, then we need to get the custom attribute
-				if (newModel.name == "skyBox") {
+				if (newModel.name == "skyBox") 
+				{
 					file.ReadLine(linebuffer, 1024, '\n');
 
 					std::string filepath = linebuffer;
@@ -598,7 +591,8 @@ public:
 
 				// now read the transform data as we will need that regardless
 				GW::MATH::GMATRIXF transform;
-				for (int i = 0; i < 4; ++i) {
+				for (int i = 0; i < 4; ++i) 
+				{
 					file.ReadLine(linebuffer, 1024, '\n');
 					// read floats
 					std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
@@ -615,12 +609,14 @@ public:
 				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
 				newModel.SetWorldMatrix(transform);
 				// If we find and load it add it to the level
-				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
+				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) 
+				{
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
 					allObjectsInLevel.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
-				else {
+				else 
+				{
 					// notify user that a model file is missing but continue loading
 					log.LogCategorized("ERROR",
 						(std::string("H2B Not Found: ") + modelFile).c_str());
@@ -644,18 +640,17 @@ public:
 				//read light type and assign it
 				file.ReadLine(linebuffer, 1024, '\n');
 
-
-				if (std::strcmp(linebuffer, "POINT") == 0) {
+				if (std::strcmp(linebuffer, "POINT") == 0) 
+				{
 
 					light.SetType("POINT");
 					light.blend = -1.0f;
 					light.size = -1.0f;
 				}
 
-				else if (std::strcmp(linebuffer, "SPOT") == 0) {
-
+				else if (std::strcmp(linebuffer, "SPOT") == 0) 
+				{
 					light.SetType("SPOT");
-				
 				}
 
 				log.LogCategorized("INFO", (std::string("LIGHT TYPE: ") + linebuffer).c_str());
@@ -715,7 +710,6 @@ public:
 
 					log.LogCategorized("INFO", (std::string("LIGHT SPOT SIZE: ") + linebuffer).c_str());
 
-
 					//read size 
 					file.ReadLine(linebuffer, 1024, '\n');
 
@@ -724,12 +718,12 @@ public:
 					light.blend = spotblend;
 
 					log.LogCategorized("INFO", (std::string("LIGHT SPOT BLEND: ") + linebuffer).c_str());
-
 				}
 
 				// now read the transform data as we will need that regardless
 				GW::MATH::GMATRIXF transform;
-				for (int i = 0; i < 4; ++i) {
+				for (int i = 0; i < 4; ++i) 
+				{
 					file.ReadLine(linebuffer, 1024, '\n');
 					// read floats
 					std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
@@ -752,7 +746,6 @@ public:
 		}
 
 		//Now we copy the data we can send to the shader to a seperate vector (for lights)
-
 		if (lights.size() > 16)
 		{
 			log.LogCategorized("ERROR", "You have more lights in the level than are currently supported. Only the first 16 will be supported");
@@ -785,40 +778,37 @@ public:
 		// level loaded into CPU ram
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
 
-	
-		
-
 		return true;
 	}
+
 	// Upload the CPU level to GPU
-	void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
+	void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) 
+	{
 		// iterate over each model and tell it to draw itself
-		for (auto& e : allObjectsInLevel) {
+		for (auto& e : allObjectsInLevel) 
+		{
 			e.UploadModelData2GPU(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
 		}
 
 	}
 	// Draws all objects in the level
-	void RenderLevel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
-
+	void RenderLevel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) 
+	{
 		// iterate over each model and tell it to draw itself
-		for (auto& e : allObjectsInLevel) {
+		for (auto& e : allObjectsInLevel) 
+		{
 			e.DrawModel(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
 
 		}
-
-		
 	}
 
-
 	// used to wipe CPU & GPU level data between levels
-	void UnloadLevel() {
+	void UnloadLevel() 
+	{
 		allObjectsInLevel.clear();
 	}
 	// *THIS APPROACH COMBINES DATA & LOGIC* 
 	// *WITH THIS APPROACH THE CURRENT RENDERER SHOULD BE JUST AN API MANAGER CLASS*
 	// *ALL ACTUAL GPU LOADING AND RENDERING SHOULD BE HANDLED BY THE MODEL CLASS* 
 	// For example: anything that is not a global API object should be encapsulated.
-
-
 };

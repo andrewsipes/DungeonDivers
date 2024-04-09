@@ -1,3 +1,4 @@
 # Contents of build folder should always be ignored in CMake
 */build
 *.cso
+Example Space Game/LevelLoaderLog.txt

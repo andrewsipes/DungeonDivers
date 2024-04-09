@@ -1,9 +1,6 @@
 #include "./Application.h"
 #include "./renderer.h"
 
-// open some Gateware namespaces for conveinence 
-// NEVER do this in a header file!
-
 #define WIN_HEIGHT 600;
 #define WIN_WIDTH 800;
 
@@ -15,6 +12,7 @@ using namespace GRAPHICS;
 bool Application::Init() 
 {
 	eventPusher.Create();
+
 
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>(); 
@@ -28,11 +26,11 @@ bool Application::Init()
 	if (InitAudio() == false)
 		return false;
 	//if (InitGraphics() == false)
-		//return false;
+	//	return false;
 	if (InitEntities() == false)
 		return false;
 	//if (InitSystems() == false)
-		//return false;
+	//	return false;
 	return true;
 }
 
@@ -84,17 +82,7 @@ bool Application::Init()
 bool Application::Run() {
 
 	GEventResponder msgs;
-
-	int width = WIN_WIDTH;
-	int height = WIN_HEIGHT;
-
-	if (+win.Create(0, 0, width, height, GWindowStyle::WINDOWEDBORDERED))
-	{
-
-
-		float clr[] = { 194.0f / 255.0f, 51.0f / 255.0f, 29.0f / 255.0f, 1 }; // Buffer
-
-		win.SetWindowName("UntitledGame - Blue2404"); //Set Window Name
+	float clr[] = { 194.0f / 255.0f, 51.0f / 255.0f, 29.0f / 255.0f, 1 }; // Buffer
 
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
@@ -102,6 +90,7 @@ bool Application::Run() {
 				clr[2] += 0.01f;
 			});
 		win.Register(msgs);
+
 		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
@@ -114,15 +103,16 @@ bool Application::Run() {
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				//Update camera then render
-				rendererManager.UpdateCamera(width, height);
+				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
 				rendererManager.Render();
 
+				
 				ogl.UniversalSwapBuffers();
 
 
 			}
 		}
-	}
+	//}
 	return 0;
 
 }
@@ -134,8 +124,8 @@ bool Application::Shutdown()
 		return false;
 	if (levelSystem.Shutdown() == false)
 		return false;
-	/*if (vkRenderingSystem.Shutdown() == false)
-		return false;*/
+	//if (vkRenderingSystem.Shutdown() == false)
+		//return false;
 	if (physicsSystem.Shutdown() == false)
 		return false;
 	if (bulletSystem.Shutdown() == false)
@@ -145,7 +135,6 @@ bool Application::Shutdown()
 
 	return true;
 }
-
 bool Application::InitWindow()
 {
 	// grab settings

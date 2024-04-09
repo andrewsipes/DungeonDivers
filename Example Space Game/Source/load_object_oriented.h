@@ -167,7 +167,6 @@ public:
 		lbo = updateLights(_lights);
 		ubo = updateUboInstance(cpuModel.materials[0], world, _camera, _view, _projection, _sLight);
 
-
 		InitializeGraphics();
 		
 		if(name == "skyBox")
@@ -227,6 +226,7 @@ public:
 		glDeleteBuffers(1, &vertexBufferObject);
 		glDeleteBuffers(1, &indexBufferObject);
 		glDeleteBuffers(1, &UBOBufferObject);
+		glDeleteBuffers(1, &lightBufferObject);
 		glDeleteVertexArrays(1, &vertexArray);
 		glBindVertexArray(0);
 		return true;

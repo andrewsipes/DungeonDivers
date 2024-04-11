@@ -105,8 +105,6 @@ bool Application::Run() {
 				//Update camera then render
 				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
 				rendererManager.Render();
-
-				
 				ogl.UniversalSwapBuffers();
 
 

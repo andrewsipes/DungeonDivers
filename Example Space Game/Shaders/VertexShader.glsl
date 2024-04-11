@@ -49,8 +49,6 @@ out vec3 coords;
 uniform bool isUi;
 uniform samplerCube skybox;
 
-uniform bool isText;
-
 
 void main()
 {

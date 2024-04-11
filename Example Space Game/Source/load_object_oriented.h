@@ -84,7 +84,7 @@ public:
 		return cpuModel.Parse(h2bPath);
 	}
 
-	bool UploadModelData2GPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, std::vector<LIGHT_DATA> _lights) {
+	bool UploadModelData2GPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, std::vector<LIGHT_DATA> _lights){
 
 		// TODO: Use chosen API to upload this model's graphics data to GPU
 		lbo = updateLights(_lights);
@@ -99,7 +99,7 @@ public:
 
 	}
 
-	bool DrawModel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) {
+	virtual bool DrawModel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) {
 
 		// TODO: Use chosen API to setup the pipeline for this model and draw it
 
@@ -251,7 +251,7 @@ public:
 	}
 
 	//assigns ubo data to send to the shader
-	UBO_DATA updateUboInstance(H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
+	virtual UBO_DATA updateUboInstance(H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
 
 		UBO_DATA _ubo;
 
@@ -345,7 +345,7 @@ public:
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, newData);
 	}
 
-	void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
+	virtual void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
 
 		glBindBuffer(GL_UNIFORM_BUFFER, UBOBufferObject);
 		ubo = updateUboInstance(_material, _world, _camera, _view, _projection, _sLight);
@@ -429,10 +429,8 @@ public:
 // class Level_Objects is simply a list of all the Models currently used by the level
 class Level_Objects {
 
-	// TODO: This could be a good spot for any global data like cameras or lights
 
-
-public:
+private:
 	// store all our models
 	std::vector<Model> allObjectsInLevel;
 
@@ -447,10 +445,7 @@ public:
 	std::vector<LIGHT_DATA> LIGHTDATA;	//this vector uses the structure for lighting in the lbo, we use this to hold the necessary data until moved
 	std::vector<Light> lights;			//this vector will show all the data pulled from the textfile
 
-
-
-
-
+public:
 	// Imports the default level txt format and creates a Model from each .h2b
 	bool virtual LoadMeshes(const char* gameLevelPath,
 		const char* h2bFolderPath,
@@ -705,7 +700,7 @@ public:
 		return true;
 	}
 	// Upload the CPU level to GPU
-	virtual void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
+	void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allObjectsInLevel) {
 			e.UploadModelData2GPU(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
@@ -713,7 +708,7 @@ public:
 
 	}
 	// Draws all objects in the level
-	void virtual Render(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
+	void Render(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allObjectsInLevel) {
@@ -736,3 +731,5 @@ public:
 
 
 };
+
+

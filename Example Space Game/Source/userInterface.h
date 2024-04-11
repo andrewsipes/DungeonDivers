@@ -2,9 +2,10 @@
 
 class uiModel : public Model
 {
-	bool render;
 
 public:
+	bool render;
+
 	uiModel()
 	{
 		render = false;
@@ -20,10 +21,75 @@ public:
 		glUniform1i(glGetUniformLocation(shaderExecutable, "isUi"), isUi);
 	}
 
+	void updateUniformBufferObject(const H2B::MATERIAL _material) {
+
+		glBindBuffer(GL_UNIFORM_BUFFER, UBOBufferObject);
+		ubo = updateUboInstance(_material);
+		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ubo), &ubo);
+	}
+
+	//assigns ubo data to send to the shader
+	UBO_DATA updateUboInstance(H2B::MATERIAL _material){
+
+		UBO_DATA _ubo;
+
+		//material
+		_ubo.material.Kd = _material.attrib.Kd;
+		_ubo.material.d = _material.attrib.d;
+		_ubo.material.illum = _material.attrib.illum;
+		_ubo.material.Ka = _material.attrib.Ka;
+		_ubo.material.Kd = _material.attrib.Kd;
+		_ubo.material.Ke = _material.attrib.Ke;
+		_ubo.material.Ks = _material.attrib.Ks;
+		_ubo.material.Ni = _material.attrib.Ni;
+		_ubo.material.Ns = _material.attrib.Ns;
+		_ubo.material.sharpness = _material.attrib.sharpness;
+		_ubo.material.Tf = _material.attrib.Tf;
+
+		return _ubo;
+	}
+
+	bool DrawModel(){
+
+		//Get Block Index, and Bind the Buffer
+		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBufferObject);
+		glUniformBlockBinding(shaderExecutable, blockIndex, 0);
+
+		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+
+		//Draw meshes - iterates through the meshes and materials to draw them individually.
+		for (int j = 0; j < cpuModel.meshCount; j++) {
+			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex]);
+			SetUpPipeline();
+			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
+		}
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		return true;
+
+	}
+
+	bool UploadModelData2GPU() {
+
+	
+		ubo = updateUboInstance(cpuModel.materials[0]);
+
+		InitializeGraphics();
+
+
+		return true;
+
+	}
+
 
 };
 
-class uiPanel : public Level_Objects
+//UI panel class that works similar to Level_Objects
+//UI elements are read from a text file and they render themselves.
+class uiPanel : Level_Objects
 {
 public:
 	bool render;
@@ -83,19 +149,26 @@ public:
 
 
 	// Draws all objects in the level
-	void Render(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) override{
+	void Render() {
 
 		// iterate over each model and tell it to draw itself
-		for (auto& e : allUiObjectsInLevel) {
-			e.DrawModel(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
+		if (render)
+		{
+			for (auto& e : allUiObjectsInLevel) {
+			
+				if (e.render)
+				{
+				e.DrawModel();
+
+				}
+
+			}
 		}
 
 
 	}
 
-	bool LoadMeshes(const char* gameLevelPath,
-		const char* h2bFolderPath,
-		GW::SYSTEM::GLog log, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) override
+	bool LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log)
 	{
 
 		log.Create("../UILevelLoaderLog.txt");
@@ -162,24 +235,32 @@ public:
 		}
 
 
-
 		log.LogCategorized("MESSAGE", "Game Level File Reading Complete.");
 		// level loaded into CPU ram
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
-
-
 
 
 		return true;
 	}
 
 	// Upload the CPU level to GPU
-	void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) override{
+	void UploadLevelToGPU() {
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allUiObjectsInLevel) {
-			e.UploadModelData2GPU(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
+			e.UploadModelData2GPU();
 		}
 
+	}
+
+	// used to wipe CPU & GPU level data between levels
+	void UnloadLevel() override{
+		allUiObjectsInLevel.clear();
+	}
+
+
+	//toggles a UI panel on and off
+	void togglePanel() {
+		render = !render;
 	}
 };
 	

@@ -1,9 +1,11 @@
 
+//holds the sunlightdata
 struct SUNLIGHT_DATA
 {
 	GW::MATH::GVECTORF color, direction, ambient;
 };
 
+//the data we can parse from the lights
 class Light {
 
 public:
@@ -71,7 +73,12 @@ std::vector<LIGHT_DATA> lbo;
 //holds the textureID for the skybox
 unsigned int CubeMapTexture;
 
+//vertex struct
 struct Vertex
 {
 	float  x, y, z, w;
 };
+
+
+
+

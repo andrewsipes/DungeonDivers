@@ -30,8 +30,8 @@ public:
 	{
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
-		bool success = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		bool success2 = playerHUD.LoadMeshes("../ui.txt", "../uiModels", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		bool playerHUDSuccess = playerHUD.LoadMeshes("../ui.txt", "../uiModels", log.Relinquish());
 
 	
 		win = _win;
@@ -50,12 +50,15 @@ public:
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
 	
 		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		startPlayerHUD();
 		arrangePlayerHUD();
-		playerHUD.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD.togglePanel();
+		playerHUD.UploadLevelToGPU();
 
 		organizePanels();
 		
 	}
+
 
 	//place all ui panels in a vector
 	void organizePanels() {
@@ -63,14 +66,25 @@ public:
 		panels.push_back(playerHUD);
 	}
 
+	//updates the vertices for the player HUD to be in their correct positions
 	void arrangePlayerHUD() {
-		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[0], 0.2f);
 
+		//HEALTH TEXT
+		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[0], 0.2f);
 		GW::MATH::GVECTORF translate = { 0.9, -0.9, 0.0 };
 		playerHUD.translateObject(playerHUD.allUiObjectsInLevel[0], translate);
-
 		playerHUD.rotateObjectYAxis(playerHUD.allUiObjectsInLevel[0], 180);
+
+
 	}
+
+
+	//turns default player HUD options on
+	void startPlayerHUD(){
+		playerHUD.allUiObjectsInLevel[0].render = true;
+	}
+
+
 
 	//initializes a world matrix and sets it to identity
 	GW::MATH::GMATRIXF initializeWorldMatrix()
@@ -223,11 +237,12 @@ public:
 		callTime = currTime;
 	}
 
+	//Render Loop for all objects (place Panels and Levels here);
 	void Render()
 	{
 
 		lvl.Render(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD.Render(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD.Render();
 
 
 	}

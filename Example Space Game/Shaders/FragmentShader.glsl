@@ -47,6 +47,8 @@ in vec3 worldPos;
 in vec3 coords;
 out vec4 Pixel;
 
+uniform bool isUi;
+
 void main() 
 {   
    if (isSkybox) {
@@ -54,6 +56,11 @@ void main()
         Pixel = texture(skybox, coords);
         return;
     }
+
+   else if(isUi){
+
+    Pixel = vec4(ubo.material.Kd, 1.0);
+   }
 
    else {
       

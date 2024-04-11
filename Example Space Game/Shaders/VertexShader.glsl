@@ -51,8 +51,8 @@ uniform samplerCube skybox;
 
 void main()
 {
-
-    gl_Position = ubo.pMatrix * ubo.vMatrix * ubo.wMatrix * vec4(pos,1);
+    //ubo.pMatrix * ubo.vMatrix * ubo.wMatrix * 
+    gl_Position = vec4(pos,1);
     coords = pos;
 
     //Get World Position

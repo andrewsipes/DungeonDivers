@@ -1,5 +1,16 @@
-#pragma once
 #include "./load_object_oriented.h"
+
+class uiModel : public Model
+{
+	bool render;
+
+public:
+	uiModel()
+	{
+		render = false;
+	}
+};
+
 class uiPanel {
 
 	std::vector <Model> objects; //holds the models in the panel;
@@ -15,7 +26,7 @@ public:
 	}
 
 	//scales a model's vertices
-	void scaleObject(Model &object, float scale) {
+	void scaleObject(uiModel &object, float scale) {
 
 		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
 			object.cpuModel.vertices[i].pos.x *= scale;
@@ -26,7 +37,7 @@ public:
 	}
 
 	//translate's a model
-	void translateObject(Model &object, GW::MATH::GVECTORF translate) {
+	void translateObject(uiModel &object, GW::MATH::GVECTORF translate) {
 
 		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
 			object.cpuModel.vertices[i].pos.x += translate.x;
@@ -37,7 +48,7 @@ public:
 	}
 
 	//rotates around the y
-	void rotateObjectYAxis(Model& object, float degrees) {
+	void rotateObjectYAxis(uiModel& object, float degrees) {
 		float cosTheta = cos(toRad(degrees));
 		float sinTheta = sin(toRad(degrees));
 		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
@@ -49,7 +60,7 @@ public:
 	}
 
 	//rotates around the x
-	void rotateObjectXAxis(Model& object, float degrees) {
+	void rotateObjectXAxis(uiModel& object, float degrees) {
 		float cosTheta = cos(toRad(degrees));
 		float sinTheta = sin(toRad(degrees));
 		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
@@ -60,3 +71,90 @@ public:
 		}
 	}
 };
+
+
+class ui_objects : public Level_Objects
+{
+	bool LoadMeshes(const char* gameLevelPath,
+		const char* h2bFolderPath,
+		GW::SYSTEM::GLog log, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) override
+	{
+
+		log.Create("../UILevelLoaderLog.txt");
+		log.LogCategorized("EVENT", "LOADING GAME LEVEL [OBJECT ORIENTED]");
+		log.LogCategorized("MESSAGE", "Begin Reading Game Level Text File.");
+
+		UnloadLevel();// clear previous level data if there is any
+		GW::SYSTEM::GFile file;
+		file.Create();
+		if (-file.OpenTextRead(gameLevelPath)) {
+			log.LogCategorized(
+				"ERROR", (std::string("Game level not found: ") + gameLevelPath).c_str());
+			return false;
+		}
+		char linebuffer[1024];
+		while (+file.ReadLine(linebuffer, 1024, '\n')) {
+			// having to have this is a bug, need to have Read/ReadLine return failure at EOF
+			if (linebuffer[0] == '\0')
+				break;
+			if (std::strcmp(linebuffer, "MESH") == 0) {
+				Model newModel;
+				file.ReadLine(linebuffer, 1024, '\n');
+				log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
+				// create the model file name from this (strip the .001)
+				newModel.SetName(linebuffer);
+				std::string modelFile = linebuffer;
+				modelFile = modelFile.substr(0, modelFile.find_last_of("."));
+				modelFile += ".h2b";
+
+				// now read the transform data as we will need that regardless
+				GW::MATH::GMATRIXF transform;
+				for (int i = 0; i < 4; ++i) {
+					file.ReadLine(linebuffer, 1024, '\n');
+					// read floats
+					std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
+						&transform.data[0 + i * 4], &transform.data[1 + i * 4],
+						&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
+				}
+				std::string loc = "Location: X ";
+				loc += std::to_string(transform.row4.x) + " Y " +
+					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
+				log.LogCategorized("INFO", loc.c_str());
+
+				// Add new model to list of all Models
+				log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
+				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
+				newModel.SetWorldMatrix(transform);
+				// If we find and load it add it to the level
+				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
+					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
+					allObjectsInLevel.push_back(std::move(newModel));
+					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
+				}
+				else {
+					// notify user that a model file is missing but continue loading
+					log.LogCategorized("ERROR",
+						(std::string("H2B Not Found: ") + modelFile).c_str());
+					log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
+				}
+				log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
+			}
+
+
+		}
+
+
+
+		log.LogCategorized("MESSAGE", "Game Level File Reading Complete.");
+		// level loaded into CPU ram
+		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
+
+
+
+
+		return true;
+	}
+};
+	
+
+

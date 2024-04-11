@@ -1,6 +1,5 @@
 #include "./h2bParser.h"
-#include "./load_object_oriented.h"
-
+#include "./userInterface.h"
 // Creation, Rendering & Cleanup
 class RendererManager
 {
@@ -20,6 +19,11 @@ class RendererManager
 	//create level
 	Level_Objects lvl;
 
+	std::vector <uiPanel> panels;
+
+	//HUDs
+	uiPanel playerHUD;
+
 
 public:
 
@@ -27,7 +31,7 @@ public:
 	{
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
-		bool success = lvl.LoadLevel("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		bool success = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
 	
 		win = _win;
 		ogl = _ogl;
@@ -46,7 +50,15 @@ public:
 	
 		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
+		organizePanels();
+
 		
+	}
+
+	//place all ui panels in a vector
+	void organizePanels() {
+
+		panels.push_back(playerHUD);
 	}
 
 	//initializes a world matrix and sets it to identity

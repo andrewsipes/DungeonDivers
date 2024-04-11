@@ -199,7 +199,6 @@ public:
 				SetUpPipeline();
 				glDrawElements(GL_TRIANGLES, 36 * 2, GL_UNSIGNED_INT, 0); // we need to double the # of indices since we are using triangles since the mesh's index count 
 																		  // doesn't draw all triangles
-
 			}
 
 			else {
@@ -517,8 +516,6 @@ public:
 // class Level_Objects is simply a list of all the Models currently used by the level
 class Level_Objects {
 
-	// store all our models
-	std::list<Model> allObjectsInLevel;
 	// TODO: This could be a good spot for any global data like cameras or lights
 
 	//sunLight stuff
@@ -536,9 +533,11 @@ class Level_Objects {
 
 public:
 
+	// store all our models
+	std::list<Model> allObjectsInLevel;
 
 	// Imports the default level txt format and creates a Model from each .h2b
-	bool LoadLevel(const char* gameLevelPath,
+	bool virtual LoadMeshes(const char* gameLevelPath,
 		const char* h2bFolderPath,
 		GW::SYSTEM::GLog log, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 

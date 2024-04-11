@@ -6086,3 +6086,19 @@
 [Thu Apr 11 13:38:36 2024] ThreadID[152304]	[MESSAGE]	The first 16 lights have been imported
 [Thu Apr 11 13:38:36 2024] ThreadID[152304]	[MESSAGE]	Game Level File Reading Complete.
 [Thu Apr 11 13:38:36 2024] ThreadID[152304]	[EVENT]	GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[EVENT]	LOADING GAME LEVEL [OBJECT ORIENTED]
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[MESSAGE]	Begin Reading Game Level Text File.
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[INFO]	Model Detected: Text2
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[INFO]	Location: X 0.000000 Y 0.000000 Z 0.000000
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[MESSAGE]	Begin Importing .H2B File Data.
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[INFO]	H2B Imported: ../Models/Text2.h2b
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[INFO]	Model Detected: Text1
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[INFO]	Location: X 0.000000 Y 0.000000 Z 0.000000
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[MESSAGE]	Begin Importing .H2B File Data.
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[INFO]	H2B Imported: ../Models/Text1.h2b
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[MESSAGE]	All lights have been imported
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[MESSAGE]	The first 16 lights have been imported
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[MESSAGE]	Game Level File Reading Complete.
+[Thu Apr 11 15:01:27 2024] ThreadID[155808]	[EVENT]	GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]

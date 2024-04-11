@@ -19,10 +19,9 @@ class RendererManager
 	//create level
 	Level_Objects lvl;
 
-	std::vector <uiPanel> panels;
-
-	//HUDs
+	//ui panels
 	uiPanel playerHUD;
+	std::vector <uiPanel> panels;
 
 
 public:
@@ -32,6 +31,8 @@ public:
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
 		bool success = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		bool success2 = playerHUD.LoadMeshes("../ui.txt", "../uiModels", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+
 	
 		win = _win;
 		ogl = _ogl;
@@ -49,9 +50,10 @@ public:
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
 	
 		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		arrangePlayerHUD();
+		playerHUD.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 		organizePanels();
-
 		
 	}
 
@@ -59,6 +61,15 @@ public:
 	void organizePanels() {
 
 		panels.push_back(playerHUD);
+	}
+
+	void arrangePlayerHUD() {
+		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[0], 0.2f);
+
+		GW::MATH::GVECTORF translate = { 0.9, -0.9, 0.0 };
+		playerHUD.translateObject(playerHUD.allUiObjectsInLevel[0], translate);
+
+		playerHUD.rotateObjectYAxis(playerHUD.allUiObjectsInLevel[0], 180);
 	}
 
 	//initializes a world matrix and sets it to identity
@@ -215,7 +226,8 @@ public:
 	void Render()
 	{
 
-		lvl.RenderLevel(ogl, cameraMatrix, viewMatrix, projectionMatrix);	
+		lvl.Render(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD.Render(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 
 	}

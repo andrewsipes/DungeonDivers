@@ -9,15 +9,25 @@ public:
 	{
 		render = false;
 	}
+
+	void SetUpPipeline() override{
+
+		glUseProgram(shaderExecutable);
+		glBindVertexArray(vertexArray);
+		SetVertexAttributes();
+		
+		bool isUi = true;
+		glUniform1i(glGetUniformLocation(shaderExecutable, "isUi"), isUi);
+	}
+
+
 };
 
-class uiPanel {
-
-	std::vector <Model> objects; //holds the models in the panel;
-	bool render;				//turns the panel on or off
-
-
+class uiPanel : public Level_Objects
+{
 public:
+	bool render;
+	std::vector<uiModel> allUiObjectsInLevel;
 
 	uiPanel() {
 
@@ -26,7 +36,7 @@ public:
 	}
 
 	//scales a model's vertices
-	void scaleObject(uiModel &object, float scale) {
+	void scaleObject(uiModel& object, float scale) {
 
 		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
 			object.cpuModel.vertices[i].pos.x *= scale;
@@ -37,12 +47,12 @@ public:
 	}
 
 	//translate's a model
-	void translateObject(uiModel &object, GW::MATH::GVECTORF translate) {
+	void translateObject(uiModel& object, GW::MATH::GVECTORF translate) {
 
 		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
 			object.cpuModel.vertices[i].pos.x += translate.x;
-			object.cpuModel.vertices[i].pos.z += translate.y;
-			object.cpuModel.vertices[i].pos.y += translate.z;
+			object.cpuModel.vertices[i].pos.y += translate.y;
+			object.cpuModel.vertices[i].pos.z += translate.z;
 
 		}
 	}
@@ -70,11 +80,19 @@ public:
 			object.cpuModel.vertices[i].pos.z = y * sinTheta + z * cosTheta;
 		}
 	}
-};
 
 
-class ui_objects : public Level_Objects
-{
+	// Draws all objects in the level
+	void Render(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) override{
+
+		// iterate over each model and tell it to draw itself
+		for (auto& e : allUiObjectsInLevel) {
+			e.DrawModel(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
+		}
+
+
+	}
+
 	bool LoadMeshes(const char* gameLevelPath,
 		const char* h2bFolderPath,
 		GW::SYSTEM::GLog log, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) override
@@ -98,7 +116,7 @@ class ui_objects : public Level_Objects
 			if (linebuffer[0] == '\0')
 				break;
 			if (std::strcmp(linebuffer, "MESH") == 0) {
-				Model newModel;
+				uiModel newModel;
 				file.ReadLine(linebuffer, 1024, '\n');
 				log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
 				// create the model file name from this (strip the .001)
@@ -128,7 +146,7 @@ class ui_objects : public Level_Objects
 				// If we find and load it add it to the level
 				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
-					allObjectsInLevel.push_back(std::move(newModel));
+					allUiObjectsInLevel.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
 				else {
@@ -153,6 +171,15 @@ class ui_objects : public Level_Objects
 
 
 		return true;
+	}
+
+	// Upload the CPU level to GPU
+	void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) override{
+		// iterate over each model and tell it to draw itself
+		for (auto& e : allUiObjectsInLevel) {
+			e.UploadModelData2GPU(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
+		}
+
 	}
 };
 	

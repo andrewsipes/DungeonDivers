@@ -1,6 +1,7 @@
 #include "./FileIntoString.h"
 #include "./stb_image.h"
 #include "./OpenGLExtensions.h"
+#include "./defines.h"
 
 //credit to stb image for their image uploader https://github.com/nothings/stb
 //credit to LearnOpenGL for the skybox tutorial and skybox images //credits to learnOpenGL https://learnopengl.com/Advanced-OpenGL/Cubemaps
@@ -11,7 +12,6 @@ float toRad(float degrees)
 {
 	return (degrees * 3.14159265358979323846 / 180);
 }
-
 
 // Used to print debug infomation from OpenGL, pulled straight from the official OpenGL wiki.
 void PrintLabeledDebugString(const char* label, const char* toPrint)
@@ -45,77 +45,6 @@ MessageCallback(GLenum source, GLenum type, GLuint id,
 }
 #endif
 
-struct SUNLIGHT_DATA
-{
-	GW::MATH::GVECTORF color, direction, ambient;
-};
-
-class Light {
-
-public:
-	std::string name;
-	std::string type;
-	GW::MATH::GVECTORF position;
-	GW::MATH::GVECTORF color;
-	float intensity;
-	float radius;
-	float size;
-	float blend;
-
-	inline void SetName(std::string lightName) {
-		name = lightName;
-	}
-
-	inline void SetType(std::string lightType) {
-		type = lightType;
-	}
-
-	inline void setPosition(GW::MATH::GVECTORF lightPosition) {
-		position = lightPosition;
-	}
-
-	inline void SetColor(GW::MATH::GVECTORF lightColor) {
-		color = lightColor;
-	}
-
-	inline void SetPos(GW::MATH::GVECTORF lightPos) {
-		position = lightPos;
-	}
-
-	//takes in light power, and converts it to intensity
-	inline void SetIntensity(float lightPower) {
-		intensity = lightPower;
-	}
-
-};
-
-//this is what we can send to the shader for lighting
-struct LIGHT_DATA
-{
-	GW::MATH::GVECTORF position;
-	GW::MATH::GVECTORF color;
-	int intensity;
-	float radius;
-	float size = -1;
-	float blend = -1;
-
-};
-
-//uniform buffer data
-struct UBO_DATA
-{
-	GW::MATH::GVECTORF sunColor, sunDirection, sunAmbient;
-	GW::MATH::GMATRIXF _cam, _view, _proj, _world;
-	H2B::ATTRIBUTES material;
-	int numLights;
-
-} ubo;
-
-//vector of lights - this will be sent to the uniform 
-std::vector<LIGHT_DATA> lbo;
-
-//holds the textureID for the skybox
-unsigned int CubeMapTexture;
 
 // class Model contains everyhting needed to draw a single 3D model
 class Model {
@@ -142,12 +71,6 @@ public:
 	GLuint vertexShader;
 	GLuint fragmentShader;
 	GLuint shaderExecutable;
-
-	struct Vertex
-	{
-		float  x, y, z, w;
-	};
-
 
 	inline void SetName(std::string modelName) {
 		name = modelName;
@@ -285,7 +208,6 @@ public:
 			return;
 		}
 	}
-
 
 	void CompileFragmentShader()
 	{
@@ -430,8 +352,7 @@ public:
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ubo), &ubo);
 	}
 
-	void SetUpPipeline()
-	{
+	virtual void SetUpPipeline() {
 
 		glUseProgram(shaderExecutable);
 		glBindVertexArray(vertexArray);
@@ -444,6 +365,8 @@ public:
 			glUniform1i(glGetUniformLocation(shaderExecutable, "isSkybox"), isSkybox);
 			glUniform1i(glGetUniformLocation(shaderExecutable, "skybox"), 0);
 		}
+
+
 	}
 
 	void SetVertexAttributes()
@@ -503,20 +426,15 @@ public:
 };
 
 
-// * NOTE: *
-// Unlike the DOP version, this class was not designed to reuse data in anyway or process it efficiently.
-// You can find ways to make it more efficient by sharing pointers to resources and sorting the models.
-// However, this is tricky to implement and can be prone to errors. (OOP data isolation becomes an issue)
-// A huge positive is that everything you want to draw is totally self contained and easy to see/find.
-// This means updating matricies, adding new objects & removing old ones from the world is a breeze. 
-// You can even easily load brand new models from disk at run-time without much trouble.
-// The last major downside is trying to do things like dynamic lights, shadows and sorted transparency. 
-// Effects like these expect your model set to be processed/traversed in unique ways which can be awkward.   
-
 // class Level_Objects is simply a list of all the Models currently used by the level
 class Level_Objects {
 
 	// TODO: This could be a good spot for any global data like cameras or lights
+
+
+public:
+	// store all our models
+	std::vector<Model> allObjectsInLevel;
 
 	//sunLight stuff
 	SUNLIGHT_DATA sunLight;
@@ -531,10 +449,7 @@ class Level_Objects {
 
 
 
-public:
 
-	// store all our models
-	std::list<Model> allObjectsInLevel;
 
 	// Imports the default level txt format and creates a Model from each .h2b
 	bool virtual LoadMeshes(const char* gameLevelPath,
@@ -790,7 +705,7 @@ public:
 		return true;
 	}
 	// Upload the CPU level to GPU
-	void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
+	virtual void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allObjectsInLevel) {
 			e.UploadModelData2GPU(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
@@ -798,7 +713,7 @@ public:
 
 	}
 	// Draws all objects in the level
-	void RenderLevel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
+	void virtual Render(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allObjectsInLevel) {
@@ -811,7 +726,7 @@ public:
 
 
 	// used to wipe CPU & GPU level data between levels
-	void UnloadLevel() {
+	virtual void UnloadLevel() {
 		allObjectsInLevel.clear();
 	}
 	// *THIS APPROACH COMBINES DATA & LOGIC* 

@@ -33,6 +33,8 @@ public:
 
 		UBO_DATA _ubo;
 
+		_ubo._world = world;
+
 		//material
 		_ubo.material.Kd = _material.attrib.Kd;
 		_ubo.material.d = _material.attrib.d;
@@ -62,6 +64,7 @@ public:
 		for (int j = 0; j < cpuModel.meshCount; j++) {
 			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex]);
 			SetUpPipeline();
+			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
 		}
 
@@ -102,12 +105,12 @@ public:
 	}
 
 	//scales a model's vertices
-	void scaleObject(uiModel& object, float scale) {
+	void scaleObject(uiModel& object, double scale) {
 
-		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
-			object.cpuModel.vertices[i].pos.x *= scale;
-			object.cpuModel.vertices[i].pos.z *= scale;
-			object.cpuModel.vertices[i].pos.y *= scale;
+		for (int i = 0; i < object.cpuModel.vertexCount; i++) {
+			object.cpuModel.vertices[i].pos.x = (double)object.cpuModel.vertices[i].pos.x * scale;
+			object.cpuModel.vertices[i].pos.y = (double)object.cpuModel.vertices[i].pos.y * scale;
+			object.cpuModel.vertices[i].pos.z = (double)object.cpuModel.vertices[i].pos.z * scale;
 
 		}
 	}
@@ -158,7 +161,7 @@ public:
 			
 				if (e.render)
 				{
-				e.DrawModel();
+					e.DrawModel();
 
 				}
 

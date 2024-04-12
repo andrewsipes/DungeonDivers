@@ -51,8 +51,8 @@ public:
 	
 		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		startPlayerHUD();
-		arrangePlayerHUD();
 		playerHUD.togglePanel();
+		arrangePlayerHUD();
 		playerHUD.UploadLevelToGPU();
 
 		organizePanels();
@@ -69,19 +69,43 @@ public:
 	//updates the vertices for the player HUD to be in their correct positions
 	void arrangePlayerHUD() {
 
-		//HEALTH TEXT
-		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[0], 0.2f);
-		GW::MATH::GVECTORF translate = { 0.9, -0.9, 0.0 };
-		playerHUD.translateObject(playerHUD.allUiObjectsInLevel[0], translate);
-		playerHUD.rotateObjectYAxis(playerHUD.allUiObjectsInLevel[0], 180);
+		////HEALTH TEXT	
+		//for (auto& object : playerHUD.allUiObjectsInLevel)
+		//{
+		//	playerHUD.scaleObject(object, .08f);
+		//	playerHUD.rotateObjectYAxis(object, 180.0f);
+		//	playerHUD.translateObject(object, { -.9, .9,0 });
+		//}
+		
+		
+		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[0], .07f);
+		playerHUD.translateObject(playerHUD.allUiObjectsInLevel[0], { -.9, .9,0 });
 
+		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[1], .07f);
+		playerHUD.translateObject(playerHUD.allUiObjectsInLevel[1], { -.75, .9,0 });
+
+		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[2], .07f);
+		playerHUD.translateObject(playerHUD.allUiObjectsInLevel[2], { -.6, .9,0 });
+
+
+	
 
 	}
 
 
 	//turns default player HUD options on
 	void startPlayerHUD(){
+
+		//for (int i = 0; i < playerHUD.allUiObjectsInLevel.size(); i++)
+		//{
+		//	playerHUD.allUiObjectsInLevel[i].render = true;
+		//}
+
 		playerHUD.allUiObjectsInLevel[0].render = true;
+		playerHUD.allUiObjectsInLevel[1].render = true;
+		playerHUD.allUiObjectsInLevel[2].render = true;
+
+
 	}
 
 

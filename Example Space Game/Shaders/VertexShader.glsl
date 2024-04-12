@@ -53,7 +53,6 @@ uniform samplerCube skybox;
 void main()
 {
     if (isUi){
-
         gl_Position = vec4(pos,1);
     }
 

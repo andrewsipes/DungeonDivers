@@ -87,16 +87,22 @@ public:
 
 	}
 
+	void toggleRender() {
+		render = !render;
+	}
 
 };
 
-//UI panel class that works similar to Level_Objects
+//Base UI panel class that works similar to Level_Objects
 //UI elements are read from a text file and they render themselves.
 class uiPanel
 {
+
+protected:	
+	std::vector<uiModel> allUiObjects;
+
 public:
 	bool render;
-	std::vector<uiModel> allUiObjects;
 
 	uiPanel() {
 
@@ -149,7 +155,6 @@ public:
 			object.cpuModel.vertices[i].pos.z = y * sinTheta + z * cosTheta;
 		}
 	}
-
 
 	// Draws all objects in the level
 	void Render() {
@@ -259,10 +264,71 @@ public:
 		allUiObjects.clear();
 	}
 
-
 	//toggles a UI panel on and off
-	void togglePanel() {
+	void toggleRender() {
 		render = !render;
+	}
+
+	//place holders
+	virtual void assign() {}
+	virtual void arrange() {}
+	virtual void start() {}
+};
+
+//uiPanel but will house the individual components of the playerHUD
+class playerHUD : public uiPanel {
+
+public:
+
+//lives
+	uiModel* heart1;
+	uiModel* heart2;
+	uiModel* heart3;
+	uiModel* heart4;
+	uiModel* heart5;
+
+//score
+	uiModel* scoreDigit1;
+	uiModel* scoreDigit2;
+	uiModel* scoreDigit3;
+	uiModel* scoreDigit4;
+
+//level text
+	uiModel* levelText;
+	uiModel* levelNum;
+
+	void assign() override{
+
+		heart1 = &allUiObjects[0];
+		heart2 = &allUiObjects[1];
+		heart3 = &allUiObjects[2];
+
+	}
+
+	//updates the vertices for the player HUD to be in their correct positions
+	void arrange() override{
+
+		scaleObject(*heart1, .07f);
+		translateObject(*heart1, { -.9, .9,0 });
+
+		scaleObject(*heart2, .07f);
+		translateObject(*heart2, { -.75, .9,0 });
+
+		scaleObject(*heart3, .07f);
+		translateObject(*heart3, { -.6, .9,0 });
+
+	}
+
+	//turns default player HUD options on
+	void start() override{
+
+
+		heart1->toggleRender();
+		heart2->toggleRender();
+		heart3->toggleRender();
+
+
+
 	}
 };
 	

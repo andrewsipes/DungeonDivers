@@ -1,8 +1,6 @@
 #include "./Application.h"
 #include "./renderer.h"
 
-#define WIN_HEIGHT 600;
-#define WIN_WIDTH 800;
 
 using namespace GW;
 using namespace CORE;

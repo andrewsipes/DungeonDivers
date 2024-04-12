@@ -20,7 +20,7 @@ class RendererManager
 	Level_Objects lvl;
 
 	//ui panels
-	uiPanel playerHUD;
+	playerHUD playerHUD;
 	std::vector <uiPanel> panels;
 
 
@@ -50,9 +50,10 @@ public:
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
 	
 		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		startPlayerHUD();
-		playerHUD.togglePanel();
-		arrangePlayerHUD();
+		playerHUD.toggleRender();
+		playerHUD.assign();
+		playerHUD.arrange();
+		playerHUD.start();
 		playerHUD.UploadLevelToGPU();
 
 		organizePanels();
@@ -66,49 +67,17 @@ public:
 		panels.push_back(playerHUD);
 	}
 
-	//updates the vertices for the player HUD to be in their correct positions
-	void arrangePlayerHUD() {
+	//initializes panels to default state
+	void initializePanels() {
 
-		////HEALTH TEXT	
-		//for (auto& object : playerHUD.allUiObjectsInLevel)
-		//{
-		//	playerHUD.scaleObject(object, .08f);
-		//	playerHUD.rotateObjectYAxis(object, 180.0f);
-		//	playerHUD.translateObject(object, { -.9, .9,0 });
-		//}
-		
-		
-		playerHUD.scaleObject(playerHUD.allUiObjects[0], .07f);
-		playerHUD.translateObject(playerHUD.allUiObjects[0], { -.9, .9,0 });
-
-		playerHUD.scaleObject(playerHUD.allUiObjects[1], .07f);
-		playerHUD.translateObject(playerHUD.allUiObjects[1], { -.75, .9,0 });
-
-		playerHUD.scaleObject(playerHUD.allUiObjects[2], .07f);
-		playerHUD.translateObject(playerHUD.allUiObjects[2], { -.6, .9,0 });
-
-
+		for (uiPanel panel : panels) {
+			panel.assign();
+			panel.arrange();
+			panel.start();
+			panel.UploadLevelToGPU();
+		}
+	}
 	
-
-	}
-
-
-	//turns default player HUD options on
-	void startPlayerHUD(){
-
-		//for (int i = 0; i < playerHUD.allUiObjectsInLevel.size(); i++)
-		//{
-		//	playerHUD.allUiObjectsInLevel[i].render = true;
-		//}
-
-		playerHUD.allUiObjects[0].render = true;
-		playerHUD.allUiObjects[1].render = true;
-		playerHUD.allUiObjects[2].render = true;
-
-
-	}
-
-
 
 	//initializes a world matrix and sets it to identity
 	GW::MATH::GMATRIXF initializeWorldMatrix()

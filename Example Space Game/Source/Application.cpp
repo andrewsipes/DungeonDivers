@@ -160,9 +160,17 @@ bool Application::InitInput()
 
 bool Application::InitAudio()
 {
-	if (-audioEngine.Create())
-		return false;
-	return true;
+	//Start up the audio engine
+	if (audioEngine.Create() == GReturn::SUCCESS &&
+		//load the evil_lair
+		currentTrack.Create("../Music/Evil_Lair.wav", audioEngine, 0.15f) == GReturn::SUCCESS) 
+	{
+		//setting the play(true) will continue to loop the music.  (false) will play once.
+		currentTrack.Play(true);
+		//return true to play the music.
+		return true;
+	}
+	return false;
 }
 
 //bool Application::InitGraphics()

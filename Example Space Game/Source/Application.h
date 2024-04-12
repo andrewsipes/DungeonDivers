@@ -27,6 +27,7 @@ class Application
 	GW::INPUT::GInput immediateInput; // twitch keybaord/mouse
 	GW::INPUT::GBufferedInput bufferedInput; // event keyboard/mouse
 	GW::AUDIO::GAudio audioEngine; // can create music & sound effects
+	GW::AUDIO::GMusic currentTrack;
 	// third-party gameplay & utility libraries
 	std::shared_ptr<flecs::world> game; // ECS database for gameplay
 	std::shared_ptr<GameConfig> gameConfig; // .ini file game settings

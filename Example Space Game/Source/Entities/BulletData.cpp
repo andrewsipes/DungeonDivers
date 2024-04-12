@@ -30,7 +30,7 @@ bool ESG::BulletData::Load(	std::shared_ptr<flecs::world> _game,
 	GW::MATH2D::GMATRIX2F world;
 	GW::MATH2D::GMatrix2D::Scale2F(GW::MATH2D::GIdentityMatrix2F, 
 		GW::MATH2D::GVECTOR2F{ xscale, yscale }, world);
-	// Load sound effect used by this bullet prefab
+	// Load sound effect used by this bullet prefab - pulled from default.ini
 	GW::AUDIO::GSound shoot;
 	shoot.Create(fireFX.c_str(), _audioEngine, 0.15f); // we need a global music & sfx volumes
 	// add prefab to ECS

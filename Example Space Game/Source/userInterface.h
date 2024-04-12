@@ -60,6 +60,9 @@ public:
 
 		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 
+		//sets hud in front of everything else
+		glDepthRange(0.0, 0.05);
+
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
 			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex]);

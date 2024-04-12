@@ -166,8 +166,8 @@ bool Application::InitAudio()
 {
 	//Start up the audio engine
 	if (audioEngine.Create() == GReturn::SUCCESS &&
-		//load the last_journey
-		currentTrack.Create("../Music/Last_Journey.wav", audioEngine, 0.50f) == GReturn::SUCCESS) 
+		//load the evil_lair
+		currentTrack.Create("../Music/Evil_Lair.wav", audioEngine, 0.15f) == GReturn::SUCCESS) 
 	{
 		//setting the play(true) will continue to loop the music.  (false) will play once.
 		currentTrack.Play(true);

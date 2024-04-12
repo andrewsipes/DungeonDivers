@@ -164,9 +164,17 @@ bool Application::InitInput()
 
 bool Application::InitAudio()
 {
-	if (-audioEngine.Create())
-		return false;
-	return true;
+	//Start up the audio engine
+	if (audioEngine.Create() == GReturn::SUCCESS &&
+		//load the last_journey
+		currentTrack.Create("../Music/Last_Journey.wav", audioEngine, 0.50f) == GReturn::SUCCESS) 
+	{
+		//setting the play(true) will continue to loop the music.  (false) will play once.
+		currentTrack.Play(true);
+		//return true to play the music.
+		return true;
+	}
+	return false;
 }
 
 //bool Application::InitGraphics()

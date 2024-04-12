@@ -4,6 +4,7 @@
 #include "../Components/Physics.h"
 #include "../Entities/Prefabs.h"
 #include "../Utils/Macros.h"
+#include "LevelLogic.h"
 
 using namespace ESG; // Example Space Game
 
@@ -79,6 +80,15 @@ bool ESG::LevelLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 	return true;
 }
 
+// Implementation of DetectCollisions() function
+void ESG::LevelLogic::DetectCollisions() 
+{
+	CheckPlayerBulletCollisions();
+	CheckEnemyBulletCollisions();
+	CheckPlayerEnemyCollisions();
+	CheckPlayerEnvironmentCollisions();
+}
+
 // Free any resources used to run this system
 bool ESG::LevelLogic::Shutdown()
 {
@@ -104,6 +114,85 @@ bool ESG::LevelLogic::Activate(bool runSystem)
 		game->entity("Level System").disable();
 	}
 	return false;
+}
+
+void ESG::LevelLogic::CheckPlayerBulletCollisions() 
+{
+	// Loop through all players
+	//for (auto& player : game->query<PlayerData>().entities()) 
+	//{
+	//	// Get the player's position and size
+	//	Position& playerPos = player.get<Position>();
+	//	float playerSize = player.get<Size>().value;
+	//	// Loop through all bullets
+	//	for (auto& bullet : game->query<BulletData>().entities()) 
+	//	{
+	//		// Get the bullet's position and size
+	//		Position& bulletPos = bullet.get<Position>();
+	//		float bulletSize = bullet.get<Size>().value;
+	//		// Calculate the distance between the player and the bullet
+	//		float distance = sqrt(pow(playerPos.x - bulletPos.x, 2) + pow(playerPos.y - bulletPos.y, 2));
+	//		// Check if the distance is less than the sum of their radii (they intersect)
+	//		if (distance < (playerSize + bulletSize) / 2) 
+	//		{
+	//			// Collision detected!
+	//			// Add your collision handling logic here
+	//			// Decrease player's health
+	//			player.get<Health>().value -= bullet.get<Damage>().value;
+	//			// Remove the bullet entity from the game
+	//			game->delete_entity(bullet);
+	//			// Check if the player's health has dropped to zero or below
+	//			if (player.get<Health>().value <= 0) 
+	//			{
+	//				// Player has been destroyed
+	//				// Perform any additional actions, such as respawning the player, ending the game, etc.
+	//			}
+	//		}
+	//	}
+	//}
+}
+
+void ESG::LevelLogic::CheckEnemyBulletCollisions() 
+{
+	// Implement collision detection logic between enemies and bullets
+}
+
+void ESG::LevelLogic::CheckPlayerEnemyCollisions() 
+{
+	// Implement collision detection logic between players and enemies
+}
+
+void ESG::LevelLogic::CheckPlayerEnvironmentCollisions()
+{
+	//// Loop through all players in the game
+	//for (auto player : game->entities().view<PlayerData>()) 
+	//{
+	//	// Get the position and size of the player
+	//	Position& playerPosition = player.get<Position>();
+	//	float playerSize = player.get<Size>().value;
+	//	// Check collision with each environment object (e.g., walls, obstacles)
+	//	for (auto envObj : game->entities().view<EnvironmentObject>()) 
+	//	{
+	//		// Get the position and size of the environment object
+	//		Position& envObjPosition = envObj.get<Position>();
+	//		float envObjSize = envObj.get<Size>().value;
+	//		// Calculate the distance between the player and the environment object
+	//		float distance = calculateDistance(playerPosition, envObjPosition);
+	//		// Check if the distance is less than the sum of their radii (they intersect)
+	//		if (distance < (playerSize + envObjSize) / 2) 
+	//		{
+	//			// Collision detected!
+	//		}
+	//	}
+	//}
+}
+
+
+// Implementation of Init() function
+bool ESG::LevelLogic::Init(std::shared_ptr<flecs::world> _game,
+	std::weak_ptr<const GameConfig> _gameConfig,
+	GW::AUDIO::GAudio _audioEngine) {
+	// Initialize game, gameConfig, audioEngine, and other members
 }
 
 // **** SAMPLE OF MULTI_THREADED USE ****

@@ -251,7 +251,7 @@ public:
 	}
 
 	//assigns ubo data to send to the shader
-	virtual UBO_DATA updateUboInstance(H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
+	UBO_DATA updateUboInstance(H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
 
 		UBO_DATA _ubo;
 
@@ -345,7 +345,7 @@ public:
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, newData);
 	}
 
-	virtual void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
+	void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
 
 		glBindBuffer(GL_UNIFORM_BUFFER, UBOBufferObject);
 		ubo = updateUboInstance(_material, _world, _camera, _view, _projection, _sLight);
@@ -446,6 +446,7 @@ private:
 	std::vector<Light> lights;			//this vector will show all the data pulled from the textfile
 
 public:
+
 	// Imports the default level txt format and creates a Model from each .h2b
 	bool virtual LoadMeshes(const char* gameLevelPath,
 		const char* h2bFolderPath,
@@ -721,7 +722,7 @@ public:
 
 
 	// used to wipe CPU & GPU level data between levels
-	virtual void UnloadLevel() {
+	void UnloadLevel() {
 		allObjectsInLevel.clear();
 	}
 	// *THIS APPROACH COMBINES DATA & LOGIC* 

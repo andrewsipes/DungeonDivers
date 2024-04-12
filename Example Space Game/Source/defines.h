@@ -1,3 +1,5 @@
+//This header file contains shared structure data for the buffers
+//Used by load_object_oriented and userInterface
 
 //holds the sunlightdata
 struct SUNLIGHT_DATA
@@ -67,18 +69,16 @@ struct UBO_DATA
 
 } ubo;
 
-//vector of lights - this will be sent to the uniform 
-std::vector<LIGHT_DATA> lbo;
-
-//holds the textureID for the skybox
-unsigned int CubeMapTexture;
-
 //vertex struct
 struct Vertex
 {
 	float  x, y, z, w;
 };
 
+//vector of lights - this will be sent to the uniform 
+std::vector<LIGHT_DATA> lbo;
 
+//holds the textureID for the skybox
+unsigned int CubeMapTexture;
 
 

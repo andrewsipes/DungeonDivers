@@ -31,7 +31,7 @@ public:
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
 		bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		bool playerHUDSuccess = playerHUD.LoadMeshes("../ui.txt", "../uiModels", log.Relinquish());
+		bool playerHUDSuccess = playerHUD.LoadMeshes("../ui.txt", "../Models/uiModels", log.Relinquish());
 
 	
 		win = _win;
@@ -78,14 +78,14 @@ public:
 		//}
 		
 		
-		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[0], .07f);
-		playerHUD.translateObject(playerHUD.allUiObjectsInLevel[0], { -.9, .9,0 });
+		playerHUD.scaleObject(playerHUD.allUiObjects[0], .07f);
+		playerHUD.translateObject(playerHUD.allUiObjects[0], { -.9, .9,0 });
 
-		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[1], .07f);
-		playerHUD.translateObject(playerHUD.allUiObjectsInLevel[1], { -.75, .9,0 });
+		playerHUD.scaleObject(playerHUD.allUiObjects[1], .07f);
+		playerHUD.translateObject(playerHUD.allUiObjects[1], { -.75, .9,0 });
 
-		playerHUD.scaleObject(playerHUD.allUiObjectsInLevel[2], .07f);
-		playerHUD.translateObject(playerHUD.allUiObjectsInLevel[2], { -.6, .9,0 });
+		playerHUD.scaleObject(playerHUD.allUiObjects[2], .07f);
+		playerHUD.translateObject(playerHUD.allUiObjects[2], { -.6, .9,0 });
 
 
 	
@@ -101,9 +101,9 @@ public:
 		//	playerHUD.allUiObjectsInLevel[i].render = true;
 		//}
 
-		playerHUD.allUiObjectsInLevel[0].render = true;
-		playerHUD.allUiObjectsInLevel[1].render = true;
-		playerHUD.allUiObjectsInLevel[2].render = true;
+		playerHUD.allUiObjects[0].render = true;
+		playerHUD.allUiObjects[1].render = true;
+		playerHUD.allUiObjects[2].render = true;
 
 
 	}

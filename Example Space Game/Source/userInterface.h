@@ -92,11 +92,11 @@ public:
 
 //UI panel class that works similar to Level_Objects
 //UI elements are read from a text file and they render themselves.
-class uiPanel : Level_Objects
+class uiPanel
 {
 public:
 	bool render;
-	std::vector<uiModel> allUiObjectsInLevel;
+	std::vector<uiModel> allUiObjects;
 
 	uiPanel() {
 
@@ -157,7 +157,7 @@ public:
 		// iterate over each model and tell it to draw itself
 		if (render)
 		{
-			for (auto& e : allUiObjectsInLevel) {
+			for (auto& e : allUiObjects) {
 			
 				if (e.render)
 				{
@@ -222,7 +222,7 @@ public:
 				// If we find and load it add it to the level
 				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
-					allUiObjectsInLevel.push_back(std::move(newModel));
+					allUiObjects.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
 				else {
@@ -237,7 +237,6 @@ public:
 
 		}
 
-
 		log.LogCategorized("MESSAGE", "Game Level File Reading Complete.");
 		// level loaded into CPU ram
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
@@ -249,15 +248,15 @@ public:
 	// Upload the CPU level to GPU
 	void UploadLevelToGPU() {
 		// iterate over each model and tell it to draw itself
-		for (auto& e : allUiObjectsInLevel) {
+		for (auto& e : allUiObjects) {
 			e.UploadModelData2GPU();
 		}
 
 	}
 
 	// used to wipe CPU & GPU level data between levels
-	void UnloadLevel() override{
-		allUiObjectsInLevel.clear();
+	void UnloadLevel(){
+		allUiObjects.clear();
 	}
 
 

@@ -54,10 +54,10 @@ void main()
    if (isSkybox) {
         
         Pixel = texture(skybox, coords);
-        return;
+        
     }
 
-   else if(isUi){
+   else if (isUi){
 
     Pixel = vec4(ubo.material.Kd, 1.0);
    }

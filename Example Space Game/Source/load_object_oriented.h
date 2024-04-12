@@ -100,8 +100,9 @@ public:
 	}
 
 	virtual bool DrawModel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) {
-
-		// TODO: Use chosen API to setup the pipeline for this model and draw it
+		
+		//keeps objects from clipping into ui
+		glDepthRange(0.05, 1);
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));

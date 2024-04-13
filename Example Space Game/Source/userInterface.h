@@ -108,7 +108,6 @@ public:
 		float width = gameConfig->at("Window").at("width").as<int>();
 		float height = gameConfig->at("Window").at("height").as<int>();
 
-
 		// Apply the scaled factor to each vertex
 		for (int i = 0; i < cpuModel.vertexCount; i++) {
 			cpuModel.vertices[i].pos.x *= scale;
@@ -117,40 +116,40 @@ public:
 	}
 
 
-	////translate's a model
-	//void translateObject(uiModel& object, GW::MATH::GVECTORF translate) {
+	//translate's a model
+	void translate(GW::MATH::GVECTORF translate) {
 
-	//	for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
-	//		object.cpuModel.vertices[i].pos.x += translate.x;
-	//		object.cpuModel.vertices[i].pos.y += translate.y;
-	//		object.cpuModel.vertices[i].pos.z += translate.z;
+		for (int i = 0; i < cpuModel.vertices.size(); ++i) {
+			cpuModel.vertices[i].pos.x += translate.x;
+			cpuModel.vertices[i].pos.y += translate.y;
+			cpuModel.vertices[i].pos.z += translate.z;
 
-	//	}
-	//}
+		}
+	}
 
-	////rotates around the y
-	//void rotateObjectYAxis(uiModel& object, float degrees) {
-	//	float cosTheta = cos(toRad(degrees));
-	//	float sinTheta = sin(toRad(degrees));
-	//	for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
-	//		float x = object.cpuModel.vertices[i].pos.x;
-	//		float z = object.cpuModel.vertices[i].pos.z;
-	//		object.cpuModel.vertices[i].pos.x = x * cosTheta - z * sinTheta;
-	//		object.cpuModel.vertices[i].pos.z = x * sinTheta + z * cosTheta;
-	//	}
-	//}
+	//rotates around the y
+	void rotateYAxis(float degrees) {
+		float cosTheta = cos(toRad(degrees));
+		float sinTheta = sin(toRad(degrees));
+		for (int i = 0; i < cpuModel.vertices.size(); ++i) {
+			float x = cpuModel.vertices[i].pos.x;
+			float z = cpuModel.vertices[i].pos.z;
+			cpuModel.vertices[i].pos.x = x * cosTheta - z * sinTheta;
+			cpuModel.vertices[i].pos.z = x * sinTheta + z * cosTheta;
+		}
+	}
 
-	////rotates around the x
-	//void rotateObjectXAxis(uiModel& object, float degrees) {
-	//	float cosTheta = cos(toRad(degrees));
-	//	float sinTheta = sin(toRad(degrees));
-	//	for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
-	//		float y = object.cpuModel.vertices[i].pos.y;
-	//		float z = object.cpuModel.vertices[i].pos.z;
-	//		object.cpuModel.vertices[i].pos.y = y * cosTheta - z * sinTheta;
-	//		object.cpuModel.vertices[i].pos.z = y * sinTheta + z * cosTheta;
-	//	}
-	//}
+	//rotates around the x
+	void rotateXAxis(float degrees) {
+		float cosTheta = cos(toRad(degrees));
+		float sinTheta = sin(toRad(degrees));
+		for (int i = 0; i < cpuModel.vertices.size(); ++i) {
+			float y = cpuModel.vertices[i].pos.y;
+			float z = cpuModel.vertices[i].pos.z;
+			cpuModel.vertices[i].pos.y = y * cosTheta - z * sinTheta;
+			cpuModel.vertices[i].pos.z = y * sinTheta + z * cosTheta;
+		}
+	}
 	
 };
 
@@ -505,8 +504,9 @@ public:
 	void assign() override{
 
 		heart1 = &allUiObjects[0];
-		//heart2 = &allUiObjects[1];
-		//heart3 = &allUiObjects[2];
+		heart2 = &allUiObjects[1];
+		heart3 = &allUiObjects[2];
+
 
 	}
 
@@ -514,6 +514,13 @@ public:
 	void arrange() override{
 
 		heart1->scale(gameConfig->at("Heart1").at("scale").as<float>());
+		heart1->translate({ gameConfig->at("Heart1").at("xPos").as<float>(), gameConfig->at("Heart1").at("yPos").as<float>() });
+
+		heart2->scale(gameConfig->at("Heart2").at("scale").as<float>());
+		heart2->translate({ gameConfig->at("Heart2").at("xPos").as<float>(), gameConfig->at("Heart2").at("yPos").as<float>() });
+
+		heart3->scale(gameConfig->at("Heart3").at("scale").as<float>());
+		heart3->translate({ gameConfig->at("Heart3").at("xPos").as<float>(), gameConfig->at("Heart3").at("yPos").as<float>() });
 
 	}
 
@@ -521,6 +528,8 @@ public:
 	void start() override{
 
 		heart1->toggleRender();
+		heart2->toggleRender();
+		heart3->toggleRender();
 
 		button->toggleRender();
 

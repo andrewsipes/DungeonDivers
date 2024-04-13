@@ -7,8 +7,18 @@ class uiModel : public Model
 public:
 	bool render;
 
+
+	float butX; //xpos
+	float butY;	//ypos
+	float butW;	//button width
+	float butH;	// button height
+
 	uiModel()
 	{
+		butX = 350;
+		butY = 275;
+		butW = 100;
+		butH = 75;
 		render = false;
 	}
 
@@ -94,6 +104,103 @@ public:
 	void toggleRender() {
 		render = !render;
 	}
+
+	void HandleInput(uiModel& model, GW::INPUT::GInput gInput) {
+
+		float mouseX, mouseY;
+
+		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
+
+		std::cout << "mouseX:" << mouseX << std::endl;
+		std::cout << "mouseY:" << mouseY << std::endl;
+
+		if (render)
+		{
+			// Check if mouse position is within button bounds
+			if (mouseX >= butX && mouseX <= butX + butW &&
+				mouseY >= butY && mouseY <= butY + butH) {
+
+				float state;
+				gInput.GetState(G_BUTTON_LEFT, state);
+
+				// Check mouse button state (e.g., left button clicked)
+				if (state > 0) {
+
+					model.toggleRender();
+				}
+			}
+		}
+
+	}
+
+};
+
+//uiPanel but will house the individual components of the playerHUD
+class button : public uiModel {
+
+public:
+	bool render;
+
+	float butX; //xpos
+	float butY;	//ypos
+	float butW;	//button width
+	float butH;	// button height
+
+	button() {
+
+		bool render = true;
+		butX = 0.0f;
+		butY = 0.0f;
+		butW = .25f;
+		butH = 0.25f;
+
+	}
+
+	//toggles a button on and off
+	void toggleRender() {
+		render = !render;
+	}
+
+
+	void RenderButton() {
+
+		glBegin(GL_QUADS);
+		glVertex2f(butX, butY);
+		glVertex2f(butX + butW, butY);
+		glVertex2f(butX + butW, butY + butH);
+		glVertex2f(butX, butY + butH);
+		glEnd();
+	}
+
+	//void HandleInput(uiModel* model, GW::INPUT::GInput gInput) {
+
+	//	float mouseX, mouseY;
+
+	//	GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
+
+	//	std::cout << "mouseX:" << mouseX << std::endl;
+	//	std::cout << "mouseY:" << mouseY << std::endl;
+
+	//	if (render)
+	//	{
+	//		// Check if mouse position is within button bounds
+	//		if (mouseX >= butX && mouseX <= butX + butW &&
+	//			mouseY >= butY && mouseY <= butY + butH) {
+
+	//			float state;
+	//			gInput.GetState(G_BUTTON_LEFT, state);
+
+	//			// Check mouse button state (e.g., left button clicked)
+	//			if (state > 0) {
+
+	//				model->render = false;
+	//			}
+	//		}
+	//	}
+
+	//}
+
+
 
 };
 
@@ -339,8 +446,8 @@ public:
 	void assign() override{
 
 		heart1 = &allUiObjects[0];
-		heart2 = &allUiObjects[1];
-		heart3 = &allUiObjects[2];
+		//heart2 = &allUiObjects[1];
+		//heart3 = &allUiObjects[2];
 
 	}
 
@@ -348,13 +455,13 @@ public:
 	void arrange() override{
 
 		scaleObject(*heart1, .07f);
-		translateObject(*heart1, { -.9, .9,0 });
+		//translateObject(*heart1, { -.9, .9,0 });
 
-		scaleObject(*heart2, .07f);
-		translateObject(*heart2, { -.75, .9,0 });
+		//scaleObject(*heart2, .07f);
+		//translateObject(*heart2, { -.75, .9,0 });
 
-		scaleObject(*heart3, .07f);
-		translateObject(*heart3, { -.6, .9,0 });
+		//scaleObject(*heart3, .07f);
+		//translateObject(*heart3, { -.6, .9,0 });
 
 	}
 
@@ -363,8 +470,8 @@ public:
 
 
 		heart1->toggleRender();
-		heart2->toggleRender();
-		heart3->toggleRender();
+		//heart2->toggleRender();
+		//heart3->toggleRender();
 
 
 

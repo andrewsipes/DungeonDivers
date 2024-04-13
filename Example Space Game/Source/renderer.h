@@ -242,6 +242,8 @@ public:
 
 		lvl.Render(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		playerHUD.Render();
+		
+		playerHUD.heart1->HandleInput(*playerHUD.heart1, gInput);
 
 
 	}

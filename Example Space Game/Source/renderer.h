@@ -243,9 +243,8 @@ public:
 		lvl.Render(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		playerHUD.Render();
 
-		playerHUD.button->DrawModel(gameConfig);
 		//button test
-		playerHUD.button->HandleInput(playerHUD.heart1,G_BUTTON_LEFT, gInput, turnOffRender);
+		playerHUD.button->HandleInput(playerHUD.button, G_BUTTON_LEFT, gInput, turnOffRender);
 
 	
 	}

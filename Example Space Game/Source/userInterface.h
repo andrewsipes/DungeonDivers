@@ -101,6 +101,7 @@ public:
 		render = !render;
 	}
 
+	
 	// Scales a model's vertices
 	void scale(float scale) {
 
@@ -114,7 +115,6 @@ public:
 			cpuModel.vertices[i].pos.y *= scale * width / height;  // we must multiply here to ensure scaling is correct
 		}
 	}
-
 
 	//translate's a model
 	void translate(GW::MATH::GVECTORF translate) {
@@ -180,24 +180,46 @@ public:
 
 	}
 
-	void DrawModel(GameConfig *gameConfig) {
+	//load button defaults
+	void loadDefaults(std::string buttonName) {
 
-		//pull button defaults from the default ini file
-		float screenWidth = gameConfig->at("Window").at("width").as<int>();
-		float screenHeight = gameConfig->at("Window").at("height").as<int>();
+		xPos = gameConfig->at(buttonName).at("xPos").as<float>();
+		yPos = gameConfig->at(buttonName).at("yPos").as<float>();
+		width = gameConfig->at(buttonName).at("width").as<int>();
+		height = gameConfig->at(buttonName).at("height").as<int>();
 
-		// Transform NDC coordinates to screen coordinates
-		float screenX = (xPos + 1) / 2 * screenWidth;
-		float screenY = (yPos + 1) / 2 * screenHeight;
-		float screenW = width * screenWidth / 2;
-		float screenH = height * screenHeight / 2;
+		scale(gameConfig->at(buttonName).at("scale").as<float>());
+		translate({ gameConfig->at(buttonName).at("xPos").as<float>(), gameConfig->at(buttonName).at("yPos").as<float>() });
 
-		glBegin(GL_QUADS);
-		glVertex2f(screenX, screenY);
-		glVertex2f(screenX + screenW, screenY);
-		glVertex2f(screenX + screenW, screenY + screenH);
-		glVertex2f(screenX, screenY + screenH);
-		glEnd();
+		render = false;
+
+	}
+
+	//renders the model
+	void DrawModel() {
+
+		//Get Block Index, and Bind the Buffer
+		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBufferObject);
+		glUniformBlockBinding(shaderExecutable, blockIndex, 0);
+
+		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+
+		//sets hud in front of everything else
+		glDepthRange(0.0, 0.05);
+
+		//Draw meshes - iterates through the meshes and materials to draw them individually.
+		for (int j = 0; j < cpuModel.meshCount; j++) {
+			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex]);
+			SetUpPipeline();
+			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
+		}
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		
 	}
 
 	//toggles a button on and off
@@ -246,21 +268,33 @@ public:
 	void HandleInput(uiModel* model, int keyPress, GW::INPUT::GInput gInput, std::function<void(uiModel*)> onPress) {
 
 		float mouseX, mouseY;
+		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+		float screenHeight = gameConfig->at("Window").at("height").as<int>();
 
 		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
+
+		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
+		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
+
+		float ndcWidth = width / screenWidth;
+		float ndcHeight = height / screenHeight;
 
 		#ifndef NDEBUG
 
 			std::cout << "mouseX:" << mouseX << std::endl;
 			std::cout << "mouseY:" << mouseY << std::endl;
+			std::cout << "xPos:" << xPos << std::endl;
+			std::cout << "yPos:" << yPos << std::endl;
+			std::cout << "ndcWidth:" << ndcWidth << std::endl;
+			std::cout << "ndcHeight:" << ndcHeight << std::endl;
 
 		#endif
 
 		if (render)
 		{
 			// Check if mouse position is within button bounds
-			if (mouseX >= xPos && mouseX <= xPos + width &&
-				mouseY >= yPos && mouseY <= yPos + height) {
+			if (mouseX >= xPos && mouseX <= xPos + ndcWidth &&
+				mouseY >= yPos && mouseY <= yPos + ndcHeight) {
 
 				float state;
 				gInput.GetState(keyPress, state);
@@ -284,6 +318,8 @@ class uiPanel
 
 protected:	
 	std::vector<uiModel> allUiObjects;
+	std::vector<userButton> allUiButtonObjects;
+
 	GameConfig* gameConfig;				//pointer that will reference the gameConfig loaded in application
 	
 
@@ -301,58 +337,6 @@ public:
 
 	}
 
-	/*
-	// Scales a model's vertices
-	void scaleObject(uiModel& object, float scale) {
-
-		//Retrived height and width of the window to scale properly
-		float width = gameConfig->at("Window").at("width").as<int>();
-		float height = gameConfig->at("Window").at("height").as<int>();
-
-
-		// Apply the scaled factor to each vertex
-		for (int i = 0; i < object.cpuModel.vertexCount; i++) {
-			object.cpuModel.vertices[i].pos.x *= scale;
-			object.cpuModel.vertices[i].pos.y *= scale * width / height;  // we must multiply here to ensure scaling is correct
-			object.cpuModel.vertices[i].pos.z *= scale;
-		}
-	}
-
-
-	//translate's a model
-	void translateObject(uiModel& object, GW::MATH::GVECTORF translate) {
-
-		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
-			object.cpuModel.vertices[i].pos.x += translate.x;
-			object.cpuModel.vertices[i].pos.y += translate.y;
-			object.cpuModel.vertices[i].pos.z += translate.z;
-
-		}
-	}
-
-	//rotates around the y
-	void rotateObjectYAxis(uiModel& object, float degrees) {
-		float cosTheta = cos(toRad(degrees));
-		float sinTheta = sin(toRad(degrees));
-		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
-			float x = object.cpuModel.vertices[i].pos.x;
-			float z = object.cpuModel.vertices[i].pos.z;
-			object.cpuModel.vertices[i].pos.x = x * cosTheta - z * sinTheta;
-			object.cpuModel.vertices[i].pos.z = x * sinTheta + z * cosTheta;
-		}
-	}
-
-	//rotates around the x
-	void rotateObjectXAxis(uiModel& object, float degrees) {
-		float cosTheta = cos(toRad(degrees));
-		float sinTheta = sin(toRad(degrees));
-		for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
-			float y = object.cpuModel.vertices[i].pos.y;
-			float z = object.cpuModel.vertices[i].pos.z;
-			object.cpuModel.vertices[i].pos.y = y * cosTheta - z * sinTheta;
-			object.cpuModel.vertices[i].pos.z = y * sinTheta + z * cosTheta;
-		}
-	}*/
 
 	// Draws all objects in the level
 	void Render() {
@@ -363,11 +347,15 @@ public:
 			for (auto& e : allUiObjects) {
 			
 				if (e.render)
-				{
 					e.DrawModel();
 
-				}
+			}
 
+			for (auto& f : allUiButtonObjects){
+
+				if (f.render)
+					f.DrawModel();
+			
 			}
 		}
 
@@ -428,7 +416,7 @@ public:
 					if (newButton->LoadModelDataFromDisk(modelFile.c_str())) {
 						// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
 						newButton->gameConfig = gameConfig; //gives access to the gameConfig default values
-						allUiObjects.push_back(std::move(*newButton));
+						allUiButtonObjects.push_back(std::move(*newButton));
 						log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 					}
 					else {
@@ -502,6 +490,10 @@ public:
 			e.UploadModelData2GPU();
 		}
 
+		for (auto& f : allUiButtonObjects) {
+			f.UploadModelData2GPU();
+		}
+
 	}
 
 	// used to wipe CPU & GPU level data between levels
@@ -540,15 +532,18 @@ public:
 		gameConfig = &_gameConfig;
 		render = false;
 
-		button = new userButton("Button1", gameConfig);
 
 	}
 
 	void assign() override{
 
-		heart1 = &allUiObjects[0];
-		heart2 = &allUiObjects[1];
-		heart3 = &allUiObjects[2];
+		//heart1 = &allUiObjects[0];
+		//heart2 = &allUiObjects[1];
+		//heart3 = &allUiObjects[2];
+
+
+
+		button = &allUiButtonObjects[0];
 
 
 	}
@@ -556,23 +551,25 @@ public:
 	//updates the vertices for the player HUD to be in their correct positions
 	void arrange() override{
 
-		heart1->scale(gameConfig->at("Heart1").at("scale").as<float>());
-		heart1->translate({ gameConfig->at("Heart1").at("xPos").as<float>(), gameConfig->at("Heart1").at("yPos").as<float>() });
+		//heart1->scale(gameConfig->at("Heart1").at("scale").as<float>());
+		//heart1->translate({ gameConfig->at("Heart1").at("xPos").as<float>(), gameConfig->at("Heart1").at("yPos").as<float>() });
 
-		heart2->scale(gameConfig->at("Heart2").at("scale").as<float>());
-		heart2->translate({ gameConfig->at("Heart2").at("xPos").as<float>(), gameConfig->at("Heart2").at("yPos").as<float>() });
+		//heart2->scale(gameConfig->at("Heart2").at("scale").as<float>());
+		//heart2->translate({ gameConfig->at("Heart2").at("xPos").as<float>(), gameConfig->at("Heart2").at("yPos").as<float>() });
 
-		heart3->scale(gameConfig->at("Heart3").at("scale").as<float>());
-		heart3->translate({ gameConfig->at("Heart3").at("xPos").as<float>(), gameConfig->at("Heart3").at("yPos").as<float>() });
+		//heart3->scale(gameConfig->at("Heart3").at("scale").as<float>());
+		//heart3->translate({ gameConfig->at("Heart3").at("xPos").as<float>(), gameConfig->at("Heart3").at("yPos").as<float>() });
+
+		button->loadDefaults("Button1");
 
 	}
 
 	//turns default player HUD options on
 	void start() override{
 
-		heart1->toggleRender();
-		heart2->toggleRender();
-		heart3->toggleRender();
+		//heart1->toggleRender();
+		//heart2->toggleRender();
+		//heart3->toggleRender();
 
 		button->toggleRender();
 

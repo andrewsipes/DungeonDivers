@@ -1,24 +1,20 @@
 #include "./load_object_oriented.h"
 #include <algorithm>
 
+//This entire .H file handles the UserInterface Classes, and their accompanying methods
+//In order to use this properly, objects should be created in render.h and handled as needed for rendering, events, etc.
+
+//uiModel is a derivate of the original model with updated definitions specific to UI
 class uiModel : public Model
 {
 
 public:
 	bool render;
 
-
-	float butX; //xpos
-	float butY;	//ypos
-	float butW;	//button width
-	float butH;	// button height
+	GameConfig* gameConfig;
 
 	uiModel()
 	{
-		butX = 350;
-		butY = 275;
-		butW = 100;
-		butH = 75;
 		render = false;
 	}
 
@@ -105,107 +101,187 @@ public:
 		render = !render;
 	}
 
-	void HandleInput(uiModel& model, GW::INPUT::GInput gInput) {
+	// Scales a model's vertices
+	void scale(float scale) {
+
+		//Retrived height and width of the window to scale properly
+		float width = gameConfig->at("Window").at("width").as<int>();
+		float height = gameConfig->at("Window").at("height").as<int>();
+
+
+		// Apply the scaled factor to each vertex
+		for (int i = 0; i < cpuModel.vertexCount; i++) {
+			cpuModel.vertices[i].pos.x *= scale;
+			cpuModel.vertices[i].pos.y *= scale * width / height;  // we must multiply here to ensure scaling is correct
+		}
+	}
+
+
+	////translate's a model
+	//void translateObject(uiModel& object, GW::MATH::GVECTORF translate) {
+
+	//	for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
+	//		object.cpuModel.vertices[i].pos.x += translate.x;
+	//		object.cpuModel.vertices[i].pos.y += translate.y;
+	//		object.cpuModel.vertices[i].pos.z += translate.z;
+
+	//	}
+	//}
+
+	////rotates around the y
+	//void rotateObjectYAxis(uiModel& object, float degrees) {
+	//	float cosTheta = cos(toRad(degrees));
+	//	float sinTheta = sin(toRad(degrees));
+	//	for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
+	//		float x = object.cpuModel.vertices[i].pos.x;
+	//		float z = object.cpuModel.vertices[i].pos.z;
+	//		object.cpuModel.vertices[i].pos.x = x * cosTheta - z * sinTheta;
+	//		object.cpuModel.vertices[i].pos.z = x * sinTheta + z * cosTheta;
+	//	}
+	//}
+
+	////rotates around the x
+	//void rotateObjectXAxis(uiModel& object, float degrees) {
+	//	float cosTheta = cos(toRad(degrees));
+	//	float sinTheta = sin(toRad(degrees));
+	//	for (int i = 0; i < object.cpuModel.vertices.size(); ++i) {
+	//		float y = object.cpuModel.vertices[i].pos.y;
+	//		float z = object.cpuModel.vertices[i].pos.z;
+	//		object.cpuModel.vertices[i].pos.y = y * cosTheta - z * sinTheta;
+	//		object.cpuModel.vertices[i].pos.z = y * sinTheta + z * cosTheta;
+	//	}
+	//}
+	
+};
+
+//button is a uiModel but has the ability to handle events.
+class userButton : public uiModel {
+
+public:
+	float xPos; //xpos
+	float yPos;	//ypos
+	float width;	//button width
+	float height;	//button height
+
+	//default constructor - don't use
+	userButton() {
+		render = false;
+	}
+
+	//creates a button and pulls the button coordinates and size from defaults.ini
+	userButton(const std::string& buttonName, GameConfig *gameConfig) {
+
+
+		xPos = gameConfig->at(buttonName).at("xPos").as<float>();
+		yPos = gameConfig->at(buttonName).at("yPos").as<float>();
+		width = gameConfig->at(buttonName).at("width").as<int>();
+		height = gameConfig->at(buttonName).at("height").as<int>();
+
+		render = false;
+
+	}
+
+	void DrawModel(GameConfig *gameConfig) {
+
+		//pull button defaults from the default ini file
+		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+		float screenHeight = gameConfig->at("Window").at("height").as<int>();
+
+		// Transform NDC coordinates to screen coordinates
+		float screenX = (xPos + 1) / 2 * screenWidth;
+		float screenY = (yPos + 1) / 2 * screenHeight;
+		float screenW = width * screenWidth / 2;
+		float screenH = height * screenHeight / 2;
+
+		glBegin(GL_QUADS);
+		glVertex2f(screenX, screenY);
+		glVertex2f(screenX + screenW, screenY);
+		glVertex2f(screenX + screenW, screenY + screenH);
+		glVertex2f(screenX, screenY + screenH);
+		glEnd();
+	}
+
+
+	//toggles a button on and off
+
+	void toggleRender() {
+		render = !render;
+	}
+
+
+	//Button input for any button, use the Gateware Inputs for keypress
+	//gInput should be the input Proxy from render
+	//onPress is a lambda funtion you want called when pressed
+	void HandleInput(int keyPress, GW::INPUT::GInput gInput, std::function<void()> onPress) {
 
 		float mouseX, mouseY;
 
 		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
 
+
+#ifndef NDEBUG
+
 		std::cout << "mouseX:" << mouseX << std::endl;
 		std::cout << "mouseY:" << mouseY << std::endl;
+
+#endif
 
 		if (render)
 		{
 			// Check if mouse position is within button bounds
-			if (mouseX >= butX && mouseX <= butX + butW &&
-				mouseY >= butY && mouseY <= butY + butH) {
+			if (mouseX >= xPos && mouseX <= xPos + width &&
+				mouseY >= yPos && mouseY <= yPos + height) {
 
 				float state;
-				gInput.GetState(G_BUTTON_LEFT, state);
+				gInput.GetState(keyPress, state);
 
 				// Check mouse button state (e.g., left button clicked)
 				if (state > 0) {
 
-					model.toggleRender();
+					onPress();
 				}
 			}
 		}
 
 	}
 
-};
+	//overload for lambdas that require a Model as input
+	void HandleInput(uiModel* model, int keyPress, GW::INPUT::GInput gInput, std::function<void(uiModel*)> onPress) {
 
-//uiPanel but will house the individual components of the playerHUD
-class button : public uiModel {
+		float mouseX, mouseY;
 
-public:
-	bool render;
+		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
 
-	float butX; //xpos
-	float butY;	//ypos
-	float butW;	//button width
-	float butH;	// button height
+		#ifndef NDEBUG
 
-	button() {
+			std::cout << "mouseX:" << mouseX << std::endl;
+			std::cout << "mouseY:" << mouseY << std::endl;
 
-		bool render = true;
-		butX = 0.0f;
-		butY = 0.0f;
-		butW = .25f;
-		butH = 0.25f;
+		#endif
+
+		if (render)
+		{
+			// Check if mouse position is within button bounds
+			if (mouseX >= xPos && mouseX <= xPos + width &&
+				mouseY >= yPos && mouseY <= yPos + height) {
+
+				float state;
+				gInput.GetState(keyPress, state);
+
+				// Check mouse button state (e.g., left button clicked)
+				if (state > 0) {
+
+					onPress(model);
+				}
+			}
+		}
 
 	}
-
-	//toggles a button on and off
-	void toggleRender() {
-		render = !render;
-	}
-
-
-	void RenderButton() {
-
-		glBegin(GL_QUADS);
-		glVertex2f(butX, butY);
-		glVertex2f(butX + butW, butY);
-		glVertex2f(butX + butW, butY + butH);
-		glVertex2f(butX, butY + butH);
-		glEnd();
-	}
-
-	//void HandleInput(uiModel* model, GW::INPUT::GInput gInput) {
-
-	//	float mouseX, mouseY;
-
-	//	GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
-
-	//	std::cout << "mouseX:" << mouseX << std::endl;
-	//	std::cout << "mouseY:" << mouseY << std::endl;
-
-	//	if (render)
-	//	{
-	//		// Check if mouse position is within button bounds
-	//		if (mouseX >= butX && mouseX <= butX + butW &&
-	//			mouseY >= butY && mouseY <= butY + butH) {
-
-	//			float state;
-	//			gInput.GetState(G_BUTTON_LEFT, state);
-
-	//			// Check mouse button state (e.g., left button clicked)
-	//			if (state > 0) {
-
-	//				model->render = false;
-	//			}
-	//		}
-	//	}
-
-	//}
-
 
 
 };
 
-//Base UI panel class that works similar to Level_Objects
-//UI elements are read from a text file and they render themselves.
+// uiPanel is based on the level_loader, and is used to load an individual panel created in blender and render seperately from other objects.
 class uiPanel
 {
 
@@ -228,17 +304,7 @@ public:
 
 	}
 
-	////scales a model's vertices
-	//void scaleObject(uiModel& object, float scale) {
-
-	//	for (int i = 0; i < object.cpuModel.vertexCount; i++) {
-	//		object.cpuModel.vertices[i].pos.x = object.cpuModel.vertices[i].pos.x * scale;
-	//		object.cpuModel.vertices[i].pos.y = object.cpuModel.vertices[i].pos.y * scale;
-	//		object.cpuModel.vertices[i].pos.z = object.cpuModel.vertices[i].pos.z * scale;
-
-	//	}
-	//}
-	
+	/*
 	// Scales a model's vertices
 	void scaleObject(uiModel& object, float scale) {
 
@@ -289,7 +355,7 @@ public:
 			object.cpuModel.vertices[i].pos.y = y * cosTheta - z * sinTheta;
 			object.cpuModel.vertices[i].pos.z = y * sinTheta + z * cosTheta;
 		}
-	}
+	}*/
 
 	// Draws all objects in the level
 	void Render() {
@@ -362,6 +428,7 @@ public:
 				// If we find and load it add it to the level
 				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
+					newModel.gameConfig = gameConfig;
 					allUiObjects.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
@@ -381,6 +448,7 @@ public:
 		// level loaded into CPU ram
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
 
+		
 
 		return true;
 	}
@@ -414,32 +482,23 @@ public:
 class playerUi : public uiPanel {
 
 public:
+	uiModel *heart1, *heart2, *heart3, *heart4, *heart5,
+			*scoreDigit1, *scoreDigit2, *scoreDigit3, *scoreDigit4,
+			*levelText, *levelNum;
 
-//lives
-	uiModel* heart1;
-	uiModel* heart2;
-	uiModel* heart3;
-	uiModel* heart4;
-	uiModel* heart5;
-
-//score
-	uiModel* scoreDigit1;
-	uiModel* scoreDigit2;
-	uiModel* scoreDigit3;
-	uiModel* scoreDigit4;
-
-//level text
-	uiModel* levelText;
-	uiModel* levelNum;
+	userButton *button;
 
 	playerUi() {
 		render = false;
+	
 	}
 
-	playerUi(GameConfig* _gameConfig) {
+	playerUi(GameConfig& _gameConfig) {
 
-		gameConfig = _gameConfig;
+		gameConfig = &_gameConfig;
 		render = false;
+
+		button = new userButton("Button1", gameConfig);
 
 	}
 
@@ -454,29 +513,25 @@ public:
 	//updates the vertices for the player HUD to be in their correct positions
 	void arrange() override{
 
-		scaleObject(*heart1, .07f);
-		//translateObject(*heart1, { -.9, .9,0 });
-
-		//scaleObject(*heart2, .07f);
-		//translateObject(*heart2, { -.75, .9,0 });
-
-		//scaleObject(*heart3, .07f);
-		//translateObject(*heart3, { -.6, .9,0 });
+		heart1->scale(gameConfig->at("Heart1").at("scale").as<float>());
 
 	}
 
 	//turns default player HUD options on
 	void start() override{
 
-
 		heart1->toggleRender();
-		//heart2->toggleRender();
-		//heart3->toggleRender();
 
-
+		button->toggleRender();
 
 	}
 };
 	
+//LAMBDA FUNCTIONS
+//Place all Ui Related button calls here for now
 
+//Stops Rendering specific Model 
+auto turnOffRender = [](uiModel* model) {
+	model->render = false;
+	};
 

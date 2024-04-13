@@ -38,7 +38,7 @@ public:
 		log.Create("output.txt");
 		bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		
-		playerUi player(gameConfig);
+		playerUi player(*gameConfig);
 		playerHUD = player;
 
 		panels.push_back(playerHUD);
@@ -242,10 +242,12 @@ public:
 
 		lvl.Render(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		playerHUD.Render();
-		
-		playerHUD.heart1->HandleInput(*playerHUD.heart1, gInput);
 
+		playerHUD.button->DrawModel(gameConfig);
+		//button test
+		playerHUD.button->HandleInput(playerHUD.heart1,G_BUTTON_LEFT, gInput, turnOffRender);
 
+	
 	}
 
 	~RendererManager()

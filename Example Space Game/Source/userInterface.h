@@ -200,9 +200,7 @@ public:
 		glEnd();
 	}
 
-
 	//toggles a button on and off
-
 	void toggleRender() {
 		render = !render;
 	}
@@ -397,47 +395,92 @@ public:
 			if (linebuffer[0] == '\0')
 				break;
 			if (std::strcmp(linebuffer, "MESH") == 0) {
-				uiModel newModel;
+				userButton* newButton = new userButton();
 				file.ReadLine(linebuffer, 1024, '\n');
 				log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
 				// create the model file name from this (strip the .001)
-				newModel.SetName(linebuffer);
+				newButton->SetName(linebuffer);
 				std::string modelFile = linebuffer;
 				modelFile = modelFile.substr(0, modelFile.find_last_of("."));
 				modelFile += ".h2b";
 
-				// now read the transform data as we will need that regardless
-				GW::MATH::GMATRIXF transform;
-				for (int i = 0; i < 4; ++i) {
-					file.ReadLine(linebuffer, 1024, '\n');
-					// read floats
-					std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
-						&transform.data[0 + i * 4], &transform.data[1 + i * 4],
-						&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
-				}
-				std::string loc = "Location: X ";
-				loc += std::to_string(transform.row4.x) + " Y " +
-					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
-				log.LogCategorized("INFO", loc.c_str());
+				if (strstr(linebuffer, "Button") != NULL) {
 
-				// Add new model to list of all Models
-				log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
-				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
-				newModel.SetWorldMatrix(transform);
-				// If we find and load it add it to the level
-				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
-					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
-					newModel.gameConfig = gameConfig;
-					allUiObjects.push_back(std::move(newModel));
-					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
+					// now read the transform data as we will need that regardless
+					GW::MATH::GMATRIXF transform;
+					for (int i = 0; i < 4; ++i) {
+						file.ReadLine(linebuffer, 1024, '\n');
+						// read floats
+						std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
+							&transform.data[0 + i * 4], &transform.data[1 + i * 4],
+							&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
+					}
+					std::string loc = "Location: X ";
+					loc += std::to_string(transform.row4.x) + " Y " +
+						std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
+					log.LogCategorized("INFO", loc.c_str());
+
+					// Add new model to list of all Models
+					log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
+					modelFile = std::string(h2bFolderPath) + "/" + modelFile;
+					newButton->SetWorldMatrix(transform);
+					// If we find and load it add it to the level
+					if (newButton->LoadModelDataFromDisk(modelFile.c_str())) {
+						// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
+						newButton->gameConfig = gameConfig; //gives access to the gameConfig default values
+						allUiObjects.push_back(std::move(*newButton));
+						log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
+					}
+					else {
+						// notify user that a model file is missing but continue loading
+						log.LogCategorized("ERROR",
+							(std::string("H2B Not Found: ") + modelFile).c_str());
+						log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
+					}
+					log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
+
+					
 				}
+
 				else {
-					// notify user that a model file is missing but continue loading
-					log.LogCategorized("ERROR",
-						(std::string("H2B Not Found: ") + modelFile).c_str());
-					log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
+					uiModel *newModel = newButton;
+					// now read the transform data as we will need that regardless
+					GW::MATH::GMATRIXF transform;
+					for (int i = 0; i < 4; ++i) {
+						file.ReadLine(linebuffer, 1024, '\n');
+						// read floats
+						std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
+							&transform.data[0 + i * 4], &transform.data[1 + i * 4],
+							&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
+					}
+					std::string loc = "Location: X ";
+					loc += std::to_string(transform.row4.x) + " Y " +
+						std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
+					log.LogCategorized("INFO", loc.c_str());
+
+					// Add new model to list of all Models
+					log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
+					modelFile = std::string(h2bFolderPath) + "/" + modelFile;
+					newModel->SetWorldMatrix(transform);
+					// If we find and load it add it to the level
+					if (newModel->LoadModelDataFromDisk(modelFile.c_str())) {
+						// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
+						newModel->gameConfig = gameConfig;
+						allUiObjects.push_back(std::move(*newModel));
+						log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
+					}
+					else {
+						// notify user that a model file is missing but continue loading
+						log.LogCategorized("ERROR",
+							(std::string("H2B Not Found: ") + modelFile).c_str());
+						log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
+					}
+					log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
+
+
 				}
-				log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
+
+			
 			}
 
 

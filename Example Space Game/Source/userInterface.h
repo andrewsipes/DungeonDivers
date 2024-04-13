@@ -1,4 +1,5 @@
 #include "./load_object_oriented.h"
+#include <algorithm>
 
 class uiModel : public Model
 {
@@ -103,26 +104,50 @@ class uiPanel
 
 protected:	
 	std::vector<uiModel> allUiObjects;
+	GameConfig* gameConfig;				//pointer that will reference the gameConfig loaded in application
+	
 
 public:
 	bool render;
 
 	uiPanel() {
+		render = false;
+	}
 
+	uiPanel(GameConfig* _gameConfig) {
+
+		gameConfig = _gameConfig;
 		render = false;
 
 	}
 
-	//scales a model's vertices
-	void scaleObject(uiModel& object, double scale) {
+	////scales a model's vertices
+	//void scaleObject(uiModel& object, float scale) {
 
+	//	for (int i = 0; i < object.cpuModel.vertexCount; i++) {
+	//		object.cpuModel.vertices[i].pos.x = object.cpuModel.vertices[i].pos.x * scale;
+	//		object.cpuModel.vertices[i].pos.y = object.cpuModel.vertices[i].pos.y * scale;
+	//		object.cpuModel.vertices[i].pos.z = object.cpuModel.vertices[i].pos.z * scale;
+
+	//	}
+	//}
+	
+	// Scales a model's vertices
+	void scaleObject(uiModel& object, float scale) {
+
+		//Retrived height and width of the window to scale properly
+		float width = gameConfig->at("Window").at("width").as<int>();
+		float height = gameConfig->at("Window").at("height").as<int>();
+
+
+		// Apply the scaled factor to each vertex
 		for (int i = 0; i < object.cpuModel.vertexCount; i++) {
-			object.cpuModel.vertices[i].pos.x = (double)object.cpuModel.vertices[i].pos.x * scale;
-			object.cpuModel.vertices[i].pos.y = (double)object.cpuModel.vertices[i].pos.y * scale;
-			object.cpuModel.vertices[i].pos.z = (double)object.cpuModel.vertices[i].pos.z * scale;
-
+			object.cpuModel.vertices[i].pos.x *= scale;
+			object.cpuModel.vertices[i].pos.y *= scale * width / height;  // we must multiply here to ensure scaling is correct
+			object.cpuModel.vertices[i].pos.z *= scale;
 		}
 	}
+
 
 	//translate's a model
 	void translateObject(uiModel& object, GW::MATH::GVECTORF translate) {
@@ -279,7 +304,7 @@ public:
 };
 
 //uiPanel but will house the individual components of the playerHUD
-class playerHUD : public uiPanel {
+class playerUi : public uiPanel {
 
 public:
 
@@ -299,6 +324,17 @@ public:
 //level text
 	uiModel* levelText;
 	uiModel* levelNum;
+
+	playerUi() {
+		render = false;
+	}
+
+	playerUi(GameConfig* _gameConfig) {
+
+		gameConfig = _gameConfig;
+		render = false;
+
+	}
 
 	void assign() override{
 

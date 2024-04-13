@@ -92,7 +92,8 @@ bool Application::Run() {
 		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-			RendererManager rendererManager(win, ogl);
+			RendererManager rendererManager(win, ogl, *gameConfig);
+
 
 			while (+win.ProcessWindowEvents())
 			{

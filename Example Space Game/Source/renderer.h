@@ -16,23 +16,33 @@ class RendererManager
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
 
+	//for defaults
+	GameConfig* gameConfig;
+
 	//create level
 	Level_Objects lvl;
 
 	//ui panels
-	playerHUD playerHUD;
+	playerUi playerHUD;
 	std::vector <uiPanel> panels;
 
 
 public:
 
-	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl)
+	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig)
 	{
+		//assigns the gameConfig for passing
+		gameConfig = &_gameConfig;
+
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
 		bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		bool playerHUDSuccess = playerHUD.LoadMeshes("../ui.txt", "../Models/uiModels", log.Relinquish());
+		
+		playerUi player(gameConfig);
+		playerHUD = player;
 
+		panels.push_back(playerHUD);
+		bool playerHUDSuccess = playerHUD.LoadMeshes("../ui.txt", "../Models/uiModels", log.Relinquish());
 	
 		win = _win;
 		ogl = _ogl;
@@ -50,22 +60,18 @@ public:
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
 	
 		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+
 		playerHUD.toggleRender();
 		playerHUD.assign();
 		playerHUD.arrange();
 		playerHUD.start();
 		playerHUD.UploadLevelToGPU();
 
-		organizePanels();
+
 		
 	}
 
 
-	//place all ui panels in a vector
-	void organizePanels() {
-
-		panels.push_back(playerHUD);
-	}
 
 	//initializes panels to default state
 	void initializePanels() {

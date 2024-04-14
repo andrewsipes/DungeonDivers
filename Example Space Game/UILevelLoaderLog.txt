@@ -5642,3 +5642,248 @@
 [Sat Apr 13 20:13:50 2024] ThreadID[59636]	[MESSAGE]	Importing of .H2B File Data Complete.
 [Sat Apr 13 20:13:50 2024] ThreadID[59636]	[MESSAGE]	Game Level File Reading Complete.
 [Sat Apr 13 20:13:50 2024] ThreadID[59636]	[EVENT]	GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[EVENT]	LOADING GAME LEVEL [OBJECT ORIENTED]
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Reading Game Level Text File.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Model Detected: Circle
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Location: X -13.285800 Y 0.000000 Z 34.730598
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Model Detected: 0
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Location: X -13.045600 Y -4.006900 Z -21.973600
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Model Detected: 0.001
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Location: X -13.045600 Y -4.006900 Z -24.222401
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Model Detected: 0.002
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Location: X -13.045600 Y -4.006900 Z -26.506901
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Model Detected: 0.003
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Location: X -13.045600 Y -4.006900 Z -28.641701
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Model Detected: 0.004
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Location: X -13.052900 Y -4.006900 Z -1.549900
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Model Detected: Circle.001
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Location: X -13.285800 Y 0.000000 Z 32.115601
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Model Detected: Circle.002
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Location: X -13.285800 Y 0.000000 Z 29.537201
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Model Detected: Button
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	Location: X 3.388700 Y 2.684100 Z -4.670300
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[INFO]	H2B Imported: ../Models/uiModels/Button.h2b
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[MESSAGE]	Game Level File Reading Complete.
+[Sat Apr 13 20:30:54 2024] ThreadID[53588]	[EVENT]	GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[EVENT]	LOADING GAME LEVEL [OBJECT ORIENTED]
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Reading Game Level Text File.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Model Detected: Circle
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Location: X -13.285800 Y 0.000000 Z 34.730598
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Model Detected: 0
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Location: X -13.045600 Y -4.006900 Z -21.973600
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Model Detected: 0.001
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Location: X -13.045600 Y -4.006900 Z -24.222401
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Model Detected: 0.002
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Location: X -13.045600 Y -4.006900 Z -26.506901
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Model Detected: 0.003
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Location: X -13.045600 Y -4.006900 Z -28.641701
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Model Detected: 0.004
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Location: X -13.052900 Y -4.006900 Z -1.549900
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Model Detected: Circle.001
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Location: X -13.285800 Y 0.000000 Z 32.115601
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Model Detected: Circle.002
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Location: X -13.285800 Y 0.000000 Z 29.537201
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Model Detected: Button
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	Location: X 3.388700 Y 2.684100 Z -4.670300
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[INFO]	H2B Imported: ../Models/uiModels/Button.h2b
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[MESSAGE]	Game Level File Reading Complete.
+[Sat Apr 13 20:34:24 2024] ThreadID[60168]	[EVENT]	GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[EVENT]	LOADING GAME LEVEL [OBJECT ORIENTED]
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Reading Game Level Text File.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Model Detected: Circle
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Location: X -13.285800 Y 0.000000 Z 34.730598
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Model Detected: 0
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Location: X -13.045600 Y -4.006900 Z -21.973600
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Model Detected: 0.001
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Location: X -13.045600 Y -4.006900 Z -24.222401
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Model Detected: 0.002
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Location: X -13.045600 Y -4.006900 Z -26.506901
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Model Detected: 0.003
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Location: X -13.045600 Y -4.006900 Z -28.641701
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Model Detected: 0.004
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Location: X -13.052900 Y -4.006900 Z -1.549900
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Model Detected: Circle.001
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Location: X -13.285800 Y 0.000000 Z 32.115601
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Model Detected: Circle.002
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Location: X -13.285800 Y 0.000000 Z 29.537201
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Model Detected: Button
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	Location: X 3.388700 Y 2.684100 Z -4.670300
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[INFO]	H2B Imported: ../Models/uiModels/Button.h2b
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[MESSAGE]	Game Level File Reading Complete.
+[Sat Apr 13 20:34:48 2024] ThreadID[51968]	[EVENT]	GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[EVENT]	LOADING GAME LEVEL [OBJECT ORIENTED]
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Reading Game Level Text File.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Model Detected: Circle
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Location: X -13.285800 Y 0.000000 Z 34.730598
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Model Detected: 0
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Location: X -13.045600 Y -4.006900 Z -21.973600
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Model Detected: 0.001
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Location: X -13.045600 Y -4.006900 Z -24.222401
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Model Detected: 0.002
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Location: X -13.045600 Y -4.006900 Z -26.506901
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Model Detected: 0.003
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Location: X -13.045600 Y -4.006900 Z -28.641701
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Model Detected: 0.004
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Location: X -13.052900 Y -4.006900 Z -1.549900
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Model Detected: Circle.001
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Location: X -13.285800 Y 0.000000 Z 32.115601
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Model Detected: Circle.002
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Location: X -13.285800 Y 0.000000 Z 29.537201
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Model Detected: Button
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	Location: X 3.388700 Y 2.684100 Z -4.670300
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[INFO]	H2B Imported: ../Models/uiModels/Button.h2b
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[MESSAGE]	Game Level File Reading Complete.
+[Sat Apr 13 20:35:19 2024] ThreadID[61416]	[EVENT]	GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[EVENT]	LOADING GAME LEVEL [OBJECT ORIENTED]
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Reading Game Level Text File.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Model Detected: Circle
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Location: X -13.285800 Y 0.000000 Z 34.730598
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Model Detected: 0
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Location: X -13.045600 Y -4.006900 Z -21.973600
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Model Detected: 0.001
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Location: X -13.045600 Y -4.006900 Z -24.222401
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Model Detected: 0.002
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Location: X -13.045600 Y -4.006900 Z -26.506901
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Model Detected: 0.003
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Location: X -13.045600 Y -4.006900 Z -28.641701
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Model Detected: 0.004
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Location: X -13.052900 Y -4.006900 Z -1.549900
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	H2B Imported: ../Models/uiModels/0.h2b
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Model Detected: Circle.001
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Location: X -13.285800 Y 0.000000 Z 32.115601
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Model Detected: Circle.002
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Location: X -13.285800 Y 0.000000 Z 29.537201
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	H2B Imported: ../Models/uiModels/Circle.h2b
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Model Detected: Button
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	Location: X 3.388700 Y 2.684100 Z -4.670300
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Begin Importing .H2B File Data.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[INFO]	H2B Imported: ../Models/uiModels/Button.h2b
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Importing of .H2B File Data Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[MESSAGE]	Game Level File Reading Complete.
+[Sat Apr 13 20:35:27 2024] ThreadID[51332]	[EVENT]	GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]

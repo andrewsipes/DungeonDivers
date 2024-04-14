@@ -203,15 +203,13 @@ public:
 	//load button defaults
 	void loadDefaults(std::string buttonName) {
 
+		//get the default position
 		xPos = gameConfig->at(buttonName).at("xPos").as<float>();
 		yPos = gameConfig->at(buttonName).at("yPos").as<float>();
-		//width = gameConfig->at(buttonName).at("width").as<int>();
-		//height = gameConfig->at(buttonName).at("height").as<int>();
 
+		//move the object to its intended position and apply scale
 		translate({ gameConfig->at(buttonName).at("xPos").as<float>(), gameConfig->at(buttonName).at("yPos").as<float>() });
 		scale(gameConfig->at(buttonName).at("scale").as<float>());
-
-		render = false;
 
 	}
 
@@ -228,14 +226,21 @@ public:
 	void HandleInput(int keyPress, GW::INPUT::GInput gInput, std::function<void()> onPress) {
 
 		float mouseX, mouseY;
+		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+		float screenHeight = gameConfig->at("Window").at("height").as<int>();
 
 		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
+
+		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
+		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
 
 
 #ifndef NDEBUG
 
-		std::cout << "mouseX:" << mouseX << std::endl;
-		std::cout << "mouseY:" << mouseY << std::endl;
+		//std::cout << "mouseX:" << mouseX << std::endl;
+		//std::cout << "mouseY:" << mouseY << std::endl;
+		//std::cout << "xPos:" << xPos << std::endl;
+		//std::cout << "yPos:" << yPos << std::endl;
 
 #endif
 
@@ -273,10 +278,10 @@ public:
 
 		#ifndef NDEBUG
 
-			std::cout << "mouseX:" << mouseX << std::endl;
-			std::cout << "mouseY:" << mouseY << std::endl;
-			std::cout << "xPos:" << xPos << std::endl;
-			std::cout << "yPos:" << yPos << std::endl;
+			//std::cout << "mouseX:" << mouseX << std::endl;
+			//std::cout << "mouseY:" << mouseY << std::endl;
+			//std::cout << "xPos:" << xPos << std::endl;
+			//std::cout << "yPos:" << yPos << std::endl;
 		
 
 		#endif
@@ -531,8 +536,6 @@ public:
 		//heart1 = &allUiObjects[0];
 		//heart2 = &allUiObjects[1];
 		//heart3 = &allUiObjects[2];
-
-
 
 		button = &allUiButtonObjects[0];
 

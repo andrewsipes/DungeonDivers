@@ -263,10 +263,6 @@ public:
 			cpuModel.vertices[i].pos.y *= scaleY * screenWidth / screenHeight;  // we must multiply here to ensure scaling is correct
 		}
 
-		xPos = cpuModel.vertices[0].pos.x;
-		yPos = cpuModel.vertices[0].pos.y;
-		width = cpuModel.vertices[1].pos.x - cpuModel.vertices[0].pos.x;
-		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
 	}
 	//load button defaults
 	void loadDefaults(std::string _buttonName, buttonText &_text) {
@@ -275,24 +271,33 @@ public:
 		scale(gameConfig->at(_buttonName).at("scaleX").as<float>(), gameConfig->at(_buttonName).at("scaleY").as<float>());
 		translate({ gameConfig->at(_buttonName).at("xPos").as<float>(), gameConfig->at(_buttonName).at("yPos").as<float>()});
 
+
+		//update button variables based on new vertex info
+		xPos = cpuModel.vertices[0].pos.x;
+		yPos = cpuModel.vertices[0].pos.y;
+		width = cpuModel.vertices[1].pos.x - cpuModel.vertices[0].pos.x;
+		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
+
 		//update Text, scale and translate it
 		text = &_text;
-		loadTextDefaults(_buttonName, *text);
+		loadTextDefaults(_buttonName);
 
 	}
 
 	//loads button text defaults
-	void loadTextDefaults(std::string _buttonName, buttonText &_text) {
+	void loadTextDefaults(std::string _buttonName) {
 	
 		//update Text size
-		_text.scale(gameConfig->at(_buttonName).at("textScale").as<float>());
+		text->scale(gameConfig->at(_buttonName).at("textScale").as<float>());
+
+		float xAdj = gameConfig->at(_buttonName).at("xAdj").as<float>();
+		float yAdj = gameConfig->at(_buttonName).at("yAdj").as<float>();
 
 		//use vertice information from the button to update text location (ADJ varibles allow for manual adjustments in defaults.ini
-		_text.translate({ -cpuModel.vertices[0].pos.x - gameConfig->at(_buttonName).at("xAdj").as<float>(), 
-			cpuModel.vertices[1].pos.y  + gameConfig->at(_buttonName).at("yAdj").as<float>() });
+		text->translate({ -xPos - xAdj, yPos + yAdj });
 
 		//flip the orientation
-		_text.rotateYAxis(180.0f);
+		text->rotateYAxis(180.0f);
 	}
 
 
@@ -329,8 +334,8 @@ public:
 		if (render)
 		{
 			//check if mouse position is within button bounds
-			if (mouseX >= cpuModel.vertices[0].pos.x && mouseX <= cpuModel.vertices[0].pos.x + width &&
-				mouseY >= cpuModel.vertices[0].pos.y && mouseY <= cpuModel.vertices[0].pos.y + height) {
+			if (mouseX >= xPos && mouseX <= xPos + width &&
+				mouseY >= yPos && mouseY <= yPos + height) {
 
 				float state;
 				gInput.GetState(keyPress, state);
@@ -360,10 +365,10 @@ public:
 
 		#ifndef NDEBUG
 
-			std::cout << "mouseX:" << mouseX << std::endl;
+		/*	std::cout << "mouseX:" << mouseX << std::endl;
 			std::cout << "mouseY:" << mouseY << std::endl;
 			std::cout << "xPos:" << xPos << std::endl;
-			std::cout << "yPos:" << yPos << std::endl;
+			std::cout << "yPos:" << yPos << std::endl;*/
 		
 
 		#endif

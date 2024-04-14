@@ -102,7 +102,7 @@ public:
 	virtual bool DrawModel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) {
 		
 		//keeps objects from clipping into ui
-		glDepthRange(0.05, 1);
+		glDepthRange(0.2, 1);
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));

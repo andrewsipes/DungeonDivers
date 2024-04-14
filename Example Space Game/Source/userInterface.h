@@ -58,17 +58,18 @@ public:
 		return _ubo;
 	}
 
-	bool DrawModel(){
+	virtual bool DrawModel(){
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
 		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBufferObject);
 		glUniformBlockBinding(shaderExecutable, blockIndex, 0);
 
+		//update vertex buffer
 		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 
 		//sets hud in front of everything else
-		glDepthRange(0.0, 0.05);
+		glDepthRange(0.1, 0.2);
 
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
@@ -122,7 +123,6 @@ public:
 		for (int i = 0; i < cpuModel.vertices.size(); ++i) {
 			cpuModel.vertices[i].pos.x += translate.x;
 			cpuModel.vertices[i].pos.y += translate.y;
-			cpuModel.vertices[i].pos.z += translate.z;
 
 		}
 	}
@@ -153,14 +153,52 @@ public:
 	
 };
 
+//same as uiModel but the depth buffer has been updated
+class buttonText : public uiModel
+{
+public:
+
+	buttonText() {
+		render = true;
+		
+	}
+
+	bool DrawModel() override{
+
+		//Get Block Index, and Bind the Buffer
+		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBufferObject);
+		glUniformBlockBinding(shaderExecutable, blockIndex, 0);
+		
+		//update vertex buffer
+		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+
+		//sets hud in front of everything else
+		glDepthRange(0.0, 0.1);
+
+		//Draw meshes - iterates through the meshes and materials to draw them individually.
+		for (int j = 0; j < cpuModel.meshCount; j++) {
+			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex]);
+			SetUpPipeline();
+			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
+		}
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		return true;
+
+	}
+};
+
 //button is a uiModel but has the ability to handle events.
 class userButton : public uiModel {
 
 public:
-	float xPos; //xpos
-	float yPos;	//ypos
-	float width;	//button width
-	float height;	//button height
+	float xPos, yPos, width, height; //button location and dimensions
+
+	buttonText *text;
 
 	//default constructor - don't use
 	userButton() {
@@ -180,7 +218,7 @@ public:
 
 	}
 
-
+	
 	void scale(float scale) override{
 
 		//Retrived height and width of the window to scale properly
@@ -199,7 +237,7 @@ public:
 		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
 	}
 
-
+	/*
 	//load button defaults
 	void loadDefaults(std::string buttonName) {
 
@@ -211,6 +249,48 @@ public:
 		translate({ gameConfig->at(buttonName).at("xPos").as<float>(), gameConfig->at(buttonName).at("yPos").as<float>() });
 		scale(gameConfig->at(buttonName).at("scale").as<float>());
 
+	} */
+
+	void scale(float scaleX, float scaleY) {
+
+		//Retrived height and width of the window to scale properly
+		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+		float screenHeight = gameConfig->at("Window").at("height").as<int>();
+
+		// Apply the scaled factor to each vertex
+		for (int i = 0; i < cpuModel.vertexCount; i++) {
+			cpuModel.vertices[i].pos.x *= scaleX;
+			cpuModel.vertices[i].pos.y *= scaleY * screenWidth / screenHeight;  // we must multiply here to ensure scaling is correct
+		}
+
+		xPos = cpuModel.vertices[0].pos.x;
+		yPos = cpuModel.vertices[0].pos.y;
+		width = cpuModel.vertices[1].pos.x - cpuModel.vertices[0].pos.x;
+		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
+	}
+	//load button defaults
+	void loadDefaults(std::string _buttonName, buttonText &_text ) {
+
+		//get the default position
+		xPos = gameConfig->at(_buttonName).at("xPos").as<float>();
+		yPos = gameConfig->at(_buttonName).at("yPos").as<float>();
+
+		//move the object to its intended position and apply scale
+		scale(gameConfig->at(_buttonName).at("scaleX").as<float>(), gameConfig->at(_buttonName).at("scaleY").as<float>());
+		translate({ xPos, yPos});
+
+		//update Text, scale and translate it
+		text = &_text;
+		loadTextDefaults(_buttonName, *text,xPos, yPos);
+
+	}
+
+	//loads button text defaults
+	void loadTextDefaults(std::string _buttonName, buttonText &_text, float x, float y) {
+	
+		_text.scale(gameConfig->at(_buttonName).at("textScale").as<float>());
+		_text.translate({ ( -x + .23f), (y - 0.05f)});
+		_text.rotateYAxis(180.0f);
 	}
 
 
@@ -246,14 +326,14 @@ public:
 
 		if (render)
 		{
-			// Check if mouse position is within button bounds
+			//check if mouse position is within button bounds
 			if (mouseX >= xPos && mouseX <= xPos + width &&
 				mouseY >= yPos && mouseY <= yPos + height) {
 
 				float state;
 				gInput.GetState(keyPress, state);
 
-				// Check mouse button state (e.g., left button clicked)
+				//check if clicked
 				if (state > 0) {
 
 					onPress();
@@ -286,16 +366,19 @@ public:
 
 		#endif
 
+		
+
 		if (render)
 		{
-			// Check if mouse position is within button bounds
+			//check if mouse position is within button bounds
 			if (mouseX >= xPos && mouseX <= xPos + width &&
 				mouseY >= yPos && mouseY <= yPos + height) {
 
 				float state;
+
 				gInput.GetState(keyPress, state);
 
-				// Check mouse button state (e.g., left button clicked)
+				//check if clicked
 				if (state > 0) {
 
 					onPress(model);
@@ -308,6 +391,7 @@ public:
 
 };
 
+
 // uiPanel is based on the level_loader, and is used to load an individual panel created in blender and render seperately from other objects.
 class uiPanel
 {
@@ -315,6 +399,7 @@ class uiPanel
 protected:	
 	std::vector<uiModel> allUiObjects;
 	std::vector<userButton> allUiButtonObjects;
+	std::vector<buttonText> allUiButtonTextObjects;
 
 	GameConfig* gameConfig;				//pointer that will reference the gameConfig loaded in application
 	
@@ -349,8 +434,10 @@ public:
 
 			for (auto& f : allUiButtonObjects){
 
-				if (f.render)
+				if (f.render) {
 					f.DrawModel();
+					f.text->DrawModel();
+				}
 			
 			}
 		}
@@ -378,17 +465,66 @@ public:
 			// having to have this is a bug, need to have Read/ReadLine return failure at EOF
 			if (linebuffer[0] == '\0')
 				break;
-			if (std::strcmp(linebuffer, "MESH") == 0) {
-				userButton* newButton = new userButton();
-				file.ReadLine(linebuffer, 1024, '\n');
-				log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
-				// create the model file name from this (strip the .001)
-				newButton->SetName(linebuffer);
-				std::string modelFile = linebuffer;
-				modelFile = modelFile.substr(0, modelFile.find_last_of("."));
-				modelFile += ".h2b";
 
-				if (strstr(linebuffer, "Button") != NULL) {
+			if (std::strcmp(linebuffer, "MESH") == 0) {
+
+				file.ReadLine(linebuffer, 1024, '\n');
+
+				//CHECK FOR BUTTON TEXT
+				if (strstr(linebuffer, "ButtonText") != NULL) {
+			
+					buttonText* newButtonText = new buttonText();
+					log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
+					// create the model file name from this (strip the .001)
+					newButtonText->SetName(linebuffer);
+					std::string modelFile = linebuffer;
+					modelFile = modelFile.substr(0, modelFile.find_last_of("."));
+					modelFile += ".h2b";
+
+					// now read the transform data as we will need that regardless
+					GW::MATH::GMATRIXF transform;
+					for (int i = 0; i < 4; ++i) {
+						file.ReadLine(linebuffer, 1024, '\n');
+						// read floats
+						std::sscanf(linebuffer + 13, "%f, %f, %f, %f",
+							&transform.data[0 + i * 4], &transform.data[1 + i * 4],
+							&transform.data[2 + i * 4], &transform.data[3 + i * 4]);
+					}
+					std::string loc = "Location: X ";
+					loc += std::to_string(transform.row4.x) + " Y " +
+						std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
+					log.LogCategorized("INFO", loc.c_str());
+
+					// Add new model to list of all Models
+					log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
+					modelFile = std::string(h2bFolderPath) + "/" + modelFile;
+					newButtonText->SetWorldMatrix(transform);
+					// If we find and load it add it to the level
+					if (newButtonText->LoadModelDataFromDisk(modelFile.c_str())) {
+						// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
+						newButtonText->gameConfig = gameConfig;
+						allUiButtonTextObjects.push_back(std::move(*newButtonText));
+						log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
+					}
+					else {
+						// notify user that a model file is missing but continue loading
+						log.LogCategorized("ERROR",
+							(std::string("H2B Not Found: ") + modelFile).c_str());
+						log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
+					}
+					log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
+					}
+
+				//CHECK FOR BUTTONS
+				else if (strstr(linebuffer, "Button") != NULL) {
+
+					userButton* newButton = new userButton();
+					log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
+					// create the model file name from this (strip the .001)
+					newButton->SetName(linebuffer);
+					std::string modelFile = linebuffer;
+					modelFile = modelFile.substr(0, modelFile.find_last_of("."));
+					modelFile += ".h2b";
 
 					// now read the transform data as we will need that regardless
 					GW::MATH::GMATRIXF transform;
@@ -426,8 +562,17 @@ public:
 					
 				}
 
+				//EVERYTHING ELSE
 				else {
-					uiModel *newModel = newButton;
+
+					uiModel* newModel = new uiModel();
+					log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
+					// create the model file name from this (strip the .001)
+					newModel->SetName(linebuffer);
+					std::string modelFile = linebuffer;
+					modelFile = modelFile.substr(0, modelFile.find_last_of("."));
+					modelFile += ".h2b";
+
 					// now read the transform data as we will need that regardless
 					GW::MATH::GMATRIXF transform;
 					for (int i = 0; i < 4; ++i) {
@@ -488,7 +633,10 @@ public:
 
 		for (auto& f : allUiButtonObjects) {
 			f.UploadModelData2GPU();
+			f.text->UploadModelData2GPU();
 		}
+
+		
 
 	}
 
@@ -506,6 +654,8 @@ public:
 	virtual void assign() {}
 	virtual void arrange() {}
 	virtual void start() {}
+
+
 };
 
 //uiPanel but will house the individual components of the playerHUD
@@ -520,7 +670,7 @@ public:
 
 	playerUi() {
 		render = false;
-	
+
 	}
 
 	playerUi(GameConfig& _gameConfig) {
@@ -528,16 +678,16 @@ public:
 		gameConfig = &_gameConfig;
 		render = false;
 
-
 	}
 
 	void assign() override{
 
-		//heart1 = &allUiObjects[0];
+		heart1 = &allUiObjects[0];
+		button = &allUiButtonObjects[0];
+		//button->text = &allUiButtonTextObjects[0];
+
 		//heart2 = &allUiObjects[1];
 		//heart3 = &allUiObjects[2];
-
-		button = &allUiButtonObjects[0];
 
 
 	}
@@ -545,8 +695,8 @@ public:
 	//updates the vertices for the player HUD to be in their correct positions
 	void arrange() override{
 
-		//heart1->scale(gameConfig->at("Heart1").at("scale").as<float>());
-		//heart1->translate({ gameConfig->at("Heart1").at("xPos").as<float>(), gameConfig->at("Heart1").at("yPos").as<float>() });
+		heart1->scale(gameConfig->at("Heart1").at("scale").as<float>());
+		heart1->translate({ gameConfig->at("Heart1").at("xPos").as<float>(), gameConfig->at("Heart1").at("yPos").as<float>() });
 
 		//heart2->scale(gameConfig->at("Heart2").at("scale").as<float>());
 		//heart2->translate({ gameConfig->at("Heart2").at("xPos").as<float>(), gameConfig->at("Heart2").at("yPos").as<float>() });
@@ -554,14 +704,22 @@ public:
 		//heart3->scale(gameConfig->at("Heart3").at("scale").as<float>());
 		//heart3->translate({ gameConfig->at("Heart3").at("xPos").as<float>(), gameConfig->at("Heart3").at("yPos").as<float>() });
 
-		button->loadDefaults("Button1");
+		//button->scale(gameConfig->at("Button1").at("scaleX").as<float>(), gameConfig->at("Button1").at("scaleY").as<float>());
+		//button->translate({ gameConfig->at("Button1").at("xPos").as<float>(), gameConfig->at("Button1").at("yPos").as<float>() });
+
+		//update Text, scale and translate it
+		//button->loadTextDefaults("Button1", allUiButtonTextObjects[0], gameConfig->at("Button1").at("xPos").as<float>(), gameConfig->at("Button1").at("yPos").as<float>());
+
+		button->loadDefaults("Button1", allUiButtonTextObjects[0]);
+		
 
 	}
 
 	//turns default player HUD options on
 	void start() override{
 
-		//heart1->toggleRender();
+		heart1->toggleRender();
+		//text->toggleRender();
 		//heart2->toggleRender();
 		//heart3->toggleRender();
 

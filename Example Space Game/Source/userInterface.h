@@ -103,7 +103,7 @@ public:
 
 	
 	// Scales a model's vertices
-	void scale(float scale) {
+	virtual void scale(float scale) {
 
 		//Retrived height and width of the window to scale properly
 		float width = gameConfig->at("Window").at("width").as<int>();
@@ -180,47 +180,41 @@ public:
 
 	}
 
+
+	void scale(float scale) override{
+
+		//Retrived height and width of the window to scale properly
+		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+		float screenHeight = gameConfig->at("Window").at("height").as<int>();
+
+		// Apply the scaled factor to each vertex
+		for (int i = 0; i < cpuModel.vertexCount; i++) {
+			cpuModel.vertices[i].pos.x *= scale;
+			cpuModel.vertices[i].pos.y *= scale * screenWidth / screenHeight;  // we must multiply here to ensure scaling is correct
+		}
+
+		xPos = cpuModel.vertices[0].pos.x;
+		yPos = cpuModel.vertices[0].pos.y;
+		width = cpuModel.vertices[1].pos.x - cpuModel.vertices[0].pos.x;
+		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
+	}
+
+
 	//load button defaults
 	void loadDefaults(std::string buttonName) {
 
 		xPos = gameConfig->at(buttonName).at("xPos").as<float>();
 		yPos = gameConfig->at(buttonName).at("yPos").as<float>();
-		width = gameConfig->at(buttonName).at("width").as<int>();
-		height = gameConfig->at(buttonName).at("height").as<int>();
+		//width = gameConfig->at(buttonName).at("width").as<int>();
+		//height = gameConfig->at(buttonName).at("height").as<int>();
 
-		scale(gameConfig->at(buttonName).at("scale").as<float>());
 		translate({ gameConfig->at(buttonName).at("xPos").as<float>(), gameConfig->at(buttonName).at("yPos").as<float>() });
+		scale(gameConfig->at(buttonName).at("scale").as<float>());
 
 		render = false;
 
 	}
 
-	//renders the model
-	void DrawModel() {
-
-		//Get Block Index, and Bind the Buffer
-		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
-		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBufferObject);
-		glUniformBlockBinding(shaderExecutable, blockIndex, 0);
-
-		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
-
-		//sets hud in front of everything else
-		glDepthRange(0.0, 0.05);
-
-		//Draw meshes - iterates through the meshes and materials to draw them individually.
-		for (int j = 0; j < cpuModel.meshCount; j++) {
-			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex]);
-			SetUpPipeline();
-			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
-			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
-		}
-
-		glBindVertexArray(0);
-		glUseProgram(0);
-
-		
-	}
 
 	//toggles a button on and off
 	void toggleRender() {
@@ -276,8 +270,6 @@ public:
 		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
 		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
 
-		float ndcWidth = width / screenWidth;
-		float ndcHeight = height / screenHeight;
 
 		#ifndef NDEBUG
 
@@ -285,16 +277,15 @@ public:
 			std::cout << "mouseY:" << mouseY << std::endl;
 			std::cout << "xPos:" << xPos << std::endl;
 			std::cout << "yPos:" << yPos << std::endl;
-			std::cout << "ndcWidth:" << ndcWidth << std::endl;
-			std::cout << "ndcHeight:" << ndcHeight << std::endl;
+		
 
 		#endif
 
 		if (render)
 		{
 			// Check if mouse position is within button bounds
-			if (mouseX >= xPos && mouseX <= xPos + ndcWidth &&
-				mouseY >= yPos && mouseY <= yPos + ndcHeight) {
+			if (mouseX >= xPos && mouseX <= xPos + width &&
+				mouseY >= yPos && mouseY <= yPos + height) {
 
 				float state;
 				gInput.GetState(keyPress, state);

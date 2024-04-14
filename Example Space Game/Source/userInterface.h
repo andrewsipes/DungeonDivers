@@ -269,27 +269,29 @@ public:
 		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
 	}
 	//load button defaults
-	void loadDefaults(std::string _buttonName, buttonText &_text ) {
-
-		//get the default position
-		xPos = gameConfig->at(_buttonName).at("xPos").as<float>();
-		yPos = gameConfig->at(_buttonName).at("yPos").as<float>();
+	void loadDefaults(std::string _buttonName, buttonText &_text) {
 
 		//move the object to its intended position and apply scale
 		scale(gameConfig->at(_buttonName).at("scaleX").as<float>(), gameConfig->at(_buttonName).at("scaleY").as<float>());
-		translate({ xPos, yPos});
+		translate({ gameConfig->at(_buttonName).at("xPos").as<float>(), gameConfig->at(_buttonName).at("yPos").as<float>()});
 
 		//update Text, scale and translate it
 		text = &_text;
-		loadTextDefaults(_buttonName, *text,xPos, yPos);
+		loadTextDefaults(_buttonName, *text);
 
 	}
 
 	//loads button text defaults
-	void loadTextDefaults(std::string _buttonName, buttonText &_text, float x, float y) {
+	void loadTextDefaults(std::string _buttonName, buttonText &_text) {
 	
+		//update Text size
 		_text.scale(gameConfig->at(_buttonName).at("textScale").as<float>());
-		_text.translate({ ( -x + .23f), (y - 0.05f)});
+
+		//use vertice information from the button to update text location (ADJ varibles allow for manual adjustments in defaults.ini
+		_text.translate({ -cpuModel.vertices[0].pos.x - gameConfig->at(_buttonName).at("xAdj").as<float>(), 
+			cpuModel.vertices[1].pos.y  + gameConfig->at(_buttonName).at("yAdj").as<float>() });
+
+		//flip the orientation
 		_text.rotateYAxis(180.0f);
 	}
 
@@ -327,8 +329,8 @@ public:
 		if (render)
 		{
 			//check if mouse position is within button bounds
-			if (mouseX >= xPos && mouseX <= xPos + width &&
-				mouseY >= yPos && mouseY <= yPos + height) {
+			if (mouseX >= cpuModel.vertices[0].pos.x && mouseX <= cpuModel.vertices[0].pos.x + width &&
+				mouseY >= cpuModel.vertices[0].pos.y && mouseY <= cpuModel.vertices[0].pos.y + height) {
 
 				float state;
 				gInput.GetState(keyPress, state);
@@ -358,10 +360,10 @@ public:
 
 		#ifndef NDEBUG
 
-			//std::cout << "mouseX:" << mouseX << std::endl;
-			//std::cout << "mouseY:" << mouseY << std::endl;
-			//std::cout << "xPos:" << xPos << std::endl;
-			//std::cout << "yPos:" << yPos << std::endl;
+			std::cout << "mouseX:" << mouseX << std::endl;
+			std::cout << "mouseY:" << mouseY << std::endl;
+			std::cout << "xPos:" << xPos << std::endl;
+			std::cout << "yPos:" << yPos << std::endl;
 		
 
 		#endif
@@ -371,8 +373,8 @@ public:
 		if (render)
 		{
 			//check if mouse position is within button bounds
-			if (mouseX >= xPos && mouseX <= xPos + width &&
-				mouseY >= yPos && mouseY <= yPos + height) {
+			if (mouseX >= cpuModel.vertices[0].pos.x && mouseX <= cpuModel.vertices[0].pos.x + width &&
+				mouseY >= cpuModel.vertices[0].pos.y && mouseY <= cpuModel.vertices[0].pos.y + height) {
 
 				float state;
 
@@ -684,7 +686,6 @@ public:
 
 		heart1 = &allUiObjects[0];
 		button = &allUiButtonObjects[0];
-		//button->text = &allUiButtonTextObjects[0];
 
 		//heart2 = &allUiObjects[1];
 		//heart3 = &allUiObjects[2];
@@ -704,11 +705,7 @@ public:
 		//heart3->scale(gameConfig->at("Heart3").at("scale").as<float>());
 		//heart3->translate({ gameConfig->at("Heart3").at("xPos").as<float>(), gameConfig->at("Heart3").at("yPos").as<float>() });
 
-		//button->scale(gameConfig->at("Button1").at("scaleX").as<float>(), gameConfig->at("Button1").at("scaleY").as<float>());
-		//button->translate({ gameConfig->at("Button1").at("xPos").as<float>(), gameConfig->at("Button1").at("yPos").as<float>() });
-
-		//update Text, scale and translate it
-		//button->loadTextDefaults("Button1", allUiButtonTextObjects[0], gameConfig->at("Button1").at("xPos").as<float>(), gameConfig->at("Button1").at("yPos").as<float>());
+	
 
 		button->loadDefaults("Button1", allUiButtonTextObjects[0]);
 		
@@ -719,11 +716,11 @@ public:
 	void start() override{
 
 		heart1->toggleRender();
-		//text->toggleRender();
+		button->toggleRender();
+
 		//heart2->toggleRender();
 		//heart3->toggleRender();
 
-		button->toggleRender();
 
 	}
 };

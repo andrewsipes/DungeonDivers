@@ -690,11 +690,10 @@ public:
 	void assign() override{
 
 		heart1 = &allUiObjects[0];
+		heart2 = &allUiObjects[6];
+		heart3 = &allUiObjects[2];
+
 		button = &allUiButtonObjects[0];
-
-		//heart2 = &allUiObjects[1];
-		//heart3 = &allUiObjects[2];
-
 
 	}
 
@@ -704,27 +703,39 @@ public:
 		heart1->scale(gameConfig->at("Heart1").at("scale").as<float>());
 		heart1->translate({ gameConfig->at("Heart1").at("xPos").as<float>(), gameConfig->at("Heart1").at("yPos").as<float>() });
 
-		//heart2->scale(gameConfig->at("Heart2").at("scale").as<float>());
-		//heart2->translate({ gameConfig->at("Heart2").at("xPos").as<float>(), gameConfig->at("Heart2").at("yPos").as<float>() });
+		heart2->scale(gameConfig->at("Heart2").at("scale").as<float>());
+		heart2->translate({ gameConfig->at("Heart2").at("xPos").as<float>(), gameConfig->at("Heart2").at("yPos").as<float>() });
 
-		//heart3->scale(gameConfig->at("Heart3").at("scale").as<float>());
-		//heart3->translate({ gameConfig->at("Heart3").at("xPos").as<float>(), gameConfig->at("Heart3").at("yPos").as<float>() });
+		heart3->scale(gameConfig->at("Heart3").at("scale").as<float>());
+		heart3->translate({ gameConfig->at("Heart3").at("xPos").as<float>(), gameConfig->at("Heart3").at("yPos").as<float>() });
+
+
+		for (userButton &button : allUiButtonObjects)
+		{
+
+			for (buttonText &text : allUiButtonTextObjects)
+			{
+
+				if (text.name.find(button.name) != std::string::npos)
+				{
+
+					button.loadDefaults(button.name, text);
+				}
+
+			}
+
+		}
 
 	
-
-		button->loadDefaults("Button1", allUiButtonTextObjects[0]);
-		
-
 	}
 
 	//turns default player HUD options on
 	void start() override{
 
 		heart1->toggleRender();
+		heart2->toggleRender();
+		heart3->toggleRender();
 		button->toggleRender();
-
-		//heart2->toggleRender();
-		//heart3->toggleRender();
 
 
 	}

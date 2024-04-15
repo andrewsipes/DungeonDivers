@@ -34,22 +34,11 @@ namespace ESG
 					std::weak_ptr<const GameConfig> _gameConfig,
 					GW::AUDIO::GAudio _audioEngine);
 
-		// New method for collision detection
-		void DetectCollisions();
-
 		// control if the system is actively running
 		bool Activate(bool runSystem);
 
 		// release any resources allocated by the system
 		bool Shutdown();
-
-	private:
-		// Helper methods for collision detection
-		void CheckPlayerBulletCollisions();
-		void CheckEnemyBulletCollisions();
-		void CheckPlayerEnemyCollisions();
-		void CheckPlayerEnvironmentCollisions();
-
 	};
 
 };

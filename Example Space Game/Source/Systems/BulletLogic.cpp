@@ -15,36 +15,41 @@ bool ESG::BulletLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 
 	// destroy any bullets that have the CollidedWith relationship
 	game->system<Bullet, Damage>("Bullet System")
-		.each([](flecs::entity e, Bullet, Damage &d) 
+		.each([](flecs::entity arrow, Bullet, Damage &d) 
 	{
 		// damage anything we come into contact with
-		e.each<CollidedWith>([&e, d](flecs::entity hit) 
+		arrow.each<CollidedWith>([&arrow, d](flecs::entity hit)
 		{
 			if (hit.has<Health>()) 
 			{
+				// reduce the health of the hit entity by the damage value
 				int current = hit.get<Health>()->value;
 				hit.set<Health>({ current - d.value });
 
 				// reduce the amount of hits but the charged shot
-				if (e.has<ChargedShot>() && hit.get<Health>()->value <= 0) 
+				if (arrow.has<ChargedShot>() && hit.get<Health>()->value <= 0)
 				{
-					int md_count = e.get<ChargedShot>()->max_destroy;
-					e.set<ChargedShot>({ md_count - 1 });
+					int md_count = arrow.get<ChargedShot>()->max_destroy;
+					arrow.set<ChargedShot>({ md_count - 1 });
 				}
 			}	
 		});
-		// if you have collidedWith realtionship then be destroyed
-		if (e.has<CollidedWith>(flecs::Wildcard)) 
+		// if you have collidedWith relationship then be destroyed
+		if (arrow.has<CollidedWith>(flecs::Wildcard))
 		{
-			if (e.has<ChargedShot>()) 
+			// Destroy the arrow entity if it has a 'ChargedShot' component and 
+				// its 'max_destroy' value is zero or less
+			if (arrow.has<ChargedShot>())
 			{
-				if(e.get<ChargedShot>()->max_destroy <= 0)
-					e.destruct();
+				// ChargedShot is number of times a bullet can hit target before 
+					// its destroyed
+				if(arrow.get<ChargedShot>()->max_destroy <= 0)
+					arrow.destruct();
 			}
 			else 
 			{
 				// play hit sound
-				e.destruct();
+				arrow.destruct();
 			}
 		}
 	});

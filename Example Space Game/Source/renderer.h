@@ -16,6 +16,12 @@ class RendererManager
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
 
+	//for ui
+	GW::MATH::GMATRIXF UIviewMatrix;
+	GW::MATH::GMATRIXF UIcameraMatrix;
+	GW::MATH::GMATRIXF UIorthoMatrix;
+
+
 	//for defaults
 	GameConfig* gameConfig;
 
@@ -58,6 +64,12 @@ public:
 
 		//initialize projection matrix based on FOV and near and far planes
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
+
+
+		//UI matricies
+		UIorthoMatrix = initializeOrthoprojectionMatrix();
+		gMatrixProxy.IdentityF(UIcameraMatrix);
+		gMatrixProxy.InverseF(UIcameraMatrix, UIviewMatrix);
 	
 		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
@@ -65,7 +77,7 @@ public:
 		playerHUD.assign();
 		playerHUD.arrange();
 		playerHUD.start();
-		playerHUD.UploadLevelToGPU();
+		playerHUD.UploadLevelToGPU( UIcameraMatrix,  UIviewMatrix,  UIorthoMatrix);
 
 
 		
@@ -80,7 +92,7 @@ public:
 			panel.assign();
 			panel.arrange();
 			panel.start();
-			panel.UploadLevelToGPU();
+			panel.UploadLevelToGPU(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 		}
 	}
 	
@@ -125,6 +137,26 @@ public:
 		GW::MATH::GMatrix::ProjectionOpenGLRHF(toRad(degrees), aspectRatio, _near, _far, projMatrix);
 
 		return projMatrix;
+	}
+
+	GW::MATH::GMATRIXF initializeOrthoprojectionMatrix()
+	{
+		float _left = -5.0f;
+		float _right = 5.0f;
+		float _bottom = -5.0f;
+		float _top = 5.0f;
+		float _near = .01;
+		float _far = 40;
+
+		// Create the orthographic projection matrix
+		GW::MATH::GMATRIXF ortho = {
+			2 / (_right - _left),   0,                      0,                  -(_right + _left) / (_right - _left),
+			0,                      2 / (_top - _bottom),   0,                  -(_top + _bottom) / (_top - _bottom),
+			0,                      0,                      -2 / (_far - _near), -(_far + _near) / (_far - _near),
+			0,                      0,                      0,                  1
+		};
+
+		return ortho;
 	}
 
 	//Updates camera movement based on movement
@@ -240,8 +272,8 @@ public:
 	void Render()
 	{
 
-		lvl.Render(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD.Render();
+		lvl.Render(cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD.Render(cameraMatrix, viewMatrix, projectionMatrix);
 
 
 		//button test

@@ -88,7 +88,7 @@ public:
 
 		// TODO: Use chosen API to upload this model's graphics data to GPU
 		lbo = updateLights(_lights);
-		ubo = updateUboInstance(cpuModel.materials[0], world, _camera, _view, _projection, _sLight);
+		ubo = updateUboInstance(cpuModel.materials[0], _camera, _view, _projection, _sLight);
 
 		InitializeGraphics();
 		
@@ -99,7 +99,7 @@ public:
 
 	}
 
-	virtual bool DrawModel(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) {
+	virtual bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) {
 		
 		//keeps objects from clipping into ui
 		glDepthRange(0.2, 1);
@@ -129,7 +129,7 @@ public:
 
 				//Draw meshes - iterates through the meshes and materials to draw them individually.
 				for (int j = 0; j < cpuModel.meshCount; j++) {
-					updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], world, _camera, _view, _projection, _sLight);
+					updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _projection, _sLight);
 					SetUpPipeline();
 					glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
 				}
@@ -252,7 +252,7 @@ public:
 	}
 
 	//assigns ubo data to send to the shader
-	UBO_DATA updateUboInstance(H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
+	UBO_DATA updateUboInstance(H2B::MATERIAL _material, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
 
 		UBO_DATA _ubo;
 
@@ -346,10 +346,10 @@ public:
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, dataSize, newData);
 	}
 
-	void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _world, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
+	void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight) {
 
 		glBindBuffer(GL_UNIFORM_BUFFER, UBOBufferObject);
-		ubo = updateUboInstance(_material, _world, _camera, _view, _projection, _sLight);
+		ubo = updateUboInstance(_material,  _camera, _view, _projection, _sLight);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ubo), &ubo);
 	}
 
@@ -710,11 +710,11 @@ public:
 
 	}
 	// Draws all objects in the level
-	void Render(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
+	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allObjectsInLevel) {
-			e.DrawModel(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
+			e.DrawModel(_camera, _view, _projection, sunLight, LIGHTDATA);
 
 		}
 

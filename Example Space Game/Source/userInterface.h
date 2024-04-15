@@ -28,18 +28,21 @@ public:
 		glUniform1i(glGetUniformLocation(shaderExecutable, "isUi"), isUi);
 	}
 
-	void updateUniformBufferObject(const H2B::MATERIAL _material) {
+	void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
 
 		glBindBuffer(GL_UNIFORM_BUFFER, UBOBufferObject);
-		ubo = updateUboInstance(_material);
+		ubo = updateUboInstance(_material, _camera, _view, _proj);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ubo), &ubo);
 	}
 
 	//assigns ubo data to send to the shader
-	UBO_DATA updateUboInstance(H2B::MATERIAL _material){
+	UBO_DATA updateUboInstance(H2B::MATERIAL _material, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj){
 
 		UBO_DATA _ubo;
-
+		
+		_ubo._view = _view;
+		_ubo._proj= _proj;
+		_ubo._cam = _camera;
 		_ubo._world = world;
 
 		//material
@@ -58,7 +61,7 @@ public:
 		return _ubo;
 	}
 
-	virtual bool DrawModel(){
+	virtual bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _ortho){
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
@@ -73,7 +76,7 @@ public:
 
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
-			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex]);
+			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _ortho);
 			SetUpPipeline();
 			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
@@ -86,10 +89,10 @@ public:
 
 	}
 
-	bool UploadModelData2GPU() {
+	bool UploadModelData2GPU(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
 
 	
-		ubo = updateUboInstance(cpuModel.materials[0]);
+		ubo = updateUboInstance(cpuModel.materials[0], _camera,  _view,  _proj);
 
 		InitializeGraphics();
 
@@ -172,7 +175,7 @@ public:
 		
 	}
 
-	bool DrawModel() override{
+	bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) override{
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
@@ -187,7 +190,7 @@ public:
 
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
-			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex]);
+			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _proj);
 			SetUpPipeline();
 			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
@@ -423,7 +426,7 @@ public:
 
 
 	// Draws all objects in the level
-	void Render() {
+	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
 
 		// iterate over each model and tell it to draw itself
 		if (render)
@@ -431,15 +434,15 @@ public:
 			for (auto& e : allUiObjects) {
 			
 				if (e.render)
-					e.DrawModel();
+					e.DrawModel( _camera, _view,  _proj);
 
 			}
 
 			for (auto& f : allUiButtonObjects){
 
 				if (f.render) {
-					f.DrawModel();
-					f.text->DrawModel();
+					f.DrawModel(_camera, _view, _proj);
+					f.text->DrawModel(_camera, _view, _proj);
 				}
 			
 			}
@@ -628,15 +631,15 @@ public:
 	}
 
 	// Upload the CPU level to GPU
-	void UploadLevelToGPU() {
+	void UploadLevelToGPU(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allUiObjects) {
-			e.UploadModelData2GPU();
+			e.UploadModelData2GPU(_camera, _view, _proj);
 		}
 
 		for (auto& f : allUiButtonObjects) {
-			f.UploadModelData2GPU();
-			f.text->UploadModelData2GPU();
+			f.UploadModelData2GPU(_camera,  _view, _proj);
+			f.text->UploadModelData2GPU(_camera, _view, _proj);
 		}
 
 		
@@ -723,7 +726,7 @@ public:
 	void arrange() override{
 
 	
-		heart1->loadDefaults("Heart1");
+		/*heart1->loadDefaults("Heart1");
 		heart2->loadDefaults("Heart2");
 		heart3->loadDefaults("Heart3");
 		heart4->loadDefaults("Heart4");
@@ -734,7 +737,7 @@ public:
 
 		pauseText->loadDefaults("pauseText");
 		startText->loadDefaults("startText");
-		levelCompleteText->loadDefaults("levelCompleteText");
+		levelCompleteText->loadDefaults("levelCompleteText");*/
 
 
 	}

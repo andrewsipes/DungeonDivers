@@ -42,7 +42,7 @@ public:
 		playerHUD = player;
 
 		panels.push_back(playerHUD);
-		bool playerHUDSuccess = playerHUD.LoadMeshes("../ui.txt", "../Models/uiModels", log.Relinquish());
+		bool playerHUDSuccess = playerHUD.LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
 	
 		win = _win;
 		ogl = _ogl;
@@ -245,7 +245,7 @@ public:
 
 
 		//button test
-		playerHUD.button->HandleInput(playerHUD.button, G_BUTTON_LEFT, gInput, turnOffRender);
+		//playerHUD.button->HandleInput(playerHUD.button, G_BUTTON_LEFT, gInput, turnOffRender);
 
 	
 	}

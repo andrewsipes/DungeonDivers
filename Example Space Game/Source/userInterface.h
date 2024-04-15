@@ -102,6 +102,15 @@ public:
 		render = !render;
 	}
 
+
+	void loadDefaults(std::string name) {
+
+		//move the object to its intended position and apply scale
+		scale(gameConfig->at(name).at("scale").as<float>());
+		translate({ -gameConfig->at(name).at("xPos").as<float>(), gameConfig->at(name).at("yPos").as<float>() });
+		rotateYAxis(180.0f);
+
+	}
 	
 	// Scales a model's vertices
 	virtual void scale(float scale) {
@@ -237,19 +246,6 @@ public:
 		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
 	}
 
-	/*
-	//load button defaults
-	void loadDefaults(std::string buttonName) {
-
-		//get the default position
-		xPos = gameConfig->at(buttonName).at("xPos").as<float>();
-		yPos = gameConfig->at(buttonName).at("yPos").as<float>();
-
-		//move the object to its intended position and apply scale
-		translate({ gameConfig->at(buttonName).at("xPos").as<float>(), gameConfig->at(buttonName).at("yPos").as<float>() });
-		scale(gameConfig->at(buttonName).at("scale").as<float>());
-
-	} */
 
 	void scale(float scaleX, float scaleY) {
 
@@ -659,7 +655,24 @@ public:
 
 	//place holders
 	virtual void assign() {}
-	virtual void arrange() {}
+	virtual void arrange() {
+	
+		for (userButton &button : allUiButtonObjects)
+		{
+
+			for (buttonText &text : allUiButtonTextObjects)
+			{
+
+				if (text.name.find(button.name) != std::string::npos)
+				{
+
+					button.loadDefaults(button.name, text);
+				}
+
+			}
+
+		}
+	}
 	virtual void start() {}
 
 
@@ -669,9 +682,9 @@ public:
 class playerUi : public uiPanel {
 
 public:
-	uiModel *heart1, *heart2, *heart3, *heart4, *heart5,
-			*scoreDigit1, *scoreDigit2, *scoreDigit3, *scoreDigit4,
-			*levelText, *levelNum;
+	uiModel* heart1, * heart2, * heart3, * heart4, * heart5, * heart6, * heart7, * heart8,
+		* scoreDigit1, * scoreDigit2, * scoreDigit3, * scoreDigit4,
+		* levelText, * levelNum, * startText, * pauseText, * levelCompleteText;
 
 	userButton *button;
 
@@ -689,45 +702,45 @@ public:
 
 	void assign() override{
 
+		//hearts
 		heart1 = &allUiObjects[0];
-		heart2 = &allUiObjects[6];
+		heart2 = &allUiObjects[1];
 		heart3 = &allUiObjects[2];
+		heart4 = &allUiObjects[3];
+		heart5 = &allUiObjects[4];
+		heart6 = &allUiObjects[5];
+		heart7 = &allUiObjects[6];
+		heart8 = &allUiObjects[7];
 
-		button = &allUiButtonObjects[0];
+		pauseText = &allUiObjects[60];
+		startText = &allUiObjects[61];
+		levelCompleteText = &allUiObjects[62];
+
 
 	}
 
 	//updates the vertices for the player HUD to be in their correct positions
 	void arrange() override{
 
-		heart1->scale(gameConfig->at("Heart1").at("scale").as<float>());
-		heart1->translate({ gameConfig->at("Heart1").at("xPos").as<float>(), gameConfig->at("Heart1").at("yPos").as<float>() });
+	
+		heart1->loadDefaults("Heart1");
+		heart2->loadDefaults("Heart2");
+		heart3->loadDefaults("Heart3");
+		heart4->loadDefaults("Heart4");
+		heart5->loadDefaults("Heart5");
+		heart6->loadDefaults("Heart6");
+		heart7->loadDefaults("Heart7");
+		heart8->loadDefaults("Heart8");
 
-		heart2->scale(gameConfig->at("Heart2").at("scale").as<float>());
-		heart2->translate({ gameConfig->at("Heart2").at("xPos").as<float>(), gameConfig->at("Heart2").at("yPos").as<float>() });
-
-		heart3->scale(gameConfig->at("Heart3").at("scale").as<float>());
-		heart3->translate({ gameConfig->at("Heart3").at("xPos").as<float>(), gameConfig->at("Heart3").at("yPos").as<float>() });
+		pauseText->loadDefaults("pauseText");
+		startText->loadDefaults("startText");
+		levelCompleteText->loadDefaults("levelCompleteText");
 
 
-		for (userButton &button : allUiButtonObjects)
-		{
-
-			for (buttonText &text : allUiButtonTextObjects)
-			{
-
-				if (text.name.find(button.name) != std::string::npos)
-				{
-
-					button.loadDefaults(button.name, text);
-				}
-
-			}
-
-		}
+	}
 
 	
-	}
+	
 
 	//turns default player HUD options on
 	void start() override{
@@ -735,7 +748,16 @@ public:
 		heart1->toggleRender();
 		heart2->toggleRender();
 		heart3->toggleRender();
-		button->toggleRender();
+		heart4->toggleRender();
+		heart5->toggleRender();
+		heart6->toggleRender();
+		heart7->toggleRender();
+		heart8->toggleRender();
+
+		
+		pauseText->toggleRender();
+		startText->toggleRender();
+		levelCompleteText->toggleRender();
 
 
 	}

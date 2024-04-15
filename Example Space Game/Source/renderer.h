@@ -141,12 +141,12 @@ public:
 
 	GW::MATH::GMATRIXF initializeOrthoprojectionMatrix()
 	{
-		float _left = -5.0f;
-		float _right = 5.0f;
-		float _bottom = -5.0f;
-		float _top = 5.0f;
-		float _near = .01;
-		float _far = 40;
+		float _left = 0.0;
+		float _right = gameConfig->at("Window").at("width").as<int>();
+		float _bottom = 0.0;
+		float _top = gameConfig->at("Window").at("height").as<int>();
+		float _near = -1;
+		float _far = 1;
 
 		// Create the orthographic projection matrix
 		GW::MATH::GMATRIXF ortho = {
@@ -273,7 +273,7 @@ public:
 	{
 
 		lvl.Render(cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD.Render(cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD.Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 
 
 		//button test

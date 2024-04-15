@@ -109,8 +109,12 @@ public:
 	void loadDefaults(std::string name) {
 
 		//move the object to its intended position and apply scale
-		scale(gameConfig->at(name).at("scale").as<float>());
-		translate({ -gameConfig->at(name).at("xPos").as<float>(), gameConfig->at(name).at("yPos").as<float>() });
+		//scale(gameConfig->at(name).at("scale").as<float>());
+		scale(-world.row1.x);
+
+		//translate({ -gameConfig->at(name).at("xPos").as<float>(), gameConfig->at(name).at("yPos").as<float>() });
+		translate({ -world.row4.x, world.row4.y});
+
 		rotateYAxis(180.0f);
 
 	}
@@ -715,9 +719,9 @@ public:
 		heart7 = &allUiObjects[6];
 		heart8 = &allUiObjects[7];
 
-		pauseText = &allUiObjects[60];
-		startText = &allUiObjects[61];
-		levelCompleteText = &allUiObjects[62];
+		//pauseText = &allUiObjects[60];
+		//startText = &allUiObjects[61];
+		//levelCompleteText = &allUiObjects[62];
 
 
 	}
@@ -726,7 +730,7 @@ public:
 	void arrange() override{
 
 	
-		/*heart1->loadDefaults("Heart1");
+		heart1->loadDefaults("Heart1");
 		heart2->loadDefaults("Heart2");
 		heart3->loadDefaults("Heart3");
 		heart4->loadDefaults("Heart4");
@@ -735,9 +739,9 @@ public:
 		heart7->loadDefaults("Heart7");
 		heart8->loadDefaults("Heart8");
 
-		pauseText->loadDefaults("pauseText");
-		startText->loadDefaults("startText");
-		levelCompleteText->loadDefaults("levelCompleteText");*/
+		//pauseText->loadDefaults("pauseText");
+		//startText->loadDefaults("startText");
+		//levelCompleteText->loadDefaults("levelCompleteText");
 
 
 	}
@@ -758,9 +762,9 @@ public:
 		heart8->toggleRender();
 
 		
-		pauseText->toggleRender();
-		startText->toggleRender();
-		levelCompleteText->toggleRender();
+		//pauseText->toggleRender();
+		//startText->toggleRender();
+		//levelCompleteText->toggleRender();
 
 
 	}

@@ -105,16 +105,11 @@ public:
 		render = !render;
 	}
 
+	//Uses the world matrix and adjusts it for placing each UI object properly
+	void loadDefaults() {
 
-	void loadDefaults(std::string name) {
-
-		//move the object to its intended position and apply scale
-		//scale(gameConfig->at(name).at("scale").as<float>());
 		scale(-world.row1.x);
-
-		//translate({ -gameConfig->at(name).at("xPos").as<float>(), gameConfig->at(name).at("yPos").as<float>() });
 		translate({ -world.row4.x, world.row4.y});
-
 		rotateYAxis(180.0f);
 
 	}
@@ -689,9 +684,9 @@ public:
 class playerUi : public uiPanel {
 
 public:
-	uiModel* heart1, * heart2, * heart3, * heart4, * heart5, * heart6, * heart7, * heart8,
-		* scoreDigit1, * scoreDigit2, * scoreDigit3, * scoreDigit4,
-		* levelText, * levelNum, * startText, * pauseText, * levelCompleteText;
+	uiModel* heart1, * heart2, * heart3, * heart4, * heart5, * heart6, * heart7, * heart8;
+	std::vector<uiModel*> levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4;
+	uiModel	* levelText, *startText, *pauseText, *levelCompleteText;
 
 	userButton *button;
 
@@ -706,7 +701,8 @@ public:
 		render = false;
 
 	}
-
+	
+	//assigns the panel elements to the appropiate pointers so we can control them easily
 	void assign() override{
 
 		//hearts
@@ -719,31 +715,87 @@ public:
 		heart7 = &allUiObjects[6];
 		heart8 = &allUiObjects[7];
 
-		//pauseText = &allUiObjects[60];
-		//startText = &allUiObjects[61];
-		//levelCompleteText = &allUiObjects[62];
+		//text
+		levelText = &allUiObjects[8];
+		pauseText = &allUiObjects[9];
+		startText = &allUiObjects[10];
+		levelCompleteText = &allUiObjects[11];
 
+		//assign level digit numbers
+		for (int i = 0; i < 10; i++) {
+
+			levelDigit.push_back(&allUiObjects[i + 12]);
+		}
+
+		//assign score digit numbers
+		for (int i = 0; i < 10; i++) {
+
+			scoreDigit1.push_back(&allUiObjects[i + 22]);
+		}
+
+		//assign score digit numbers
+		for (int i = 0; i < 10; i++) {
+
+			scoreDigit2.push_back(&allUiObjects[i + 32]);
+		}
+
+		//assign score digit numbers
+		for (int i = 0; i < 10; i++) {
+
+			scoreDigit3.push_back(&allUiObjects[i + 42]);
+		}
+
+		//assign score digit numbers
+		for (int i = 0; i < 10; i++) {
+
+			scoreDigit4.push_back(&allUiObjects[i + 52]);
+		}
 
 	}
 
 	//updates the vertices for the player HUD to be in their correct positions
 	void arrange() override{
 
-	
-		heart1->loadDefaults("Heart1");
-		heart2->loadDefaults("Heart2");
-		heart3->loadDefaults("Heart3");
-		heart4->loadDefaults("Heart4");
-		heart5->loadDefaults("Heart5");
-		heart6->loadDefaults("Heart6");
-		heart7->loadDefaults("Heart7");
-		heart8->loadDefaults("Heart8");
 
-		//pauseText->loadDefaults("pauseText");
-		//startText->loadDefaults("startText");
-		//levelCompleteText->loadDefaults("levelCompleteText");
+		heart1->loadDefaults();
+		heart2->loadDefaults();
+		heart3->loadDefaults();
+		heart4->loadDefaults();
+		heart5->loadDefaults();
+		heart6->loadDefaults();
+		heart7->loadDefaults();
+		heart8->loadDefaults();
+
+		levelText->loadDefaults();
+		pauseText->loadDefaults();
+		startText->loadDefaults();
+		levelCompleteText->loadDefaults();
+
+		for (uiModel* digit : levelDigit)
+		{
+			digit->loadDefaults();
+		}
 
 
+		for (uiModel* digit : scoreDigit1)
+		{
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : scoreDigit2)
+		{
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : scoreDigit3)
+		{
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : scoreDigit4)
+		{
+			digit->loadDefaults();
+		}
 	}
 
 	
@@ -756,15 +808,21 @@ public:
 		heart2->toggleRender();
 		heart3->toggleRender();
 		heart4->toggleRender();
-		heart5->toggleRender();
-		heart6->toggleRender();
-		heart7->toggleRender();
-		heart8->toggleRender();
+		//heart5->toggleRender();
+		//heart6->toggleRender();
+		//heart7->toggleRender();
+		//heart8->toggleRender();
 
-		
+		levelText->toggleRender();
 		//pauseText->toggleRender();
-		//startText->toggleRender();
+		startText->toggleRender();
 		//levelCompleteText->toggleRender();
+
+		levelDigit[1]->toggleRender();
+		scoreDigit1[5]->toggleRender();
+		scoreDigit2[6]->toggleRender();
+		scoreDigit3[0]->toggleRender();
+		scoreDigit4[9]->toggleRender();
 
 
 	}

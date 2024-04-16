@@ -38,6 +38,7 @@ namespace H2B {
 		const char* decal;
 		const char* bump;
 		const void* padding[2];
+
 	};
 	struct MESH {
 		const char* name;

@@ -1,8 +1,6 @@
 #include "./Application.h"
 #include "./renderer.h"
 
-#define WIN_HEIGHT 600;
-#define WIN_WIDTH 800;
 
 using namespace GW;
 using namespace CORE;
@@ -82,7 +80,7 @@ bool Application::Init()
 bool Application::Run() {
 
 	GEventResponder msgs;
-	float clr[] = { 194.0f / 255.0f, 51.0f / 255.0f, 29.0f / 255.0f, 1 }; // Buffer
+	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 
 
 		msgs.Create([&](const GW::GEvent& e) {
@@ -95,7 +93,7 @@ bool Application::Run() {
 		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-			RendererManager rendererManager(win, ogl);
+			RendererManager rendererManager(win, ogl, *gameConfig);
 
 			while (+win.ProcessWindowEvents())
 			{
@@ -164,9 +162,19 @@ bool Application::InitInput()
 
 bool Application::InitAudio()
 {
-	if (-audioEngine.Create())
-		return false;
-	return true;
+	//Start up the audio engine
+	if (audioEngine.Create() == GReturn::SUCCESS) //&&
+		//load the evil_lair
+		//currentTrack.Create("../Music/Evil_Lair.wav", audioEngine, 0.15f) == GReturn::SUCCESS) 
+	{
+		std::cout << "MUSIC IS OFF" << std::endl;
+		//setting the play(true) will continue to loop the music.  (false) will play once.
+		//currentTrack.Play(true);
+		//return true to play the music.
+		return true;
+	}
+
+	return false;
 }
 
 //bool Application::InitGraphics()

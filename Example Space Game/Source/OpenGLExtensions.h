@@ -37,6 +37,8 @@ PFNGLUNIFORMBLOCKBINDINGPROC		glUniformBlockBinding = nullptr;
 PFNGLBUFFERSUBDATAPROC				glBufferSubData = nullptr;
 PFNGLACTIVETEXTUREPROC				glActiveTexture = nullptr;
 PFNGLUNIFORM1IPROC					glUniform1i = nullptr;
+PFNGLUNIFORM1FPROC					glUniform1f = nullptr;
+
 
 void QueryOGLExtensionFunctions(GW::GRAPHICS::GOpenGLSurface ogl)
 {
@@ -73,6 +75,8 @@ void QueryOGLExtensionFunctions(GW::GRAPHICS::GOpenGLSurface ogl)
 	ogl.QueryExtensionFunction(nullptr, "glBufferSubData", (void**)&glBufferSubData);
 	ogl.QueryExtensionFunction(nullptr, "glActiveTexture", (void**)&glActiveTexture);
 	ogl.QueryExtensionFunction(nullptr, "glUniform1i", (void**)&glUniform1i);
+	ogl.QueryExtensionFunction(nullptr, "glUniform1f", (void**)&glUniform1f);
+
 	
 
 }

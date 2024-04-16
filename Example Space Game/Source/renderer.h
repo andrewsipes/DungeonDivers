@@ -57,8 +57,8 @@ public:
 
 
 			////PANELS/////
-			//mainMenuHUD->toggleRender();
-			playerHUD->toggleRender();
+			mainMenuHUD->toggleRender();
+			//playerHUD->toggleRender();
 		}
 		
 
@@ -313,13 +313,6 @@ public:
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 		}
-
-		//int score = 9999;
-
-		//playerHUD->update(score);
-
-		//int life = 8;
-		//playerHUD->updateHearts(life);
 
 		eventHandling();
 	

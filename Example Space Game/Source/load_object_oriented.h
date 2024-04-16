@@ -162,6 +162,10 @@ public:
 #ifndef NDEBUG
 		BindDebugCallback();
 #endif
+		//turn on alpha
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 		InitializeVertexBuffer();
 		CreateIndexBuffer(cpuModel.indices.data(), cpuModel.indices.size() * sizeof(unsigned int));
 		CreateUBOBuffer(&ubo, sizeof(ubo));
@@ -274,7 +278,7 @@ public:
 		_ubo.material.Ks = _material.attrib.Ks;
 		_ubo.material.Ni = _material.attrib.Ni;
 		_ubo.material.Ns = _material.attrib.Ns;
-		_ubo.material.sharpness = _material.attrib.sharpness;
+		//_ubo.material.sharpness = _material.attrib.sharpness;
 		_ubo.material.Tf = _material.attrib.Tf;
 
 		//here we need to send the number of lights to save some space on the lbo

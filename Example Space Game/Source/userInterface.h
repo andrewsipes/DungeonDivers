@@ -1,5 +1,4 @@
 #include "./load_object_oriented.h"
-#include <algorithm>
 
 //This entire .H file handles the UserInterface Classes, and their accompanying methods
 //In order to use this properly, objects should be created in render.h and handled as needed for rendering, events, etc.
@@ -10,6 +9,7 @@ class uiModel : public Model
 
 public:
 	bool render;
+	float alpha = 1.0f;
 
 	GameConfig* gameConfig;
 
@@ -17,13 +17,13 @@ public:
 		render = false;
 	}
 
-	void SetUpPipeline() override{
+	void SetUpPipeline(float alpha) {
 		glUseProgram(shaderExecutable);
 		glBindVertexArray(vertexArray);
 		SetVertexAttributes();
-		
-		bool isUi = true;
-		glUniform1i(glGetUniformLocation(shaderExecutable, "isUi"), isUi);
+
+		glUniform1i(glGetUniformLocation(shaderExecutable, "isUi"), true);
+		glUniform1f(glGetUniformLocation(shaderExecutable, "alpha"), alpha);
 	}
 
 	void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
@@ -58,7 +58,7 @@ public:
 		return _ubo;
 	}
 
-	virtual bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj){
+	virtual bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj, float alpha){
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
@@ -74,7 +74,7 @@ public:
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
 			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _proj);
-			SetUpPipeline();
+			SetUpPipeline(alpha);
 			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
 		}
@@ -168,7 +168,7 @@ public:
 		
 	}
 
-	bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) override{
+	bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj, float alpha) override{
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
@@ -184,7 +184,7 @@ public:
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
 			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _proj);
-			SetUpPipeline();
+			SetUpPipeline(alpha);
 			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
 		}
@@ -210,18 +210,6 @@ public:
 		render = false;
 	}
 
-	//creates a button and pulls the button coordinates and size from defaults.ini
-	userButton(const std::string& buttonName, GameConfig *gameConfig) {
-		xPos = gameConfig->at(buttonName).at("xPos").as<float>();
-		yPos = gameConfig->at(buttonName).at("yPos").as<float>();
-		width = gameConfig->at(buttonName).at("width").as<int>();
-		height = gameConfig->at(buttonName).at("height").as<int>();
-
-		render = false;
-
-	}
-
-	
 	void scale(float scale) override{
 
 		//Retrived height and width of the window to scale properly
@@ -257,6 +245,15 @@ public:
 
 	//Uses the world matrix and adjusts it for placing each UI object properly
 	void loadDefaults() override{
+
+		//load alpha if it exists
+		try {
+			alpha = gameConfig->at(this->name).at("alpha").as<float>();
+		}
+		catch (const std::out_of_range& e) {
+
+			std::cerr << "WARNING: NO ALPHA FOUND" << std::endl;
+		}
 
 		scale(-world.row1.x, world.row2.y); 
 		translate({ world.row4.x, world.row4.y });
@@ -409,13 +406,13 @@ public:
 		{
 			for (auto& e : allUiObjects) {		
 				if (e.render)
-					e.DrawModel( _camera, _view,  _proj);
+					e.DrawModel( _camera, _view,  _proj, e.alpha);
 			}
 
 			for (auto& f : allUiButtonObjects){
 				if (f.render) {
-					f.DrawModel(_camera, _view, _proj);
-					f.text->DrawModel(_camera, _view, _proj);
+					f.DrawModel(_camera, _view, _proj, f.alpha);
+					f.text->DrawModel(_camera, _view, _proj, f.text->alpha);
 				}			
 			}
 		}
@@ -730,8 +727,10 @@ public:
 
 	}
 
+	//combines updating score and life into single method
 	void update(int score, int life) {
-
+		updateHearts(life);
+		updateScore(score);
 	}
 	
 	//assigns the panel elements to the appropiate pointers so we can control them easily
@@ -853,11 +852,8 @@ public:
 					_button.text = &_text;
 					_button.loadDefaults();
 				}
-
 			}
-
 		}
-
 	}
 
 	void start() override {

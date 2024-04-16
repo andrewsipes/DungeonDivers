@@ -5,8 +5,7 @@
 #define GATEWARE_ENABLE_MATH // Enables all 3D Math Libraries
 #define GATEWARE_ENABLE_MATH2D // Enables all 2D Math Libraries
 #define GATEWARE_ENABLE_INPUT // Enables all Input Libraries
-#define GATEWARE_ENABLE_AUDIO // Enables all Audio Libraries
-#define G_PASS				 // For Gateware Returns
+#define GATEWARE_ENABLE_AUDIO // Enables all Audio Libraries			 // For Gateware Returns
 #define STB_IMAGE_IMPLEMENTATION //for stb
 // Ignore some GRAPHICS libraries we aren't going to use
 #define GATEWARE_DISABLE_GDIRECTX11SURFACE 

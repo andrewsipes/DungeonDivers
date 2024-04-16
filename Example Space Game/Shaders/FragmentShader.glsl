@@ -11,6 +11,7 @@ struct ATTRIBUTES {
         float Ni;
 		vec3 Ke; 
         uint illum;
+        
 	};
 
 struct Light{
@@ -48,6 +49,7 @@ in vec3 coords;
 out vec4 Pixel;
 
 uniform bool isUi;
+uniform float alpha;
 
 void main() 
 {   
@@ -58,8 +60,8 @@ void main()
     }
 
    else if (isUi){
+    Pixel = vec4(ubo.material.Kd, alpha);
 
-    Pixel = vec4(ubo.material.Kd, 1.0);
    }
 
    else {
@@ -137,6 +139,6 @@ void main()
 
        // ----- FINAL -----
 
-       Pixel = vec4(totalColor + sunColor + sunReflected + ambientColor, 1.0);
+       Pixel = vec4(totalColor + ambientColor, 1.0);
     }
 }

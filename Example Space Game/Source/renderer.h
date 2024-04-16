@@ -16,26 +16,54 @@ class RendererManager
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
 
+	//for ui
+	GW::MATH::GMATRIXF UIviewMatrix;
+	GW::MATH::GMATRIXF UIcameraMatrix;
+	GW::MATH::GMATRIXF UIorthoMatrix;
+
+
+	//for defaults
+	GameConfig* gameConfig;
+
 	//create level
 	Level_Objects lvl;
 
-	//ui panels
-	playerHUD playerHUD;
-	std::vector <uiPanel> panels;
-
-
 public:
+	//ui panels
+	playerUi* playerHUD;
+	mainMenuUi* mainMenuHUD;
+	pauseMenuUi* pauseMenu;
+	std::vector <uiPanel*> panels;
 
-	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl)
+	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig)
 	{
-		GW::SYSTEM::GLog log;
-		log.Create("output.txt");
-		bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		bool playerHUDSuccess = playerHUD.LoadMeshes("../ui.txt", "../Models/uiModels", log.Relinquish());
-
-	
+		//passed arguments for initializing
+		gameConfig = &_gameConfig;
 		win = _win;
 		ogl = _ogl;
+
+		GW::SYSTEM::GLog log;
+		log.Create("output.txt");
+
+		//load ui Panels - this doesn't turn them on but simply lay out each UI for rendering later on.
+		initializePanels(log);
+
+		//Toggle which level you want to load
+		{
+			/////LEVELS/////
+			//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+			bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+
+
+			////PANELS/////
+			//pauseMenu->toggleRender();
+			//mainMenuHUD->toggleRender();
+			//playerHUD->toggleRender();
+		}
+		
+
+
+		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 		//create inputs
 		gController.Create();
@@ -48,37 +76,51 @@ public:
 
 		//initialize projection matrix based on FOV and near and far planes
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
-	
-		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD.toggleRender();
-		playerHUD.assign();
-		playerHUD.arrange();
-		playerHUD.start();
-		playerHUD.UploadLevelToGPU();
 
-		organizePanels();
-		
+		//UI matricies - not currently used
+		UIorthoMatrix = initializeOrthoprojectionMatrix();
+		gMatrixProxy.IdentityF(UIcameraMatrix);
+		gMatrixProxy.InverseF(UIcameraMatrix, UIviewMatrix);
+			
 	}
 
+	//initializes all panels
+	void initializePanels(GW::SYSTEM::GLog &log) {
 
-	//place all ui panels in a vector
-	void organizePanels() {
+		//assign the panels to the preset renderManager pointers
+		playerUi* player = new playerUi(*gameConfig);
+		playerHUD = player;
 
+		mainMenuUi* main = new mainMenuUi(*gameConfig);
+		mainMenuHUD = main;
+
+		pauseMenuUi* pause = new pauseMenuUi(*gameConfig);
+		pauseMenu = pause;
+
+		//Load All meshes in the level at start
+		bool playerHUDSuccess = playerHUD->LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
+		bool mainMenuHUDSuccess = mainMenuHUD->LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
+		bool pauseMenuSuccess = pauseMenu->LoadMeshes("../PauseMenu.txt", "../Models/PauseMenumodels", log.Relinquish());
+
+		//add to vector of panels
 		panels.push_back(playerHUD);
-	}
+		panels.push_back(mainMenuHUD);
+		panels.push_back(pauseMenu);
 
-	//initializes panels to default state
-	void initializePanels() {
-
-		for (uiPanel panel : panels) {
-			panel.assign();
-			panel.arrange();
-			panel.start();
-			panel.UploadLevelToGPU();
+		for (uiPanel* panel : panels) {
+			initializePanel(panel);
 		}
 	}
-	
 
+	//initialize single panel
+	void initializePanel(uiPanel *panel) {
+		panel->assign();
+		panel->arrange();
+		panel->start();
+		panel->UploadLevelToGPU(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+
+	}
+	
 	//initializes a world matrix and sets it to identity
 	GW::MATH::GMATRIXF initializeWorldMatrix()
 	{
@@ -119,6 +161,27 @@ public:
 		GW::MATH::GMatrix::ProjectionOpenGLRHF(toRad(degrees), aspectRatio, _near, _far, projMatrix);
 
 		return projMatrix;
+	}
+
+	//initializes an Orthoprojectionmatrix
+	GW::MATH::GMATRIXF initializeOrthoprojectionMatrix()
+	{
+		float _left = 0.0;
+		float _right = gameConfig->at("Window").at("width").as<int>();
+		float _bottom = 0.0;
+		float _top = gameConfig->at("Window").at("height").as<int>();
+		float _near = -1;
+		float _far = 1;
+
+		// Create the orthographic projection matrix
+		GW::MATH::GMATRIXF ortho = {
+			2 / (_right - _left),   0,                      0,                  -(_right + _left) / (_right - _left),
+			0,                      2 / (_top - _bottom),   0,                  -(_top + _bottom) / (_top - _bottom),
+			0,                      0,                      -2 / (_far - _near), -(_far + _near) / (_far - _near),
+			0,                      0,                      0,                  1
+		};
+
+		return ortho;
 	}
 
 	//Updates camera movement based on movement
@@ -230,17 +293,44 @@ public:
 		callTime = currTime;
 	}
 
-	//Render Loop for all objects (place Panels and Levels here);
-	void Render()
-	{
+	//Event Handling for all buttons - manually place each button here and tag the lamda expression it should execute
+	void eventHandling() {
 
-		lvl.Render(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD.Render();
+		//MAINMENU
+		if (mainMenuHUD->render) {
+			mainMenuHUD->startButton->HandleInput(mainMenuHUD->startButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			mainMenuHUD->controlsButton->HandleInput(mainMenuHUD->controlsButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			mainMenuHUD->exitButton->HandleInput(mainMenuHUD->exitButton, G_BUTTON_LEFT, gInput, turnOffRender);
+		}
 
+		//PLAYERHUD
+		if (playerHUD->render) {
 
+		}
 	}
 
-	~RendererManager()
-	{
+	//Render Loop for all objects (place Panels and Levels here);
+	void Render(){		
+		lvl.Render(cameraMatrix, viewMatrix, projectionMatrix);
+
+		for (uiPanel* panel : panels){
+			if (panel == pauseMenu && panel->render){
+				pauseMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+			}
+
+			else if (panel->render){
+				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+			}
+		}
+
+		eventHandling();
+	
+	}
+
+	~RendererManager(){
+		for (uiPanel* panel : panels)
+		{
+			delete panel;
+		}
 	}
 };

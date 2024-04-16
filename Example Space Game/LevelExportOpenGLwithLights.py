@@ -36,7 +36,7 @@ def print_heir(ob, levels=10):
              # send to file
             if ob.name == 'skyBox' and ob.get("CubeMap") is not None:
                 file.write(spaces + ob.get("CubeMap") + "\n")
-
+                
             # Swap from Blender space to OpenGL RH
             row_world = ob.matrix_world.transposed()
             converted = mathutils.Matrix.Identity(4)

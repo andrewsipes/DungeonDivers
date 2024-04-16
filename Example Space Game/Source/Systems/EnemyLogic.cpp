@@ -21,7 +21,8 @@ bool ESG::EnemyLogic::Init(std::shared_ptr<flecs::world> _game,
 	game->system<Enemy, Health>("Enemy System")
 		.each([this](flecs::entity e, Enemy, Health& h) {
 			// if you have no health left be destroyed
-			if (e.get<Health>()->value <= 0) {
+			if (e.get<Health>()->value <= 0) 
+			{
 				// play explode sound
 				e.destruct();
 				ESG::PLAY_EVENT_DATA x;

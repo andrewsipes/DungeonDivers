@@ -4,6 +4,7 @@
 #include "../Components/Physics.h"
 #include "../Entities/Prefabs.h"
 #include "../Components/Gameplay.h"
+#include "../h2bParser.h"
 
 bool ESG::EnemyData::Load(	std::shared_ptr<flecs::world> _game,
 							std::weak_ptr<const GameConfig> _gameConfig,

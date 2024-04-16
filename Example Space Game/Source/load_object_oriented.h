@@ -3,6 +3,14 @@
 #include "./OpenGLExtensions.h"
 #include "./defines.h"
 
+//Depth of UI rendering
+#define userButtonTextDepth 0.0f
+#define userButtonDepth 0.1f
+#define uiModelDepth 0.2f
+#define uiOverlayDepth 0.3f
+#define worldDepth 0.4f
+
+
 //credit to stb image for their image uploader https://github.com/nothings/stb
 //credit to LearnOpenGL for the skybox tutorial and skybox images //credits to learnOpenGL https://learnopengl.com/Advanced-OpenGL/Cubemaps
 
@@ -102,7 +110,7 @@ public:
 	virtual bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) {
 		
 		//keeps objects from clipping into ui
-		glDepthRange(0.2, 1);
+		glDepthRange(worldDepth, 1);
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
@@ -162,7 +170,7 @@ public:
 #ifndef NDEBUG
 		BindDebugCallback();
 #endif
-		//turn on alpha
+		//turn on alpha for all objects
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -278,7 +286,7 @@ public:
 		_ubo.material.Ks = _material.attrib.Ks;
 		_ubo.material.Ni = _material.attrib.Ni;
 		_ubo.material.Ns = _material.attrib.Ns;
-		//_ubo.material.sharpness = _material.attrib.sharpness;
+		_ubo.material.sharpness = _material.attrib.sharpness;
 		_ubo.material.Tf = _material.attrib.Tf;
 
 		//here we need to send the number of lights to save some space on the lbo
@@ -453,9 +461,7 @@ private:
 public:
 
 	// Imports the default level txt format and creates a Model from each .h2b
-	bool virtual LoadMeshes(const char* gameLevelPath,
-		const char* h2bFolderPath,
-		GW::SYSTEM::GLog log, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
+	bool virtual LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log) {
 
 		//light stuff RGBA
 		sunLightDir = { 1.0f, -1.0f, 2.0f, 0.0f };

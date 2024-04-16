@@ -94,7 +94,6 @@ bool Application::Run() {
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 			RendererManager rendererManager(win, ogl, *gameConfig);
 
-
 			while (+win.ProcessWindowEvents())
 			{
 				glClearColor(clr[0], clr[1], clr[2], clr[3]);

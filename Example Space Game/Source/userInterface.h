@@ -69,7 +69,7 @@ public:
 		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 
 		//sets hud in front of everything else
-		glDepthRange(0.1, 0.2);
+		glDepthRange(uiModelDepth, uiOverlayDepth);
 
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
@@ -158,6 +158,74 @@ public:
 	
 };
 
+//updated uiModel class for drawing a different depth buffer
+class uiOverlay :public uiModel {
+
+public:
+	bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj, float alpha) override{
+
+		//Get Block Index, and Bind the Buffer
+		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBufferObject);
+		glUniformBlockBinding(shaderExecutable, blockIndex, 0);
+
+		//update vertex buffer
+		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+
+		//sets hud in front of everything else
+		glDepthRange(uiOverlayDepth, worldDepth);
+
+		//Draw meshes - iterates through the meshes and materials to draw them individually.
+		for (int j = 0; j < cpuModel.meshCount; j++) {
+			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _proj);
+			SetUpPipeline(alpha);
+			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
+		}
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		return true;
+
+	}
+
+
+	void scale(float scaleX, float scaleY) {
+
+		//Retrived height and width of the window to scale properly
+		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+		float screenHeight = gameConfig->at("Window").at("height").as<int>();
+
+		// Apply the scaled factor to each vertex
+		for (int i = 0; i < cpuModel.vertexCount; i++) {
+			cpuModel.vertices[i].pos.x *= scaleX;
+			cpuModel.vertices[i].pos.y *= scaleY * screenWidth / screenHeight;  // we must multiply here to ensure scaling is correct
+		}
+
+	}
+
+	//Uses the world matrix and adjusts it for placing each UI object properly
+	void loadDefaults() override {
+
+		//load alpha if it exists
+		try {
+			alpha = gameConfig->at(this->name).at("alpha").as<float>();
+		}
+		catch (const std::out_of_range& e) {
+
+			std::cerr << "WARNING: NO ALPHA FOUND" << std::endl;
+		}
+
+		scale(-world.row1.x, world.row2.y);
+		translate({ world.row4.x, world.row4.y });
+
+	
+
+	}
+
+};
+
 //same as uiModel but the depth buffer has been updated
 class buttonText : public uiModel
 {
@@ -179,7 +247,7 @@ public:
 		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 
 		//sets hud in front of everything else
-		glDepthRange(0.0, 0.1);
+		glDepthRange(userButtonTextDepth, userButtonDepth);
 
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
@@ -669,7 +737,6 @@ public:
 		int digit;		
 		int displayScore[4] = { 0,0,0,0 }; //zero until filled
 		int iter = 3;
-		int counter = 0;
 
 		//toggle all digits off
 		for (uiModel* digit : scoreDigit1){
@@ -693,7 +760,6 @@ public:
 			num /= 10;						//remove the last digit
 			
 			iter--;
-			counter++;
 		}
 
 		//Used the extracted values to update score
@@ -862,6 +928,90 @@ public:
 		controlsButton->toggleRender();
 		exitButton->toggleRender();
 	}
+};
+
+class pauseMenuUi :public uiPanel {
+public:
+	uiModel* pauseMenuText;
+	uiOverlay* pauseOverlay;
+	userButton *controlsPauseMenuButton, *resumePauseMenuButton, *restartPauseMenuButton, *exitPauseMenuButton;
+
+	pauseMenuUi() {
+		render = false;
+	}
+
+	pauseMenuUi(GameConfig& _gameConfig) {
+		gameConfig = &_gameConfig;
+		render = false;
+	}
+
+	void assign() override {
+		
+		pauseOverlay = static_cast<uiOverlay*>(&allUiObjects[0]);
+		pauseMenuText = new buttonText();
+		pauseMenuText = static_cast<buttonText*>(&allUiObjects[1]);
+		controlsPauseMenuButton = &allUiButtonObjects[0];
+		restartPauseMenuButton = &allUiButtonObjects[1];
+		exitPauseMenuButton = &allUiButtonObjects[2];
+		resumePauseMenuButton = &allUiButtonObjects[3];
+	}
+
+	void arrange() override {
+
+		pauseMenuText->loadDefaults();
+
+		for (userButton& _button : allUiButtonObjects) {
+			for (buttonText& _text : allUiButtonTextObjects) {
+				if (_text.name.find(_button.name) != std::string::npos) {
+					_button.text = &_text;
+					_button.loadDefaults();
+				}
+			}
+		}
+	}
+
+	void start() override {
+		pauseMenuText->toggleRender();
+		controlsPauseMenuButton->toggleRender();
+		resumePauseMenuButton->toggleRender();
+		restartPauseMenuButton->toggleRender();
+		exitPauseMenuButton->toggleRender();
+		pauseOverlay->toggleRender();
+
+	
+	}
+
+	// Draws all objects in the level
+	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
+
+		// iterate over each model and tell it to draw itself
+		if (render)
+		{
+			for (auto& e : allUiObjects) {
+				if (e.name == "pauseMenuText" || e.name == "pauseMenuOverlay"){				
+					// do nothing
+				}
+				else if (e.render)
+					e.DrawModel(_camera, _view, _proj, e.alpha);
+			}
+
+			for (auto& f : allUiButtonObjects) {
+				if (f.render) {
+					f.DrawModel(_camera, _view, _proj, f.alpha);
+					f.text->DrawModel(_camera, _view, _proj, f.text->alpha);
+				}
+			}
+
+			if (pauseOverlay->render) {
+				pauseOverlay->DrawModel(_camera, _view, _proj, pauseOverlay->alpha);
+			}
+
+			if (pauseMenuText->render) {
+				pauseMenuText->DrawModel(_camera, _view, _proj, pauseMenuText->alpha);
+			}
+		}
+	}
+
 };
 	
 //LAMBDA FUNCTIONS

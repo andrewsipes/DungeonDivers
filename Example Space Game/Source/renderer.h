@@ -28,13 +28,12 @@ class RendererManager
 	//create level
 	Level_Objects lvl;
 
+public:
 	//ui panels
 	playerUi* playerHUD;
 	mainMenuUi* mainMenuHUD;
+	pauseMenuUi* pauseMenu;
 	std::vector <uiPanel*> panels;
-
-
-public:
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig)
 	{
@@ -53,11 +52,12 @@ public:
 		{
 			/////LEVELS/////
 			//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
-			bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+			bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 
 
 			////PANELS/////
-			mainMenuHUD->toggleRender();
+			//pauseMenu->toggleRender();
+			//mainMenuHUD->toggleRender();
 			//playerHUD->toggleRender();
 		}
 		
@@ -94,13 +94,18 @@ public:
 		mainMenuUi* main = new mainMenuUi(*gameConfig);
 		mainMenuHUD = main;
 
+		pauseMenuUi* pause = new pauseMenuUi(*gameConfig);
+		pauseMenu = pause;
+
 		//Load All meshes in the level at start
 		bool playerHUDSuccess = playerHUD->LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
 		bool mainMenuHUDSuccess = mainMenuHUD->LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
+		bool pauseMenuSuccess = pauseMenu->LoadMeshes("../PauseMenu.txt", "../Models/PauseMenumodels", log.Relinquish());
 
 		//add to vector of panels
 		panels.push_back(playerHUD);
 		panels.push_back(mainMenuHUD);
+		panels.push_back(pauseMenu);
 
 		for (uiPanel* panel : panels) {
 			initializePanel(panel);
@@ -309,7 +314,11 @@ public:
 		lvl.Render(cameraMatrix, viewMatrix, projectionMatrix);
 
 		for (uiPanel* panel : panels){
-			if (panel->render){
+			if (panel == pauseMenu && panel->render){
+				pauseMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+			}
+
+			else if (panel->render){
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 		}

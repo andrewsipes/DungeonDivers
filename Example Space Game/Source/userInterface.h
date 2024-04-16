@@ -106,7 +106,7 @@ public:
 	}
 
 	//Uses the world matrix and adjusts it for placing each UI object properly
-	void loadDefaults() {
+	virtual void loadDefaults(){
 
 		scale(-world.row1.x);
 		translate({ -world.row4.x, world.row4.y});
@@ -262,37 +262,31 @@ public:
 		}
 
 	}
-	//load button defaults
-	void loadDefaults(std::string _buttonName, buttonText &_text) {
 
-		//move the object to its intended position and apply scale
-		scale(gameConfig->at(_buttonName).at("scaleX").as<float>(), gameConfig->at(_buttonName).at("scaleY").as<float>());
-		translate({ gameConfig->at(_buttonName).at("xPos").as<float>(), gameConfig->at(_buttonName).at("yPos").as<float>()});
+	//Uses the world matrix and adjusts it for placing each UI object properly
+	void loadDefaults() override{
 
-
+		scale(-world.row1.x, world.row2.y); //check here
+		translate({ world.row4.x, world.row4.y });
+		
 		//update button variables based on new vertex info
 		xPos = cpuModel.vertices[0].pos.x;
 		yPos = cpuModel.vertices[0].pos.y;
 		width = cpuModel.vertices[1].pos.x - cpuModel.vertices[0].pos.x;
 		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
 
-		//update Text, scale and translate it
-		text = &_text;
-		loadTextDefaults(_buttonName);
+		loadTextDefaults();
 
 	}
 
 	//loads button text defaults
-	void loadTextDefaults(std::string _buttonName) {
+	void loadTextDefaults() {
 	
 		//update Text size
-		text->scale(gameConfig->at(_buttonName).at("textScale").as<float>());
-
-		float xAdj = gameConfig->at(_buttonName).at("xAdj").as<float>();
-		float yAdj = gameConfig->at(_buttonName).at("yAdj").as<float>();
+		text->scale(-1*text->world.row1.x);
 
 		//use vertice information from the button to update text location (ADJ varibles allow for manual adjustments in defaults.ini
-		text->translate({ -xPos - xAdj, yPos + yAdj });
+		text->translate({-1*text->world.row4.x, text->world.row4.y});
 
 		//flip the orientation
 		text->rotateYAxis(180.0f);
@@ -668,7 +662,7 @@ public:
 				if (text.name.find(button.name) != std::string::npos)
 				{
 
-					button.loadDefaults(button.name, text);
+					button.loadDefaults();
 				}
 
 			}
@@ -798,9 +792,6 @@ public:
 		}
 	}
 
-	
-	
-
 	//turns default player HUD options on
 	void start() override{
 
@@ -825,6 +816,63 @@ public:
 		scoreDigit4[9]->toggleRender();
 
 
+	}
+};
+
+class mainMenuUi :	public uiPanel
+{
+public: 
+	uiModel* gameText;
+	userButton* startButton, * controlsButton, * exitButton;
+
+	mainMenuUi() {
+		render = false;
+	}
+
+	mainMenuUi(GameConfig& _gameConfig) {
+
+		gameConfig = &_gameConfig;
+		render = false;
+
+	}
+
+	void assign() override{
+
+		gameText = &allUiObjects[0];
+		startButton = &allUiButtonObjects[0];
+		controlsButton = &allUiButtonObjects[1];
+		exitButton = &allUiButtonObjects[2];
+
+	}
+
+	void arrange() override {
+
+		gameText->loadDefaults();
+
+		for (userButton& _button : allUiButtonObjects)
+		{
+
+			for (buttonText& _text : allUiButtonTextObjects)
+			{
+
+				if (_text.name.find(_button.name) != std::string::npos)
+				{
+					_button.text = &_text;
+					_button.loadDefaults();
+				}
+
+			}
+
+		}
+
+	}
+
+	void start() override {
+
+		gameText->toggleRender();
+		startButton->toggleRender();
+		controlsButton->toggleRender();
+		exitButton->toggleRender();
 	}
 };
 	

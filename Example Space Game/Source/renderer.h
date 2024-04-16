@@ -30,6 +30,7 @@ class RendererManager
 
 	//ui panels
 	playerUi playerHUD;
+	mainMenuUi mainMenuHUD;
 	std::vector <uiPanel> panels;
 
 
@@ -37,8 +38,10 @@ public:
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig)
 	{
-		//assigns the gameConfig for passing
+		//passed arguments for initializing
 		gameConfig = &_gameConfig;
+		win = _win;
+		ogl = _ogl;
 
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
@@ -47,14 +50,19 @@ public:
 		//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		
-		playerUi player(*gameConfig);
-		playerHUD = player;
+		//playerUi player(*gameConfig);
+		//playerHUD = player;
 
-		panels.push_back(playerHUD);
-		bool playerHUDSuccess = playerHUD.LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
+		mainMenuUi main(*gameConfig);
+		mainMenuHUD = main;
+
+
+		//bool playerHUDSuccess = playerHUD.LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
+		bool mainMenuHUDSuccess = mainMenuHUD.LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
+		initializePanel(&mainMenuHUD);
+		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+
 	
-		win = _win;
-		ogl = _ogl;
 
 		//create inputs
 		gController.Create();
@@ -73,17 +81,7 @@ public:
 		UIorthoMatrix = initializeOrthoprojectionMatrix();
 		gMatrixProxy.IdentityF(UIcameraMatrix);
 		gMatrixProxy.InverseF(UIcameraMatrix, UIviewMatrix);
-	
-		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-
-		playerHUD.toggleRender();
-		playerHUD.assign();
-		playerHUD.arrange();
-		playerHUD.start();
-		playerHUD.UploadLevelToGPU( UIcameraMatrix,  UIviewMatrix,  UIorthoMatrix);
-
-
-		
+			
 	}
 
 
@@ -97,6 +95,17 @@ public:
 			panel.start();
 			panel.UploadLevelToGPU(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 		}
+	}
+
+	//turns panel on for troubleshooting
+	void initializePanel(uiPanel *panel) {
+
+		panel->toggleRender();
+		panel->assign();
+		panel->arrange();
+		panel->start();
+		panel->UploadLevelToGPU(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+
 	}
 	
 
@@ -276,7 +285,8 @@ public:
 	{
 
 		lvl.Render(cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD.Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+		//playerHUD.Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+		mainMenuHUD.Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 
 
 		//button test

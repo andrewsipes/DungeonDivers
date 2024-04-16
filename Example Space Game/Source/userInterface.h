@@ -644,9 +644,9 @@ public:
 class playerUi : public uiPanel {
 
 public:
-	uiModel* heart1, * heart2, * heart3, * heart4, * heart5, * heart6, * heart7, * heart8;
-	std::vector<uiModel*> levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4;
+	//uiModel* heart0, *heart1, * heart2, * heart3, * heart4, * heart5, * heart6, * heart7;
 	uiModel	* levelText, *startText, *pauseText, *levelCompleteText;
+	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4;
 
 	userButton *button;
 
@@ -659,18 +659,83 @@ public:
 		render = false;
 	}
 	
+	//updates Score UI
+	void updateScore(int score){
+		
+		//prevents score from going too high
+		if (score > 9999)
+		{
+			score = 9999;
+		}
+
+		int num = score;
+		int digit;		
+		int displayScore[4] = { 0,0,0,0 }; //zero until filled
+		int iter = 3;
+		int counter = 0;
+
+		//toggle all digits off
+		for (uiModel* digit : scoreDigit1){
+			digit->render = false;
+		}
+		for (uiModel* digit : scoreDigit2) {
+			digit->render = false;
+		}
+		for (uiModel* digit : scoreDigit3) {
+			digit->render = false;
+		}
+		for (uiModel* digit : scoreDigit4) {
+			digit->render = false;
+		}
+
+
+		//Loop that takes the int that was passed in and seperates by digit
+		while (num > 0) {
+			digit = num % 10;				//get the digit by using mod
+			displayScore[iter] = digit;		//update an array so we have the right values
+			num /= 10;						//remove the last digit
+			
+			iter--;
+			counter++;
+		}
+
+		//Used the extracted values to update score
+		scoreDigit4[displayScore[3]]->toggleRender();
+		scoreDigit3[displayScore[2]]->toggleRender();
+		scoreDigit2[displayScore[1]]->toggleRender();
+		scoreDigit1[displayScore[0]]->toggleRender();
+
+	}
+
+	//updates Hearts UI
+	void updateHearts(int life) {
+
+		//prevents life from going too high
+		if (life > 8)
+		{
+			life = 8;
+		}
+
+		//turn all hearts off
+		for (uiModel* heart : hearts)
+		{
+			heart->render = false;
+		}
+
+		//turn on the ones needed
+		for (int i = 0; i < life; i++)
+		{
+			hearts[i]->toggleRender();
+		}
+
+	}
+
+	void update(int score, int life) {
+
+	}
+	
 	//assigns the panel elements to the appropiate pointers so we can control them easily
 	void assign() override{
-
-		//hearts
-		heart1 = &allUiObjects[0];
-		heart2 = &allUiObjects[1];
-		heart3 = &allUiObjects[2];
-		heart4 = &allUiObjects[3];
-		heart5 = &allUiObjects[4];
-		heart6 = &allUiObjects[5];
-		heart7 = &allUiObjects[6];
-		heart8 = &allUiObjects[7];
 
 		//text
 		levelText = &allUiObjects[8];
@@ -678,33 +743,33 @@ public:
 		startText = &allUiObjects[10];
 		levelCompleteText = &allUiObjects[11];
 
+		//assign hearts
+		for (int i = 0; i < 8; i++){
+			hearts.push_back(&allUiObjects[0 + i]);
+		}
+
 		//assign level digit numbers
 		for (int i = 0; i < 10; i++) {
-
 			levelDigit.push_back(&allUiObjects[i + 12]);
 		}
 
 		//assign score digit numbers
 		for (int i = 0; i < 10; i++) {
-
 			scoreDigit1.push_back(&allUiObjects[i + 22]);
 		}
 
 		//assign score digit numbers
 		for (int i = 0; i < 10; i++) {
-
 			scoreDigit2.push_back(&allUiObjects[i + 32]);
 		}
 
 		//assign score digit numbers
 		for (int i = 0; i < 10; i++) {
-
 			scoreDigit3.push_back(&allUiObjects[i + 42]);
 		}
 
 		//assign score digit numbers
 		for (int i = 0; i < 10; i++) {
-
 			scoreDigit4.push_back(&allUiObjects[i + 52]);
 		}
 
@@ -713,71 +778,44 @@ public:
 	//updates the vertices for the player HUD to be in their correct positions
 	void arrange() override{
 
-
-		heart1->loadDefaults();
-		heart2->loadDefaults();
-		heart3->loadDefaults();
-		heart4->loadDefaults();
-		heart5->loadDefaults();
-		heart6->loadDefaults();
-		heart7->loadDefaults();
-		heart8->loadDefaults();
-
 		levelText->loadDefaults();
 		pauseText->loadDefaults();
 		startText->loadDefaults();
 		levelCompleteText->loadDefaults();
 
-		for (uiModel* digit : levelDigit)
-		{
+		for (uiModel* heart : hearts){
+			heart->loadDefaults();
+		}
+
+		for (uiModel* digit : levelDigit){
 			digit->loadDefaults();
 		}
 
-
-		for (uiModel* digit : scoreDigit1)
-		{
+		for (uiModel* digit : scoreDigit1){
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit2)
-		{
+		for (uiModel* digit : scoreDigit2){
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit3)
-		{
+		for (uiModel* digit : scoreDigit3){
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit4)
-		{
+		for (uiModel* digit : scoreDigit4){
 			digit->loadDefaults();
 		}
 	}
 
-	//turns default player HUD options on
+	//turns default playerHUD on
 	void start() override{
 
-		heart1->toggleRender();
-		heart2->toggleRender();
-		heart3->toggleRender();
-		heart4->toggleRender();
-		//heart5->toggleRender();
-		//heart6->toggleRender();
-		//heart7->toggleRender();
-		//heart8->toggleRender();
-
+		//Set Default values
+		updateHearts(gameConfig->at("Player1").at("hearts").as<int>());
+		updateScore(gameConfig->at("Player1").at("score").as<int>());
 		levelText->toggleRender();
-		//pauseText->toggleRender();
-		startText->toggleRender();
-		//levelCompleteText->toggleRender();
-
-		levelDigit[1]->toggleRender();
-		scoreDigit1[5]->toggleRender();
-		scoreDigit2[6]->toggleRender();
-		scoreDigit3[0]->toggleRender();
-		scoreDigit4[9]->toggleRender();
-
+		levelDigit[0]->toggleRender();
 
 	}
 };

@@ -57,8 +57,8 @@ public:
 
 
 			////PANELS/////
-			mainMenuHUD->toggleRender();
-			//playerHUD->toggleRender();
+			//mainMenuHUD->toggleRender();
+			playerHUD->toggleRender();
 		}
 		
 
@@ -94,10 +94,11 @@ public:
 		mainMenuUi* main = new mainMenuUi(*gameConfig);
 		mainMenuHUD = main;
 
-		//Load the meshes
+		//Load All meshes in the level at start
 		bool playerHUDSuccess = playerHUD->LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
 		bool mainMenuHUDSuccess = mainMenuHUD->LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
 
+		//add to vector of panels
 		panels.push_back(playerHUD);
 		panels.push_back(mainMenuHUD);
 
@@ -312,6 +313,13 @@ public:
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 		}
+
+		//int score = 9999;
+
+		//playerHUD->update(score);
+
+		//int life = 8;
+		//playerHUD->updateHearts(life);
 
 		eventHandling();
 	

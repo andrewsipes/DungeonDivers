@@ -26,8 +26,11 @@ bool ESG::PlayerData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 		m = { red, green, blue };
 		o = { GW::MATH2D::GIdentityMatrix2F };
 		GW::MATH2D::GMatrix2D::Scale2F(o.value, GW::MATH2D::GVECTOR2F{ scale, scale }, o.value);
-	})
-	.add<Player>(); // Tag this entity as a Player
+		})
+		.add<Player>() // Tag this entity as a Player
+			.add<Collidable>(); // Add Collidable component for collision detection
+
+		//.add<ESG::BoundingBox>(); // Add BoundingBox component
 
 	return true;
 }

@@ -44,12 +44,12 @@ bool ESG::BulletData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 		.set<Velocity>({ 0, speed })
 		.set<GW::AUDIO::GSound>(shoot.Relinquish())
 
-		// .override<> ensures a component is unique to each entity created from a prefab 
-		.set_override<Damage>({ dmg })
 		//.set_override<ChargedShot>({ 2 })
 		.override<Position>()
 		.override<Bullet>() // Tag this prefab as a bullet (for queries/systems)
 		.override<Collidable>(); // can be collided with
+
+		//.add<ESG::BoundingBox>(); // Add BoundingBox component
 
 	// register this prefab by name so other systems can use it
 	RegisterPrefab("Lazer Bullet", lazerPrefab);
@@ -72,3 +72,5 @@ bool ESG::BulletData::Unload(std::shared_ptr<flecs::world> _game)
 
 	return true;
 }
+
+

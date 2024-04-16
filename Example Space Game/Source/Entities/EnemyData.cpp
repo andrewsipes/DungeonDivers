@@ -42,6 +42,8 @@ bool ESG::EnemyData::Load(	std::shared_ptr<flecs::world> _game,
 		.override<Enemy>() // Tag this prefab as an enemy (for queries/systems)
 		.override<Collidable>(); // can be collided with
 
+		//.add<ESG::BoundingBox>(); // Add BoundingBox component
+
 	// register this prefab by name so other systems can use it
 	RegisterPrefab("Enemy Type1", enemyPrefab);
 

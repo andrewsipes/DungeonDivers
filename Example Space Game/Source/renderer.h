@@ -16,10 +16,11 @@ class RendererManager
 	GW::MATH::GMATRIXF viewMatrix;
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
+	bool reset = false;
+	bool freecam = true;
 
 	//create level
 	Level_Objects lvl;
-
 
 public:
 
@@ -98,16 +99,30 @@ public:
 		static std::chrono::high_resolution_clock::time_point callTime = std::chrono::high_resolution_clock::now();
 
 		//for keystates
-		float space, lShift, rTrigger, lTrigger, wKey, sKey, aKey, dKey, lStickY, lStickX, rStickX, rStickY, mouseX, mouseY;
+		float space, lShift, rTrigger, lTrigger, wKey, sKey, aKey, dKey, lStickY, lStickX, rStickX, rStickY, mouseX, mouseY, num0;
 
 		//camera variables
 		float totalYChange, totalZChange, totalXChange, thumbspeed, FOV, pitch,yaw;
-
 		// current time
 		std::chrono::high_resolution_clock::time_point currTime = std::chrono::high_resolution_clock::now();
 
 		//get the time passed
 		std::chrono::duration<float> updateTime = currTime - callTime;
+
+		//Change Settings
+		gInput.GetState(G_KEY_NUMPAD_0, num0);
+		if (num0 > 0)
+		{
+			if (reset == false)
+			{
+				freecam = !freecam;
+				reset = true;
+			}
+		}
+		else
+		{
+			reset = false;
+		}
 
 		//Keyboard / mouse
 		gInput.GetState(G_KEY_SPACE, space);
@@ -126,73 +141,83 @@ public:
 		gController.GetState(0, G_RY_AXIS, rStickY);
 		gController.GetState(0, G_RX_AXIS, rStickX);
 
-		//check if mouse value is redundant - if so do nothing
-		if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
+		if (freecam)
 		{
-			// do nothing
-		}
+			//check if mouse value is redundant - if so do nothing
+			if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
+			{
+				// do nothing
+			}
 
-		//if value is redundant, set mouseX and mouseY to zero to prevent drift
-		else
-		{
-			mouseX = 0;
-			mouseY = 0;
-		}
+			//if value is redundant, set mouseX and mouseY to zero to prevent drift
+			else
+			{
+				mouseX = 0;
+				mouseY = 0;
+			}
 
 
-		if (controller != GW::GReturn::FAILURE)
-		{
-			//Calculate total change
-			totalYChange = space - lShift + rTrigger - lTrigger;
-			totalZChange = wKey - sKey + lStickY;
-			totalXChange = dKey - aKey + lStickX;
+			if (controller != GW::GReturn::FAILURE)
+			{
+				//Calculate total change
+				totalYChange = space - lShift + rTrigger - lTrigger;
+				totalZChange = wKey - sKey + lStickY;
+				totalXChange = dKey - aKey + lStickX;
 
-			//calculate rotation
-			thumbspeed = G_PI * updateTime.count();
-			FOV = toRad(65.0f);
-			pitch = (FOV * mouseY) / windowHeight + rStickY * (-thumbspeed);
-			yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth + rStickX * thumbspeed;
-		}
+				//calculate rotation
+				thumbspeed = G_PI * updateTime.count();
+				FOV = toRad(65.0f);
+				pitch = (FOV * mouseY) / windowHeight + rStickY * (-thumbspeed);
+				yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth + rStickX * thumbspeed;
+			}
 
-		else
-		{
-			//Calculate total change
-			totalYChange = space - lShift;
-			totalZChange = wKey - sKey;
-			totalXChange = dKey - aKey;
+			else
+			{
+				//Calculate total change
+				totalYChange = space - lShift;
+				totalZChange = wKey - sKey;
+				totalXChange = dKey - aKey;
 
-			//calculate rotation
-			thumbspeed = G_PI * updateTime.count();
-			FOV = toRad(65.0f);
-			pitch = (FOV * mouseY) / windowHeight;
-			yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth;
-		}
+				//calculate rotation
+				thumbspeed = G_PI * updateTime.count();
+				FOV = toRad(65.0f);
+				pitch = (FOV * mouseY) / windowHeight;
+				yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth;
+			}
 		
 		
-		//calculate translation
-		const float Camera_Speed = 10 * 0.5f;
-		float perFrameSpeed = Camera_Speed * updateTime.count();
-		float cameraPositionY = totalYChange * perFrameSpeed;
-		float cameraPositionZ = -totalZChange * perFrameSpeed;
-		float cameraPositionX = totalXChange * perFrameSpeed;
+			//calculate translation
+			const float Camera_Speed = 10 * 0.5f;
+			float perFrameSpeed = Camera_Speed * updateTime.count();
+			float cameraPositionY = totalYChange * perFrameSpeed;
+			float cameraPositionZ = -totalZChange * perFrameSpeed;
+			float cameraPositionX = totalXChange * perFrameSpeed;
 
 
 
-		//create rotation matrix
-		GW::MATH::GMATRIXF rotationMatrix;
-		GW::MATH::GMatrix::IdentityF(rotationMatrix);
+			//create rotation matrix
+			GW::MATH::GMATRIXF rotationMatrix;
+			GW::MATH::GMatrix::IdentityF(rotationMatrix);
 
-		gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
+			gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
 
-		//Translation vector
-		GW::MATH::GVECTORF cameraTranslationVector = { cameraPositionX, cameraPositionY, cameraPositionZ, 1.0f };
+			//Translation vector
+			GW::MATH::GVECTORF cameraTranslationVector = { cameraPositionX, cameraPositionY, cameraPositionZ, 1.0f };
 
-		//apply translation to the camera
-		gMatrixProxy.TranslateLocalF(cameraMatrix, cameraTranslationVector, cameraMatrix);
+			//apply translation to the camera
+			gMatrixProxy.TranslateLocalF(cameraMatrix, cameraTranslationVector, cameraMatrix);
 
-		//apply rotation 
-		gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
+			//apply rotation 
+			gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
 	
+		}
+		else 
+		{
+			gMatrixProxy.InverseF(cameraMatrix, cameraMatrix);
+			gMatrixProxy.IdentityF(cameraMatrix);
+			auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ 1.826, 13.327, 1.267, 1 }, GW::MATH::GVECTORF{ 1.826, 12.327, 1.2671, 1 }, GW::MATH::GVECTORF{ 0, 1, 0, 0 }, cameraMatrix);
+			gMatrixProxy.InverseF(cameraMatrix, cameraMatrix);
+		}
 		//get view matrix
 		gMatrixProxy.InverseF(cameraMatrix, viewMatrix);
 

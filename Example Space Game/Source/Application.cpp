@@ -98,6 +98,7 @@ bool Application::Run() {
 
 			while (+win.ProcessWindowEvents())
 			{
+
 				glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

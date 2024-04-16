@@ -13,13 +13,11 @@ public:
 
 	GameConfig* gameConfig;
 
-	uiModel()
-	{
+	uiModel(){
 		render = false;
 	}
 
 	void SetUpPipeline() override{
-
 		glUseProgram(shaderExecutable);
 		glBindVertexArray(vertexArray);
 		SetVertexAttributes();
@@ -29,7 +27,6 @@ public:
 	}
 
 	void updateUniformBufferObject(const H2B::MATERIAL _material, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
-
 		glBindBuffer(GL_UNIFORM_BUFFER, UBOBufferObject);
 		ubo = updateUboInstance(_material, _camera, _view, _proj);
 		glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ubo), &ubo);
@@ -89,9 +86,7 @@ public:
 
 	}
 
-	bool UploadModelData2GPU(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
-
-	
+	bool UploadModelData2GPU(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {	
 		ubo = updateUboInstance(cpuModel.materials[0], _camera,  _view,  _proj);
 
 		InitializeGraphics();
@@ -107,7 +102,6 @@ public:
 
 	//Uses the world matrix and adjusts it for placing each UI object properly
 	virtual void loadDefaults(){
-
 		scale(-world.row1.x);
 		translate({ -world.row4.x, world.row4.y});
 		rotateYAxis(180.0f);
@@ -218,8 +212,6 @@ public:
 
 	//creates a button and pulls the button coordinates and size from defaults.ini
 	userButton(const std::string& buttonName, GameConfig *gameConfig) {
-
-
 		xPos = gameConfig->at(buttonName).at("xPos").as<float>();
 		yPos = gameConfig->at(buttonName).at("yPos").as<float>();
 		width = gameConfig->at(buttonName).at("width").as<int>();
@@ -266,7 +258,7 @@ public:
 	//Uses the world matrix and adjusts it for placing each UI object properly
 	void loadDefaults() override{
 
-		scale(-world.row1.x, world.row2.y); //check here
+		scale(-world.row1.x, world.row2.y); 
 		translate({ world.row4.x, world.row4.y });
 		
 		//update button variables based on new vertex info
@@ -280,15 +272,9 @@ public:
 	}
 
 	//loads button text defaults
-	void loadTextDefaults() {
-	
-		//update Text size
+	void loadTextDefaults() {	
 		text->scale(-1*text->world.row1.x);
-
-		//use vertice information from the button to update text location (ADJ varibles allow for manual adjustments in defaults.ini
 		text->translate({-1*text->world.row4.x, text->world.row4.y});
-
-		//flip the orientation
 		text->rotateYAxis(180.0f);
 	}
 
@@ -323,8 +309,7 @@ public:
 
 #endif
 
-		if (render)
-		{
+		if (render)		{
 			//check if mouse position is within button bounds
 			if (mouseX >= xPos && mouseX <= xPos + width &&
 				mouseY >= yPos && mouseY <= yPos + height) {
@@ -411,7 +396,6 @@ public:
 	}
 
 	uiPanel(GameConfig* _gameConfig) {
-
 		gameConfig = _gameConfig;
 		render = false;
 
@@ -424,24 +408,18 @@ public:
 		// iterate over each model and tell it to draw itself
 		if (render)
 		{
-			for (auto& e : allUiObjects) {
-			
+			for (auto& e : allUiObjects) {		
 				if (e.render)
 					e.DrawModel( _camera, _view,  _proj);
-
 			}
 
 			for (auto& f : allUiButtonObjects){
-
 				if (f.render) {
 					f.DrawModel(_camera, _view, _proj);
 					f.text->DrawModel(_camera, _view, _proj);
-				}
-			
+				}			
 			}
 		}
-
-
 	}
 
 	bool LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log)
@@ -634,9 +612,7 @@ public:
 			f.UploadModelData2GPU(_camera,  _view, _proj);
 			f.text->UploadModelData2GPU(_camera, _view, _proj);
 		}
-
-		
-
+	
 	}
 
 	// used to wipe CPU & GPU level data between levels
@@ -653,24 +629,15 @@ public:
 	virtual void assign() {}
 	virtual void arrange() {
 	
-		for (userButton &button : allUiButtonObjects)
-		{
-
-			for (buttonText &text : allUiButtonTextObjects)
-			{
-
-				if (text.name.find(button.name) != std::string::npos)
-				{
-
+		for (userButton &button : allUiButtonObjects)		{
+			for (buttonText &text : allUiButtonTextObjects){
+				if (text.name.find(button.name) != std::string::npos){
 					button.loadDefaults();
 				}
-
 			}
-
 		}
 	}
 	virtual void start() {}
-
 
 };
 
@@ -686,14 +653,11 @@ public:
 
 	playerUi() {
 		render = false;
-
 	}
 
 	playerUi(GameConfig& _gameConfig) {
-
 		gameConfig = &_gameConfig;
 		render = false;
-
 	}
 	
 	//assigns the panel elements to the appropiate pointers so we can control them easily
@@ -830,33 +794,24 @@ public:
 	}
 
 	mainMenuUi(GameConfig& _gameConfig) {
-
 		gameConfig = &_gameConfig;
 		render = false;
-
 	}
 
 	void assign() override{
-
 		gameText = &allUiObjects[0];
 		startButton = &allUiButtonObjects[0];
 		controlsButton = &allUiButtonObjects[1];
 		exitButton = &allUiButtonObjects[2];
-
 	}
 
 	void arrange() override {
 
 		gameText->loadDefaults();
 
-		for (userButton& _button : allUiButtonObjects)
-		{
-
-			for (buttonText& _text : allUiButtonTextObjects)
-			{
-
-				if (_text.name.find(_button.name) != std::string::npos)
-				{
+		for (userButton& _button : allUiButtonObjects){
+			for (buttonText& _text : allUiButtonTextObjects){
+				if (_text.name.find(_button.name) != std::string::npos){
 					_button.text = &_text;
 					_button.loadDefaults();
 				}
@@ -868,7 +823,6 @@ public:
 	}
 
 	void start() override {
-
 		gameText->toggleRender();
 		startButton->toggleRender();
 		controlsButton->toggleRender();

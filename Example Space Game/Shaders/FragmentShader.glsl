@@ -137,6 +137,6 @@ void main()
 
        // ----- FINAL -----
 
-       Pixel = vec4(totalColor + sunColor + sunReflected + ambientColor, 1.0);
+       Pixel = vec4(totalColor + ambientColor, 1.0);
     }
 }

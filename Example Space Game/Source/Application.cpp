@@ -80,7 +80,7 @@ bool Application::Init()
 bool Application::Run() {
 
 	GEventResponder msgs;
-	float clr[] = { 194.0f / 255.0f, 51.0f / 255.0f, 29.0f / 255.0f, 1 }; // Buffer
+	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;

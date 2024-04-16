@@ -42,7 +42,10 @@ public:
 
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
-		bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+
+		//Toggle which level you want to load
+		//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		
 		playerUi player(*gameConfig);
 		playerHUD = player;

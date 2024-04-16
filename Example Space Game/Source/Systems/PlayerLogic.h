@@ -20,19 +20,19 @@ namespace ESG
 		// handle to our running ECS system
 		flecs::system playerSystem;
 
-		// permananent handles input systems
+		// permanent handles input systems
 		GW::INPUT::GInput immediateInput;
 		GW::INPUT::GBufferedInput bufferedInput;
 		GW::INPUT::GController controllerInput;
 
-		// permananent handle to audio system
+		// permanent handle to audio system
 		GW::AUDIO::GAudio audioEngine;
 
 		// key press event cache (saves input events)
 		// we choose cache over responder here for better ECS compatibility
 		GW::CORE::GEventCache pressEvents;
 
-		// varibables used for charged shot timing
+		// variables used for charged shot timing
 		float chargeStart = 0, chargeEnd = 0, chargeTime;
 
 		// event responder
@@ -45,6 +45,9 @@ namespace ESG
 
 		// control if the system is actively running
 		bool Activate(bool runSystem);
+
+		void CheckCollisionWithEnemies(const Position& playerPosition);
+		void ReducePlayerHealth();
 
 		// release any resources allocated by the system
 		bool Shutdown(); 

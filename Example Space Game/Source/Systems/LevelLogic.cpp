@@ -108,11 +108,12 @@ bool ESG::LevelLogic::Activate(bool runSystem)
 }
 
 // Implementation of Init() function
-bool ESG::LevelLogic::Init(std::shared_ptr<flecs::world> _game,
-	std::weak_ptr<const GameConfig> _gameConfig,
-	GW::AUDIO::GAudio _audioEngine) {
-	// Initialize game, gameConfig, audioEngine, and other members
-}
+//bool ESG::LevelLogic::Init(std::shared_ptr<flecs::world> _game,
+//	std::weak_ptr<const GameConfig> _gameConfig,
+//	GW::AUDIO::GAudio _audioEngine) 
+//{
+//	// Initialize game, gameConfig, audioEngine, and other members
+//}
 
 // **** SAMPLE OF MULTI_THREADED USE ****
 //flecs::world world; // main world

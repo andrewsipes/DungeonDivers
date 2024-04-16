@@ -34,6 +34,7 @@ bool ESG::BulletLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 				}
 			}	
 		});
+
 		// if you have collidedWith relationship then be destroyed
 		if (arrow.has<CollidedWith>(flecs::Wildcard))
 		{

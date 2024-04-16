@@ -18,7 +18,7 @@ namespace ESG
 		std::weak_ptr<const GameConfig> gameConfig;
 
 		// used to cache collision queries
-		flecs::query<Collidable, Position, Orientation> queryCache;
+		flecs::query<Collidable, Position, Orientation, BoundingBox> queryCache;
 
 		// defines what to be tested
 		static constexpr unsigned polysize = 4;

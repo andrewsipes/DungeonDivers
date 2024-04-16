@@ -540,7 +540,7 @@ public:
 	// Imports the default level txt format and creates a Model from each .h2b
 	bool LoadLevel(const char* gameLevelPath,
 		const char* h2bFolderPath,
-		GW::SYSTEM::GLog log, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
+		GW::SYSTEM::GLog log) {
 
 		//light stuff RGBA
 		sunLightDir = { 1.0f, -1.0f, 2.0f, 0.0f };

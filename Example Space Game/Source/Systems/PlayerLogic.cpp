@@ -39,30 +39,30 @@ bool ESG::PlayerLogic::Init(	std::shared_ptr<flecs::world> _game,
 
 		for (auto i : it) {
 			// left-right movement
-			float xaxis = 0, input = 0, yaxis = 0;
+			float xaxis = 0, input = 0, zaxis = 0;
 			// Use the controller/keyboard to move the player around the screen			
 			if (c[i].index == 0) { // enable keyboard controls for player 1
 				immediateInput.GetState(G_KEY_A, input); xaxis -= input;
 				immediateInput.GetState(G_KEY_D, input); xaxis += input;
-				immediateInput.GetState(G_KEY_S, input); yaxis -= input;
-				immediateInput.GetState(G_KEY_W, input); yaxis += input;
+				immediateInput.GetState(G_KEY_S, input); zaxis -= input;
+				immediateInput.GetState(G_KEY_W, input); zaxis += input;
 			}
 			// grab left-thumb stick
 			controllerInput.GetState(c[i].index, G_LX_AXIS, input); xaxis += input;
-			controllerInput.GetState(c[i].index, G_LY_AXIS, input); yaxis += input;
+			controllerInput.GetState(c[i].index, G_LY_AXIS, input); zaxis += input;
 			controllerInput.GetState(c[i].index, G_DPAD_LEFT_BTN, input); xaxis -= input;
 			controllerInput.GetState(c[i].index, G_DPAD_RIGHT_BTN, input); xaxis += input;
-			controllerInput.GetState(c[i].index, G_DPAD_DOWN_BTN, input); yaxis -= input;
-			controllerInput.GetState(c[i].index, G_DPAD_UP_BTN, input); yaxis += input;
+			controllerInput.GetState(c[i].index, G_DPAD_DOWN_BTN, input); zaxis -= input;
+			controllerInput.GetState(c[i].index, G_DPAD_UP_BTN, input); zaxis += input;
 
 			xaxis = G_LARGER(xaxis, -1);// cap right motion
 			xaxis = G_SMALLER(xaxis, 1);// cap left motion
-			yaxis = G_LARGER(yaxis, -1);
-			yaxis = G_SMALLER(yaxis, 1);
+			zaxis = G_LARGER(zaxis, -1);
+			zaxis = G_SMALLER(zaxis, 1);
 
 			// apply movement
 			p[i].value.x += xaxis * it.delta_time() * speed;
-			p[i].value.y += yaxis * it.delta_time() * speed;
+			p[i].value.y += zaxis * it.delta_time() * speed;
 
 			// limit the player to stay within -1 to +1 NDC
 			p[i].value.x = G_LARGER(p[i].value.x, -0.8f);

@@ -28,7 +28,7 @@ public:
 	{
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
-		bool success = lvl.LoadLevel("../NewGameLevel.txt", "../NewModels", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		bool success = lvl.LoadLevel("../NewGameLevel.txt", "../NewModels", log.Relinquish());
 	
 		win = _win;
 		ogl = _ogl;

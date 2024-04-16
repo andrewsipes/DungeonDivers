@@ -84,6 +84,7 @@ bool Application::Run() {
 	GEventResponder msgs;
 	float clr[] = { 194.0f / 255.0f, 51.0f / 255.0f, 29.0f / 255.0f, 1 }; // Buffer
 
+
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
 			if (+e.Read(q) && q == GWindow::Events::RESIZE)

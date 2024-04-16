@@ -13,9 +13,7 @@ int main()
 
 	Application dungeonDivers;
 	if (dungeonDivers.Init()) {
-		if (dungeonDivers.Run()) {
-
-			
+		if (dungeonDivers.Run()) {			
 			return dungeonDivers.Shutdown() ? 0 : 1;
 		}
 	}

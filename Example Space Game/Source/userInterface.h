@@ -58,7 +58,7 @@ public:
 		return _ubo;
 	}
 
-	virtual bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _ortho){
+	virtual bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj){
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
@@ -73,7 +73,7 @@ public:
 
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
-			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _ortho);
+			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _proj);
 			SetUpPipeline();
 			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
@@ -374,7 +374,6 @@ public:
 
 
 };
-
 
 // uiPanel is based on the level_loader, and is used to load an individual panel created in blender and render seperately from other objects.
 class uiPanel
@@ -783,6 +782,7 @@ public:
 	}
 };
 
+//uiPanel for the main menu
 class mainMenuUi :	public uiPanel
 {
 public: 

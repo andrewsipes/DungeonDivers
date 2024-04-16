@@ -29,9 +29,9 @@ class RendererManager
 	Level_Objects lvl;
 
 	//ui panels
-	playerUi playerHUD;
-	mainMenuUi mainMenuHUD;
-	std::vector <uiPanel> panels;
+	playerUi* playerHUD;
+	mainMenuUi* mainMenuHUD;
+	std::vector <uiPanel*> panels;
 
 
 public:
@@ -46,23 +46,24 @@ public:
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
 
+		//load ui Panels - this doesn't turn them on but simply lay out each UI for rendering later on.
+		initializePanels(log);
+
 		//Toggle which level you want to load
-		//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		{
+			/////LEVELS/////
+			//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+			bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
+
+
+			////PANELS/////
+			//mainMenuHUD.toggleRender();
+			playerHUD->toggleRender();
+		}
 		
-		//playerUi player(*gameConfig);
-		//playerHUD = player;
-
-		mainMenuUi main(*gameConfig);
-		mainMenuHUD = main;
 
 
-		//bool playerHUDSuccess = playerHUD.LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
-		bool mainMenuHUDSuccess = mainMenuHUD.LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
-		initializePanel(&mainMenuHUD);
 		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-
-	
 
 		//create inputs
 		gController.Create();
@@ -76,31 +77,37 @@ public:
 		//initialize projection matrix based on FOV and near and far planes
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
 
-
-		//UI matricies
+		//UI matricies - not currently used
 		UIorthoMatrix = initializeOrthoprojectionMatrix();
 		gMatrixProxy.IdentityF(UIcameraMatrix);
 		gMatrixProxy.InverseF(UIcameraMatrix, UIviewMatrix);
 			
 	}
 
+	//initializes all panels
+	void initializePanels(GW::SYSTEM::GLog &log) {
 
+		//assign the panels to the preset renderManager pointers
+		playerUi* player = new playerUi(*gameConfig);
+		playerHUD = player;
 
-	//initializes panels to default state
-	void initializePanels() {
+		mainMenuUi* main = new mainMenuUi(*gameConfig);
+		mainMenuHUD = main;
 
-		for (uiPanel panel : panels) {
-			panel.assign();
-			panel.arrange();
-			panel.start();
-			panel.UploadLevelToGPU(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+		//Load the meshes
+		bool playerHUDSuccess = playerHUD->LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
+		bool mainMenuHUDSuccess = mainMenuHUD->LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
+
+		panels.push_back(playerHUD);
+		panels.push_back(mainMenuHUD);
+
+		for (uiPanel* panel : panels) {
+			initializePanel(panel);
 		}
 	}
 
-	//turns panel on for troubleshooting
+	//initialize single panel
 	void initializePanel(uiPanel *panel) {
-
-		panel->toggleRender();
 		panel->assign();
 		panel->arrange();
 		panel->start();
@@ -108,7 +115,6 @@ public:
 
 	}
 	
-
 	//initializes a world matrix and sets it to identity
 	GW::MATH::GMATRIXF initializeWorldMatrix()
 	{
@@ -282,11 +288,18 @@ public:
 
 	//Render Loop for all objects (place Panels and Levels here);
 	void Render()
-	{
-
+	{		
 		lvl.Render(cameraMatrix, viewMatrix, projectionMatrix);
+
+		for (uiPanel* panel : panels)
+		{
+			if (panel->render)
+			{
+				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+			}
+		}
 		//playerHUD.Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
-		mainMenuHUD.Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+		//mainMenuHUD.Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 
 
 		//button test
@@ -297,5 +310,9 @@ public:
 
 	~RendererManager()
 	{
+		for (uiPanel* panel : panels)
+		{
+			delete panel;
+		}
 	}
 };

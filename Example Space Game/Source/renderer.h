@@ -57,8 +57,8 @@ public:
 
 
 			////PANELS/////
-			//mainMenuHUD.toggleRender();
-			playerHUD->toggleRender();
+			mainMenuHUD->toggleRender();
+			//playerHUD->toggleRender();
 		}
 		
 
@@ -157,6 +157,7 @@ public:
 		return projMatrix;
 	}
 
+	//initializes an Orthoprojectionmatrix
 	GW::MATH::GMATRIXF initializeOrthoprojectionMatrix()
 	{
 		float _left = 0.0;
@@ -286,30 +287,37 @@ public:
 		callTime = currTime;
 	}
 
+	//Event Handling for all buttons - manually place each button here and tag the lamda expression it should execute
+	void eventHandling() {
+
+		//MAINMENU
+		if (mainMenuHUD->render) {
+			mainMenuHUD->startButton->HandleInput(mainMenuHUD->startButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			mainMenuHUD->controlsButton->HandleInput(mainMenuHUD->controlsButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			mainMenuHUD->exitButton->HandleInput(mainMenuHUD->exitButton, G_BUTTON_LEFT, gInput, turnOffRender);
+		}
+
+		//PLAYERHUD
+		if (playerHUD->render) {
+
+		}
+	}
+
 	//Render Loop for all objects (place Panels and Levels here);
-	void Render()
-	{		
+	void Render(){		
 		lvl.Render(cameraMatrix, viewMatrix, projectionMatrix);
 
-		for (uiPanel* panel : panels)
-		{
-			if (panel->render)
-			{
+		for (uiPanel* panel : panels){
+			if (panel->render){
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 		}
-		//playerHUD.Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
-		//mainMenuHUD.Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 
-
-		//button test
-		//playerHUD.button->HandleInput(playerHUD.button, G_BUTTON_LEFT, gInput, turnOffRender);
-
+		eventHandling();
 	
 	}
 
-	~RendererManager()
-	{
+	~RendererManager(){
 		for (uiPanel* panel : panels)
 		{
 			delete panel;

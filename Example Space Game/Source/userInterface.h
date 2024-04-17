@@ -484,45 +484,49 @@ public:
 
 	}
 
-	//overload for lambdas that require a panel as input
-//	void HandleInput(uiPanel* panel, int keyPress, GW::INPUT::GInput gInput, std::function<void(uiPanel*)> onPress) {
-//
-//		float mouseX, mouseY;
-//		float screenWidth = gameConfig->at("Window").at("width").as<int>();
-//		float screenHeight = gameConfig->at("Window").at("height").as<int>();
-//
-//		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
-//
-//		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
-//		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
-//
-//
-//#ifndef NDEBUG
-//
-//		/*	std::cout << "mouseX:" << mouseX << std::endl;
-//			std::cout << "mouseY:" << mouseY << std::endl;
-//			std::cout << "xPos:" << xPos << std::endl;
-//			std::cout << "yPos:" << yPos << std::endl;*/
-//#endif
-//
-//		if (render)
-//		{
-//			//check if mouse position is within button bounds
-//			if (mouseX >= xPos && mouseX <= xPos + width &&
-//				mouseY >= yPos && mouseY <= yPos + height) {
-//
-//				float state;
-//
-//				gInput.GetState(keyPress, state);
-//
-//				//check if clicked
-//				if (state > 0) {
-//
-//					onPress(panel);
-//				}
-//			}
-//		}
-//	}
+
+	//specific handle for checking if the button press and returns a bool
+	bool HandleInputBool(int keyPress, GW::INPUT::GInput gInput) {
+
+		float mouseX, mouseY;
+		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+		float screenHeight = gameConfig->at("Window").at("height").as<int>();
+
+		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
+
+		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
+		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
+
+
+#ifndef NDEBUG
+
+		//std::cout << "mouseX:" << mouseX << std::endl;
+		//std::cout << "mouseY:" << mouseY << std::endl;
+		//std::cout << "xPos:" << xPos << std::endl;
+		//std::cout << "yPos:" << yPos << std::endl;
+
+#endif
+
+		if (render) {
+			//check if mouse position is within button bounds
+			if (mouseX >= xPos && mouseX <= xPos + width &&
+				mouseY >= yPos && mouseY <= yPos + height) {
+
+				float state;
+				gInput.GetState(keyPress, state);
+
+				//check if clicked
+				if (state > 0) {
+
+					return true;
+				}
+
+				else
+					false;
+			}
+		}
+
+	}
 };
 
 // uiPanel is based on the level_loader, and is used to load an individual panel created in blender and render seperately from other objects.
@@ -1086,9 +1090,6 @@ public:
 	}
 
 };
-	
-//LAMBDA FUNCTIONS
-//Place all Ui Related button calls here for now
 
 //Stops Rendering specific Model 
 auto turnOffRender = [](uiModel* model) {
@@ -1101,6 +1102,8 @@ auto shutdown = [](Application* application) {
 	};
 
 //toggles Panel and resumes games
-auto resume = [](uiPanel* panel) {
-	panel->toggleRender();
+auto resume = []() {
+
 	};
+	
+

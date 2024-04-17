@@ -1,6 +1,10 @@
 #include "./h2bParser.h"
 #include "./userInterface.h"
-//#include "./load_object_oriented.h"
+
+
+//LAMBDA FUNCTIONS
+//Place all Ui Related button calls here for now
+
 
 // Creation, Rendering & Cleanup
 class RendererManager
@@ -24,12 +28,11 @@ class RendererManager
 	GW::MATH::GMATRIXF UIorthoMatrix;
 
 	Application *app;
-
-	//for defaults
 	GameConfig* gameConfig;
-
-	//create level
 	Level_Objects lvl;
+
+	// Define a global boolean variable to keep track of the Tab key state
+	bool tab = false;
 
 public:
 	//ui panels
@@ -45,6 +48,9 @@ public:
 		win = _win;
 		ogl = _ogl;
 		app = &application;
+
+		//sets default state for pausing the game
+		tab = false;
 
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
@@ -317,8 +323,13 @@ public:
 
 			pauseMenu->controlsPauseMenuButton->HandleInput(pauseMenu->controlsPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
-			//pauseMenu->resumePauseMenuButton->HandleInput(pauseMenu, G_BUTTON_LEFT, gInput, resume);
 			pauseMenu->exitPauseMenuButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
+
+			if (pauseMenu->resumePauseMenuButton->HandleInputBool(G_BUTTON_LEFT, gInput) == true) {
+
+				//resume game
+				pauseMenu->toggleRender();
+			}
 
 		}
 
@@ -329,16 +340,23 @@ public:
 		//
 		//
 		//
-		if (mainMenuHUD->render == false && pauseMenu->render == false && GetAsyncKeyState(VK_TAB) & 0x8000 ) {
-			pauseMenu->render = true;
-			while (GetAsyncKeyState(VK_TAB) & 0x8000) {};	//wait for key to be lifted
+
+		//TOGGLE PAUSE MENU
+		if ((GetAsyncKeyState(VK_TAB) & 0x8000) && !tab){
+			if (!pauseMenu->render && !mainMenuHUD->render){
+				pauseMenu->render = true;
+			}
+
+			else if (pauseMenu->render){
+				pauseMenu->render = false;
+			}
+			tab = true;
+		}
+		else if (!(GetAsyncKeyState(VK_TAB) & 0x8000)) {
+			tab = false;
 		}
 
-		else if (pauseMenu->render == true && GetAsyncKeyState(VK_TAB) & 0x8000) {
-			pauseMenu->render = false;
-			while (GetAsyncKeyState(VK_TAB) & 0x8000) {};	//wait for key to be lifted
-		}
-
+	
 
 	}
 
@@ -366,4 +384,7 @@ public:
 			delete panel;
 		}
 	}
+
+
 };
+

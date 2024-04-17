@@ -1,11 +1,15 @@
+#include <map>
+#include <string>
 #include "./Application.h"
 #include "./renderer.h"
+#include "../gateware-main/Gateware.h"
 
 
 using namespace GW;
 using namespace CORE;
 using namespace SYSTEM;
 using namespace GRAPHICS;
+using namespace GW::AUDIO;
 
 bool Application::Init() 
 {
@@ -77,7 +81,8 @@ bool Application::Init()
 //	return true;
 //}
 
-bool Application::Run() {
+bool Application::Run() 
+{
 
 	GEventResponder msgs;
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
@@ -93,6 +98,9 @@ bool Application::Run() {
 		{
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 			RendererManager rendererManager(win, ogl, *gameConfig);
+
+			auto& mainMenuMusic = musicTracks["MainMenu"];
+			mainMenuMusic.Play(true);
 
 			while (+win.ProcessWindowEvents())
 			{
@@ -158,22 +166,116 @@ bool Application::InitInput()
 	return true;
 }
 
-bool Application::InitAudio()
+
+//bool Application::InitAudio()
+//{
+//	//Start up the audio engine
+//	if (audioEngine.Create() != GReturn::SUCCESS) 
+//	{
+//		std::cerr << "Failed to initialize audio engine." << std::endl;
+//		return false;
+//	}
+//
+//	//Create the variable names for the music(songs) and sound(sfx)
+//	GMusic mainMenuTrack, levelOneTrack, levelTwoTrack, levelThreeTrack;
+//	GSound playerShootSound, playerDamageSound, playerDeathSound, enemy1DeathSound, enemy2DeathSound, enemy3DeathSound, treasureMetalSound, treasurePaperSound, uiAcceptSound, uiScrollSound, uiClickSound, levelTransition;
+//
+//	//Creates all audios to be loaded and on standby
+//	if (mainMenuTrack.Create("../Music/Main_Menu.wav", audioEngine, 0.15f) != GReturn::SUCCESS ||
+//		levelOneTrack.Create("../Music/Level_1.wav", audioEngine, 0.15f) != GReturn::SUCCESS ||
+//		levelTwoTrack.Create("../Music/Level_2.wav", audioEngine, 0.15f) != GReturn::SUCCESS ||
+//		levelThreeTrack.Create("../Music/Level_3.wav", audioEngine, 0.15f) != GReturn::SUCCESS ||
+//		playerShootSound.Create("../SoundFX/Player_Attack.wav", audioEngine, 0.2f) != GReturn::SUCCESS ||
+//		playerDamageSound.Create("../SoundFX/Player_Death.wav", audioEngine, 0.2f) != GReturn::SUCCESS ||
+//		enemy1DeathSound.Create("../SoundFX/Enemy_1_Death.wav", audioEngine, 0.2f) != GReturn::SUCCESS  ||
+//		enemy2DeathSound.Create("../SoundFX/Enemy_2_Death.wav", audioEngine, 0.2f) != GReturn::SUCCESS ||
+//		enemy3DeathSound.Create("../SoundFX/Enemy_3_Death.wav", audioEngine, 0.2f) != GReturn::SUCCESS ||
+//		treasureMetalSound.Create("../SoundFX/Treasure_Metal.wav", audioEngine, 0.2f) != GReturn::SUCCESS ||
+//		treasurePaperSound.Create("../SoundFX/Treasure_Paper.wav", audioEngine, 0.2f) != GReturn::SUCCESS ||
+//		uiAcceptSound.Create("../SoundFX/UI_Menu_Accept.wav", audioEngine, 0.2f) != GReturn::SUCCESS ||
+//		uiScrollSound.Create("../SoundFX/UI_Menu_Scroll.wav", audioEngine, 0.2f) != GReturn::SUCCESS ||
+//		uiClickSound.Create("../SoundFX/UI_Click.wav", audioEngine, 0.2f) != GReturn::SUCCESS ||
+//		levelTransition.Create("../SoundFX/Level_Transition.wav", audioEngine, 0.2f) != GReturn::SUCCESS)
+//
+//	{
+//		//Check for any errors during loading audio
+//		std::cerr << "Failed to load one or more audio tracks." << std::endl;
+//		return false;
+//	}
+//
+//	std::cout << "All audio tracks loaded successfully." << std::endl;
+//	return true;
+//	////Start up the audio engine
+//	//if (audioEngine.Create() == GReturn::SUCCESS) //&&
+//	//	//load the evil_lair
+//	//	//currentTrack.Create("../Music/Evil_Lair.wav", audioEngine, 0.15f) == GReturn::SUCCESS) 
+//	//{
+//	//	std::cout << "MUSIC IS OFF" << std::endl;
+//	//	//setting the play(true) will continue to loop the music.  (false) will play once.
+//	//	//currentTrack.Play(true);
+//	//	//return true to play the music.
+//	//	return true;
+//	//}
+//
+//	//return false;
+//}
+
+bool Application::InitAudio() 
 {
-	//Start up the audio engine
-	if (audioEngine.Create() == GReturn::SUCCESS) //&&
-		//load the evil_lair
-		//currentTrack.Create("../Music/Evil_Lair.wav", audioEngine, 0.15f) == GReturn::SUCCESS) 
+	if (audioEngine.Create() != GReturn::SUCCESS) 
 	{
-		std::cout << "MUSIC IS OFF" << std::endl;
-		//setting the play(true) will continue to loop the music.  (false) will play once.
-		//currentTrack.Play(true);
-		//return true to play the music.
-		return true;
+		std::cerr << "Failed to initialize audio engine." << std::endl;
+		return false;
 	}
 
-	return false;
+	return LoadAudioResources();
 }
+
+bool Application::LoadAudioResources() 
+{
+	//Lambda to help load and store all of the music / sfx
+	auto loadAudio = [&](auto& container, const std::string& key, const std::string& path, float volume) 
+	{
+		decltype(container.begin()->second) audio;
+		if (audio.Create(path.c_str(), audioEngine, volume) != GReturn::SUCCESS) 
+		{
+			std::cerr << "Failed to load audio: " << path << std::endl;
+			return false;
+		}
+		container[key] = std::move(audio);
+		return true;
+	};
+
+	//Load up the music tracks
+	if (!loadAudio(musicTracks, "MainMenu", "../Music/Main_Menu.wav", 0.15f) ||
+		!loadAudio(musicTracks, "Level1", "../Music/Level_1.wav", 0.15f) ||
+		!loadAudio(musicTracks, "Level2", "../Music/Level_2.wav", 0.15f) ||
+		!loadAudio(musicTracks, "Level3", "../Music/Level_3.wav", 0.15f)) 
+	{
+		return false;
+	}
+
+	//Load up the SFX
+	if (!loadAudio(soundEffects, "PlayerShoot", "../SoundFX/Player_Attack.wav", 0.2f) ||
+		!loadAudio(soundEffects, "PlayerDamage", "../SoundFX/Player_Death.wav", 0.2f) ||
+		!loadAudio(soundEffects, "EnemyDeath1", "../SoundFX/Enemy_1_Death.wav", 0.2f) ||
+		!loadAudio(soundEffects, "EnemyDeath2", "../SoundFX/Enemy_2_Death.wav", 0.2f) ||
+		!loadAudio(soundEffects, "EnemyDeath3", "../SoundFX/Enemy_3_Death.wav", 0.2f) ||
+		!loadAudio(soundEffects, "TreasureMetal", "../SoundFX/Treasure_Metal.wav", 0.2f) ||
+		!loadAudio(soundEffects, "TreasurePaper", "../SoundFX/Treasure_Paper.wav", 0.2f) ||
+		!loadAudio(soundEffects, "UIAccept", "../SoundFX/UI_Menu_Accept.wav", 0.2f) || 
+		!loadAudio(soundEffects, "UIScroll", "../SoundFX/UI_Menu_Scroll.wav", 0.2f) ||
+		!loadAudio(soundEffects, "UIClick", "../SoundFX/UI_Click.wav", 0.2f) ||
+		!loadAudio(soundEffects, "LevelTransition", "../SoundFX/Level_Transition.wav", 0.2f))
+
+	{
+		return false;
+	}
+
+	std::cout << "All music and sfx loaded!" << std::endl;
+	return true;
+}
+
 
 //bool Application::InitGraphics()
 //{

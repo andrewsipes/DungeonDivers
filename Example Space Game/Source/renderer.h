@@ -202,6 +202,9 @@ public:
 		//get the time passed
 		std::chrono::duration<float> updateTime = currTime - callTime;
 
+		//update call time for next calc
+		callTime = currTime;
+
 		//Keyboard / mouse
 		gInput.GetState(G_KEY_SPACE, space);
 		gInput.GetState(G_KEY_LEFTSHIFT, lShift);
@@ -219,20 +222,7 @@ public:
 		gController.GetState(0, G_RY_AXIS, rStickY);
 		gController.GetState(0, G_RX_AXIS, rStickX);
 
-		//check if mouse value is redundant - if so do nothing
-		if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
-		{
-			// do nothing
-		}
-
-		//if value is redundant, set mouseX and mouseY to zero to prevent drift
-		else
-		{
-			mouseX = 0;
-			mouseY = 0;
-		}
-
-
+		
 		if (controller != GW::GReturn::FAILURE)
 		{
 			//Calculate total change
@@ -269,28 +259,42 @@ public:
 		float cameraPositionZ = -totalZChange * perFrameSpeed;
 		float cameraPositionX = totalXChange * perFrameSpeed;
 
-
-
 		//create rotation matrix
 		GW::MATH::GMATRIXF rotationMatrix;
 		GW::MATH::GMatrix::IdentityF(rotationMatrix);
+		GW::MATH::GMatrix::InverseF(viewMatrix, rotationMatrix);
 
-		gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
+		//check if mouse value is redundant - if so do nothing
+		if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
+		{
+			// do nothing
+
+			//gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
+
+			gMatrixProxy.RotateXLocalF(rotationMatrix, -pitch, rotationMatrix);
+			gMatrixProxy.RotateYGlobalF(rotationMatrix, -yaw, rotationMatrix);
+		}
+
+		//if value is redundant, set mouseX and mouseY to zero to prevent drift
+		else
+		{
+			mouseX = 0;
+			mouseY = 0;
+		}
 
 		//Translation vector
 		GW::MATH::GVECTORF cameraTranslationVector = { cameraPositionX, cameraPositionY, cameraPositionZ, 1.0f };
 
 		//apply translation to the camera
-		gMatrixProxy.TranslateLocalF(cameraMatrix, cameraTranslationVector, cameraMatrix);
+		gMatrixProxy.TranslateLocalF(rotationMatrix, cameraTranslationVector, rotationMatrix);
 
 		//apply rotation 
-		gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
+		//gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
 	
 		//get view matrix
-		gMatrixProxy.InverseF(cameraMatrix, viewMatrix);
+		gMatrixProxy.InverseF(rotationMatrix, viewMatrix);
 
-		//update call time for next calc
-		callTime = currTime;
+		
 	}
 
 	//Event Handling for all buttons - manually place each button here and tag the lamda expression it should execute

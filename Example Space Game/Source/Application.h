@@ -5,7 +5,7 @@
 #include "Events/Playevents.h"
 // Contains our global game settings
 #include "GameConfig.h"
-// Load all entities+prefabs used by the game 
+// Load all entities+prefabs used by the game
 #include "Entities/BulletData.h"
 #include "Entities/PlayerData.h"
 #include "Entities/EnemyData.h"
@@ -18,7 +18,7 @@
 #include "Systems/EnemyLogic.h"
 
 // Allocates and runs all sub-systems essential to operating the game
-class Application 
+class Application
 {
 	// gateware libs used to access operating system
 	GW::SYSTEM::GWindow win; // gateware multi-platform window
@@ -31,6 +31,7 @@ class Application
 	// third-party gameplay & utility libraries
 	std::shared_ptr<flecs::world> game; // ECS database for gameplay
 	std::shared_ptr<GameConfig> gameConfig; // .ini file game settings
+
 	// ECS Entities and Prefabs that need to be loaded
 	ESG::BulletData weapons;
 	ESG::PlayerData players;

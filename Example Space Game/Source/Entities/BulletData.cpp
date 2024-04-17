@@ -58,7 +58,8 @@ bool ESG::BulletData::Unload(std::shared_ptr<flecs::world> _game)
 {
 	// remove all bullets and their prefabs
 	_game->defer_begin(); // required when removing while iterating!
-	_game->each([](flecs::entity e, Bullet&) {
+	_game->each([](flecs::entity e, Bullet&) 
+	{
 		e.destruct(); // destroy this entitiy (happens at frame end)
 	});
 	_game->defer_end(); // required when removing while iterating!

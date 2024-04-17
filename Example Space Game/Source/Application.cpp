@@ -1,23 +1,21 @@
 #include "./Application.h"
 #include "./renderer.h"
 
-
 using namespace GW;
 using namespace CORE;
 using namespace SYSTEM;
 using namespace GRAPHICS;
 
-bool Application::Init() 
+bool Application::Init()
 {
 	eventPusher.Create();
 
-
 	// load all game settigns
-	gameConfig = std::make_shared<GameConfig>(); 
+	gameConfig = std::make_shared<GameConfig>();
 	// create the ECS system
-	game = std::make_shared<flecs::world>(); 
+	game = std::make_shared<flecs::world>();
 	// init all other systems
-	if (InitWindow() == false) 
+	if (InitWindow() == false)
 		return false;
 	if (InitInput() == false)
 		return false;
@@ -32,11 +30,11 @@ bool Application::Init()
 	return true;
 }
 
-//bool Application::Run() 
+//bool Application::Run()
 //{
-//	
-// 
-// 
+//
+//
+//
 // ClearValue clrAndDepth[2];
 //	clrAndDepth[0].color = { {0, 0, 0, 1} };
 //	clrAndDepth[1].depthStencil = { 1.0f, 0u };
@@ -55,7 +53,7 @@ bool Application::Init()
 //		GW::SYSTEM::GWindow::Events ev;
 //		if (+e.Read(ev) && ev == GW::SYSTEM::GWindow::Events::DESTROY)
 //			winClosed = true;
-//	});	
+//	});
 //	window.Register(winHandler);
 //	while (+window.ProcessWindowEvents())
 //	{
@@ -77,43 +75,45 @@ bool Application::Init()
 //	return true;
 //}
 
-bool Application::Run() {
-
+bool Application::Run()
+{
 	GEventResponder msgs;
+	GW::SYSTEM::GLog log;
+	log.Create("output.txt");
+	auto lvl = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
+	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	lvl->CreateEntitiesFromModels(*game);
 
-		msgs.Create([&](const GW::GEvent& e) {
+	msgs.Create([&](const GW::GEvent& e)
+		{
 			GW::SYSTEM::GWindow::Events q;
 			if (+e.Read(q) && q == GWindow::Events::RESIZE)
 				clr[2] += 0.01f;
-			});
-		win.Register(msgs);
+		});
+	win.Register(msgs);
 
-		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+	{
+		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
+		RendererManager rendererManager(win, ogl, *gameConfig);
+
+		while (+win.ProcessWindowEvents())
 		{
-			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-			RendererManager rendererManager(win, ogl, *gameConfig);
+			glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
-			while (+win.ProcessWindowEvents())
-			{
-				glClearColor(clr[0], clr[1], clr[2], clr[3]);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-				//Update camera then render
-				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
-				rendererManager.Render();
-				ogl.UniversalSwapBuffers();
-
-
-			}
+			//Update camera then render
+			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+			rendererManager.Render();
+			ogl.UniversalSwapBuffers();
 		}
-	//}
+	}
 	return 0;
-
 }
 
-bool Application::Shutdown() 
+bool Application::Shutdown()
 {
 	// disconnect systems from global ECS
 	if (playerSystem.Shutdown() == false)
@@ -163,7 +163,7 @@ bool Application::InitAudio()
 	//Start up the audio engine
 	if (audioEngine.Create() == GReturn::SUCCESS) //&&
 		//load the evil_lair
-		//currentTrack.Create("../Music/Evil_Lair.wav", audioEngine, 0.15f) == GReturn::SUCCESS) 
+		//currentTrack.Create("../Music/Evil_Lair.wav", audioEngine, 0.15f) == GReturn::SUCCESS)
 	{
 		std::cout << "MUSIC IS OFF" << std::endl;
 		//setting the play(true) will continue to loop the music.  (false) will play once.
@@ -211,7 +211,7 @@ bool Application::InitEntities()
 //bool Application::InitSystems()
 //{
 //	// connect systems to global ECS
-//	if (playerSystem.Init(	game, gameConfig, immediateInput, bufferedInput, 
+//	if (playerSystem.Init(	game, gameConfig, immediateInput, bufferedInput,
 //							gamePads, audioEngine, eventPusher) == false)
 //		return false;
 //	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
@@ -236,5 +236,5 @@ bool Application::GameLoop()
 		std::chrono::steady_clock::now() - start).count();
 	start = std::chrono::steady_clock::now();
 	// let the ECS system run
-	return game->progress(static_cast<float>(elapsed)); 
+	return game->progress(static_cast<float>(elapsed));
 }

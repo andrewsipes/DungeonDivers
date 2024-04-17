@@ -5,10 +5,9 @@
 
 //Depth of UI rendering
 #define userButtonTextDepth 0.0f
-#define userButtonDepth 0.1f
-#define uiModelDepth 0.2f
-#define uiOverlayDepth 0.3f
-#define worldDepth 0.4f
+#define userButtonDepth 0.3f
+#define uiModelDepth 0.4f
+#define worldDepth 0.6f
 
 
 //credit to stb image for their image uploader https://github.com/nothings/stb

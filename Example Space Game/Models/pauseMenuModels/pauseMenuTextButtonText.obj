@@ -1,7 +1,7 @@
 # Blender 4.0.2
 # www.blender.org
-mtllib pauseMenuText.mtl
-o pauseMenuText
+mtllib pauseMenuTextButtonText.mtl
+o pauseMenuTextButtonText
 v -3.047821 0.048667 0.000000
 v -3.043589 0.041473 0.000000
 v -3.038087 0.038087 0.000000

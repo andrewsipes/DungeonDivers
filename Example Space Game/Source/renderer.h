@@ -56,7 +56,7 @@ public:
 
 
 			////PANELS/////
-			//pauseMenu->toggleRender();
+			pauseMenu->toggleRender();
 			//mainMenuHUD->toggleRender();
 			//playerHUD->toggleRender();
 		}

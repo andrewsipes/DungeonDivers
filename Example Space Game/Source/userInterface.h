@@ -225,7 +225,6 @@ class userButton : public uiModel {
 
 public:
 	float xPos, yPos, width, height; //button location and dimensions
-
 	buttonText *text;
 
 	//default constructor - don't use
@@ -244,11 +243,7 @@ public:
 			cpuModel.vertices[i].pos.x *= scale;
 			cpuModel.vertices[i].pos.y *= scale * screenWidth / screenHeight;  // we must multiply here to ensure scaling is correct
 		}
-
-		xPos = cpuModel.vertices[0].pos.x;
-		yPos = cpuModel.vertices[0].pos.y;
-		width = cpuModel.vertices[1].pos.x - cpuModel.vertices[0].pos.x;
-		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
+		
 	}
 
 
@@ -277,7 +272,7 @@ public:
 		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 
 		//sets hud in front of everything else
-		glDepthRange(userButtonDepth, worldDepth);
+		glDepthRange(userButtonDepth, uiModelDepth);
 
 		//Draw meshes - iterates through the meshes and materials to draw them individually.
 		for (int j = 0; j < cpuModel.meshCount; j++) {
@@ -309,11 +304,32 @@ public:
 		scale(-world.row1.x, world.row2.y); 
 		translate({ world.row4.x, world.row4.y });
 		
-		//update button variables based on new vertex info
-		xPos = cpuModel.vertices[0].pos.x;
-		yPos = cpuModel.vertices[0].pos.y;
-		width = cpuModel.vertices[1].pos.x - cpuModel.vertices[0].pos.x;
-		height = cpuModel.vertices[2].pos.y - cpuModel.vertices[0].pos.y;
+		//Here we find the min and max X/Y values so we can draw the eventbox
+		float minX = cpuModel.vertices[0].pos.x;
+		float maxX = cpuModel.vertices[0].pos.x;
+		float minY = cpuModel.vertices[0].pos.y;
+		float maxY = cpuModel.vertices[0].pos.y;
+
+		for (H2B::VERTEX vertex: cpuModel.vertices) {
+
+			if (vertex.pos.x < minX) {
+				minX = vertex.pos.x;
+			}
+			if (vertex.pos.x > maxX) {
+				maxX = vertex.pos.x;
+			}
+			if (vertex.pos.y < minY) {
+				minY = vertex.pos.y;
+			}
+			if (vertex.pos.y > maxY) {
+				maxY = vertex.pos.y;
+			}
+		}
+
+		xPos= minX;
+		yPos = minY;
+		width = maxX - minX;
+		height = maxY - minY;
 
 		loadTextDefaults();
 
@@ -390,10 +406,10 @@ public:
 
 		#ifndef NDEBUG
 
-		/*	std::cout << "mouseX:" << mouseX << std::endl;
+			std::cout << "mouseX:" << mouseX << std::endl;
 			std::cout << "mouseY:" << mouseY << std::endl;
 			std::cout << "xPos:" << xPos << std::endl;
-			std::cout << "yPos:" << yPos << std::endl;*/
+			std::cout << "yPos:" << yPos << std::endl;
 		
 
 		#endif
@@ -403,8 +419,8 @@ public:
 		if (render)
 		{
 			//check if mouse position is within button bounds
-			if (mouseX >= cpuModel.vertices[0].pos.x && mouseX <= cpuModel.vertices[0].pos.x + width &&
-				mouseY >= cpuModel.vertices[0].pos.y && mouseY <= cpuModel.vertices[0].pos.y + height) {
+			if (mouseX >= xPos && mouseX <= xPos + width &&
+				mouseY >= yPos && mouseY <= yPos + height) {
 
 				float state;
 
@@ -416,7 +432,10 @@ public:
 					onPress(model);
 				}
 			}
+
+
 		}
+		
 
 	}
 

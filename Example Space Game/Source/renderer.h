@@ -307,6 +307,16 @@ public:
 		if (playerHUD->render) {
 
 		}
+
+		//PAUSEMENU
+		if (pauseMenu->render){
+
+			pauseMenu->controlsPauseMenuButton->HandleInput(pauseMenu->controlsPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			pauseMenu->resumePauseMenuButton->HandleInput(pauseMenu->resumePauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			pauseMenu->exitPauseMenuButton->HandleInput(pauseMenu->exitPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
+
+		}
 	}
 
 	//Render Loop for all objects (place Panels and Levels here);

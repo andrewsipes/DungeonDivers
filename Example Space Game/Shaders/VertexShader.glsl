@@ -46,13 +46,21 @@ layout(location = 2) in vec3 normal;
 out vec3 worldNorm;
 out vec3 worldPos;
 out vec3 coords;
-uniform bool isSkybox;
-uniform samplerCube skybox;
+
+uniform bool isUi;
 
 void main()
 {
+    if (isUi){
+
+        gl_Position = vec4(pos,1);
+        //gl_Position = vec4(pos,1);
+    }
+
+    else {
 
     gl_Position = ubo.pMatrix * ubo.vMatrix * ubo.wMatrix * vec4(pos,1);
+    
     coords = pos;
 
     //Get World Position
@@ -63,6 +71,7 @@ void main()
 
     vec4 worldPosition = ubo.wMatrix * vec4(pos, 1.0);
     worldPos = worldPosition.xyz;
+    }
 
 
 }

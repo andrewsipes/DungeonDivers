@@ -3,15 +3,12 @@
 
 // include events
 #include "Events/Playevents.h"
-
 // Contains our global game settings
 #include "GameConfig.h"
-
 // Load all entities+prefabs used by the game 
 #include "Entities/BulletData.h"
 #include "Entities/PlayerData.h"
 #include "Entities/EnemyData.h"
-
 // Include all systems used by the game and their associated components
 #include "Systems/PlayerLogic.h"
 #include "Systems/VulkanRendererLogic.h"
@@ -30,16 +27,14 @@ class Application
 	GW::INPUT::GInput immediateInput; // twitch keybaord/mouse
 	GW::INPUT::GBufferedInput bufferedInput; // event keyboard/mouse
 	GW::AUDIO::GAudio audioEngine; // can create music & sound effects
-
+	GW::AUDIO::GMusic currentTrack;
 	// third-party gameplay & utility libraries
 	std::shared_ptr<flecs::world> game; // ECS database for gameplay
 	std::shared_ptr<GameConfig> gameConfig; // .ini file game settings
-
 	// ECS Entities and Prefabs that need to be loaded
 	ESG::BulletData weapons;
 	ESG::PlayerData players;
 	ESG::EnemyData enemies;
-
 	// specific ECS systems used to run the game
 	ESG::PlayerLogic playerSystem;
 	//ESG::VulkanRendererLogic vkRenderingSystem;
@@ -47,7 +42,6 @@ class Application
 	ESG::PhysicsLogic physicsSystem;
 	ESG::BulletLogic bulletSystem;
 	ESG::EnemyLogic enemySystem;
-
 	// EventGenerator for Game Events
 	GW::CORE::GEventGenerator eventPusher;
 

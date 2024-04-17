@@ -1,8 +1,6 @@
 #include "./Application.h"
 #include "./renderer.h"
 
-#define WIN_HEIGHT 600;
-#define WIN_WIDTH 800;
 
 using namespace GW;
 using namespace CORE;
@@ -12,6 +10,7 @@ using namespace GRAPHICS;
 bool Application::Init() 
 {
 	eventPusher.Create();
+
 
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>(); 
@@ -35,6 +34,9 @@ bool Application::Init()
 
 //bool Application::Run() 
 //{
+//	
+// 
+// 
 // ClearValue clrAndDepth[2];
 //	clrAndDepth[0].color = { {0, 0, 0, 1} };
 //	clrAndDepth[1].depthStencil = { 1.0f, 0u };
@@ -75,38 +77,40 @@ bool Application::Init()
 //	return true;
 //}
 
-bool Application::Run() 
-{
+bool Application::Run() {
+
 	GEventResponder msgs;
-	float clr[] = { 194.0f / 255.0f, 51.0f / 255.0f, 29.0f / 255.0f, 1 }; // Buffer
+	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 
-	msgs.Create([&](const GW::GEvent& e) 
-	{
-		GW::SYSTEM::GWindow::Events q;
-		if (+e.Read(q) && q == GWindow::Events::RESIZE)
-			clr[2] += 0.01f;
-	});
-	win.Register(msgs);
+		msgs.Create([&](const GW::GEvent& e) {
+			GW::SYSTEM::GWindow::Events q;
+			if (+e.Read(q) && q == GWindow::Events::RESIZE)
+				clr[2] += 0.01f;
+			});
+		win.Register(msgs);
 
-	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
-	{
-		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-		RendererManager rendererManager(win, ogl);
-
-		while (+win.ProcessWindowEvents())
+		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
-			glClearColor(clr[0], clr[1], clr[2], clr[3]);
+			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
+			RendererManager rendererManager(win, ogl, *gameConfig);
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			while (+win.ProcessWindowEvents())
+			{
+				glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
-			//Update camera then render
-			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
-			rendererManager.Render();
-				
-			ogl.UniversalSwapBuffers();
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+				//Update camera then render
+				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+				rendererManager.Render();
+				ogl.UniversalSwapBuffers();
+
+
+			}
 		}
-	}
+	//}
 	return 0;
+
 }
 
 bool Application::Shutdown() 
@@ -156,9 +160,19 @@ bool Application::InitInput()
 
 bool Application::InitAudio()
 {
-	if (-audioEngine.Create())
-		return false;
-	return true;
+	//Start up the audio engine
+	if (audioEngine.Create() == GReturn::SUCCESS) //&&
+		//load the evil_lair
+		//currentTrack.Create("../Music/Evil_Lair.wav", audioEngine, 0.15f) == GReturn::SUCCESS) 
+	{
+		std::cout << "MUSIC IS OFF" << std::endl;
+		//setting the play(true) will continue to loop the music.  (false) will play once.
+		//currentTrack.Play(true);
+		//return true to play the music.
+		return true;
+	}
+
+	return false;
 }
 
 //bool Application::InitGraphics()

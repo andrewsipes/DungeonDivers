@@ -34,9 +34,6 @@ bool Application::Init()
 
 //bool Application::Run() 
 //{
-//	
-// 
-// 
 // ClearValue clrAndDepth[2];
 //	clrAndDepth[0].color = { {0, 0, 0, 1} };
 //	clrAndDepth[1].depthStencil = { 1.0f, 0u };
@@ -78,7 +75,7 @@ bool Application::Init()
 //}
 
 bool Application::Run() {
-
+	running = true;
 	GEventResponder msgs;
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 
@@ -92,9 +89,9 @@ bool Application::Run() {
 		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-			RendererManager rendererManager(win, ogl, *gameConfig);
+			RendererManager rendererManager(win, ogl, *gameConfig, *this);
 
-			while (+win.ProcessWindowEvents())
+			while (+win.ProcessWindowEvents() && running == true)
 			{
 				glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
@@ -108,29 +105,31 @@ bool Application::Run() {
 
 			}
 		}
-	//}
 	return 0;
 
 }
 
+
+
 bool Application::Shutdown() 
 {
 	// disconnect systems from global ECS
-	if (playerSystem.Shutdown() == false)
-		return false;
-	if (levelSystem.Shutdown() == false)
-		return false;
-	//if (vkRenderingSystem.Shutdown() == false)
-		//return false;
-	if (physicsSystem.Shutdown() == false)
-		return false;
-	if (bulletSystem.Shutdown() == false)
-		return false;
-	if (enemySystem.Shutdown() == false)
-		return false;
-
+	//if (playerSystem.Shutdown() == false)
+	//	return false;
+	//if (levelSystem.Shutdown() == false)
+	//	return false;
+	////if (vkRenderingSystem.Shutdown() == false)
+	//	//return false;
+	//if (physicsSystem.Shutdown() == false)
+	//	return false;
+	//if (bulletSystem.Shutdown() == false)
+	//	return false;
+	//if (enemySystem.Shutdown() == false)
+	//	return false;
+	running = false;
 	return true;
 }
+
 bool Application::InitWindow()
 {
 	// grab settings
@@ -238,3 +237,5 @@ bool Application::GameLoop()
 	// let the ECS system run
 	return game->progress(static_cast<float>(elapsed)); 
 }
+
+

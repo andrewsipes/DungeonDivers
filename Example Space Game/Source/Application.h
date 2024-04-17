@@ -45,7 +45,9 @@ class Application
 	// EventGenerator for Game Events
 	GW::CORE::GEventGenerator eventPusher;
 
+
 public:
+	bool running;
 	bool Init();
 	bool Run();
 	bool Shutdown();

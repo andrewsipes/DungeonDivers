@@ -246,7 +246,6 @@ public:
 		
 	}
 
-
 	void scale(float scaleX, float scaleY) override{
 
 		//Retrived height and width of the window to scale properly
@@ -342,12 +341,10 @@ public:
 		text->rotateYAxis(180.0f);
 	}
 
-
 	//toggles a button on and off
 	void toggleRender() {
 		render = !render;
 	}
-
 
 	//Button input for any button, use the Gateware Inputs for keypress
 	//gInput should be the input Proxy from render
@@ -406,10 +403,10 @@ public:
 
 		#ifndef NDEBUG
 
-			std::cout << "mouseX:" << mouseX << std::endl;
+		/*	std::cout << "mouseX:" << mouseX << std::endl;
 			std::cout << "mouseY:" << mouseY << std::endl;
 			std::cout << "xPos:" << xPos << std::endl;
-			std::cout << "yPos:" << yPos << std::endl;
+			std::cout << "yPos:" << yPos << std::endl;*/
 		
 
 		#endif
@@ -439,20 +436,106 @@ public:
 
 	}
 
+	//overload for lambdas that require application as input
+	void HandleInput(Application* application, int keyPress, GW::INPUT::GInput gInput, std::function<void(Application*)> onPress) {
 
+		float mouseX, mouseY;
+		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+		float screenHeight = gameConfig->at("Window").at("height").as<int>();
+
+		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
+
+		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
+		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
+
+
+#ifndef NDEBUG
+
+		/*	std::cout << "mouseX:" << mouseX << std::endl;
+			std::cout << "mouseY:" << mouseY << std::endl;
+			std::cout << "xPos:" << xPos << std::endl;
+			std::cout << "yPos:" << yPos << std::endl;*/
+
+
+#endif
+
+
+
+		if (render)
+		{
+			//check if mouse position is within button bounds
+			if (mouseX >= xPos && mouseX <= xPos + width &&
+				mouseY >= yPos && mouseY <= yPos + height) {
+
+				float state;
+
+				gInput.GetState(keyPress, state);
+
+				//check if clicked
+				if (state > 0) {
+
+					onPress(application);
+				}
+			}
+
+
+		}
+
+
+	}
+
+	//overload for lambdas that require a panel as input
+//	void HandleInput(uiPanel* panel, int keyPress, GW::INPUT::GInput gInput, std::function<void(uiPanel*)> onPress) {
+//
+//		float mouseX, mouseY;
+//		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+//		float screenHeight = gameConfig->at("Window").at("height").as<int>();
+//
+//		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
+//
+//		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
+//		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
+//
+//
+//#ifndef NDEBUG
+//
+//		/*	std::cout << "mouseX:" << mouseX << std::endl;
+//			std::cout << "mouseY:" << mouseY << std::endl;
+//			std::cout << "xPos:" << xPos << std::endl;
+//			std::cout << "yPos:" << yPos << std::endl;*/
+//#endif
+//
+//		if (render)
+//		{
+//			//check if mouse position is within button bounds
+//			if (mouseX >= xPos && mouseX <= xPos + width &&
+//				mouseY >= yPos && mouseY <= yPos + height) {
+//
+//				float state;
+//
+//				gInput.GetState(keyPress, state);
+//
+//				//check if clicked
+//				if (state > 0) {
+//
+//					onPress(panel);
+//				}
+//			}
+//		}
+//	}
 };
 
 // uiPanel is based on the level_loader, and is used to load an individual panel created in blender and render seperately from other objects.
 class uiPanel
 {
 
-protected:	
+protected:
 	std::vector<uiModel> allUiObjects;
 	std::vector<userButton> allUiButtonObjects;
 	std::vector<buttonText> allUiButtonTextObjects;
 
 	GameConfig* gameConfig;				//pointer that will reference the gameConfig loaded in application
-	
+
 
 public:
 	bool render;
@@ -474,16 +557,16 @@ public:
 		// iterate over each model and tell it to draw itself
 		if (render)
 		{
-			for (auto& e : allUiObjects) {		
+			for (auto& e : allUiObjects) {
 				if (e.render)
-					e.DrawModel( _camera, _view,  _proj, e.alpha);
+					e.DrawModel(_camera, _view, _proj, e.alpha);
 			}
 
-			for (auto& f : allUiButtonObjects){
+			for (auto& f : allUiButtonObjects) {
 				if (f.render) {
 					f.DrawModel(_camera, _view, _proj, f.alpha);
 					f.text->DrawModel(_camera, _view, _proj, f.text->alpha);
-				}			
+				}
 			}
 		}
 	}
@@ -515,7 +598,7 @@ public:
 
 				//CHECK FOR BUTTON TEXT
 				if (strstr(linebuffer, "ButtonText") != NULL) {
-			
+
 					buttonText* newButtonText = new buttonText();
 					log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
 					// create the model file name from this (strip the .001)
@@ -556,7 +639,7 @@ public:
 						log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
 					}
 					log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
-					}
+				}
 
 				//CHECK FOR BUTTONS
 				else if (strstr(linebuffer, "Button") != NULL) {
@@ -602,7 +685,7 @@ public:
 					}
 					log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
 
-					
+
 				}
 
 				//EVERYTHING ELSE
@@ -652,7 +735,7 @@ public:
 
 				}
 
-			
+
 			}
 
 
@@ -662,7 +745,7 @@ public:
 		// level loaded into CPU ram
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
 
-		
+
 
 		return true;
 	}
@@ -675,14 +758,14 @@ public:
 		}
 
 		for (auto& f : allUiButtonObjects) {
-			f.UploadModelData2GPU(_camera,  _view, _proj);
+			f.UploadModelData2GPU(_camera, _view, _proj);
 			f.text->UploadModelData2GPU(_camera, _view, _proj);
 		}
-	
+
 	}
 
 	// used to wipe CPU & GPU level data between levels
-	void UnloadLevel(){
+	void UnloadLevel() {
 		allUiObjects.clear();
 	}
 
@@ -694,10 +777,10 @@ public:
 	//place holders
 	virtual void assign() {}
 	virtual void arrange() {
-	
-		for (userButton &_button : allUiButtonObjects)		{
-			for (buttonText &_text : allUiButtonTextObjects){
-				if (_text.name.find(_button.name) != std::string::npos){
+
+		for (userButton& _button : allUiButtonObjects) {
+			for (buttonText& _text : allUiButtonTextObjects) {
+				if (_text.name.find(_button.name) != std::string::npos) {
 					_button.text = &_text;
 					_button.loadDefaults();
 				}
@@ -713,10 +796,10 @@ class playerUi : public uiPanel {
 
 public:
 	//uiModel* heart0, *heart1, * heart2, * heart3, * heart4, * heart5, * heart6, * heart7;
-	uiModel	* levelText, *startText, *pauseText, *levelCompleteText;
+	uiModel* levelText, * startText, * pauseText, * levelCompleteText;
 	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4;
 
-	userButton *button;
+	userButton* button;
 
 	playerUi() {
 		render = false;
@@ -726,10 +809,10 @@ public:
 		gameConfig = &_gameConfig;
 		render = false;
 	}
-	
+
 	//updates Score UI
-	void updateScore(int score){
-		
+	void updateScore(int score) {
+
 		//prevents score from going too high
 		if (score > 9999)
 		{
@@ -737,12 +820,12 @@ public:
 		}
 
 		int num = score;
-		int digit;		
+		int digit;
 		int displayScore[4] = { 0,0,0,0 }; //zero until filled
 		int iter = 3;
 
 		//toggle all digits off
-		for (uiModel* digit : scoreDigit1){
+		for (uiModel* digit : scoreDigit1) {
 			digit->render = false;
 		}
 		for (uiModel* digit : scoreDigit2) {
@@ -761,7 +844,7 @@ public:
 			digit = num % 10;				//get the digit by using mod
 			displayScore[iter] = digit;		//update an array so we have the right values
 			num /= 10;						//remove the last digit
-			
+
 			iter--;
 		}
 
@@ -801,9 +884,9 @@ public:
 		updateHearts(life);
 		updateScore(score);
 	}
-	
+
 	//assigns the panel elements to the appropiate pointers so we can control them easily
-	void assign() override{
+	void assign() override {
 
 		//text
 		levelText = &allUiObjects[8];
@@ -812,7 +895,7 @@ public:
 		levelCompleteText = &allUiObjects[11];
 
 		//assign hearts
-		for (int i = 0; i < 8; i++){
+		for (int i = 0; i < 8; i++) {
 			hearts.push_back(&allUiObjects[0 + i]);
 		}
 
@@ -844,40 +927,40 @@ public:
 	}
 
 	//updates the vertices for the player HUD to be in their correct positions
-	void arrange() override{
+	void arrange() override {
 
 		levelText->loadDefaults();
 		pauseText->loadDefaults();
 		startText->loadDefaults();
 		levelCompleteText->loadDefaults();
 
-		for (uiModel* heart : hearts){
+		for (uiModel* heart : hearts) {
 			heart->loadDefaults();
 		}
 
-		for (uiModel* digit : levelDigit){
+		for (uiModel* digit : levelDigit) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit1){
+		for (uiModel* digit : scoreDigit1) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit2){
+		for (uiModel* digit : scoreDigit2) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit3){
+		for (uiModel* digit : scoreDigit3) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit4){
+		for (uiModel* digit : scoreDigit4) {
 			digit->loadDefaults();
 		}
 	}
 
 	//turns default playerHUD on
-	void start() override{
+	void start() override {
 
 		//Set Default values
 		updateHearts(gameConfig->at("Player1").at("hearts").as<int>());
@@ -889,9 +972,9 @@ public:
 };
 
 //uiPanel for the main menu
-class mainMenuUi :	public uiPanel
+class mainMenuUi : public uiPanel
 {
-public: 
+public:
 	uiModel* gameText;
 	userButton* startButton, * controlsButton, * exitButton;
 
@@ -904,7 +987,7 @@ public:
 		render = false;
 	}
 
-	void assign() override{
+	void assign() override {
 		gameText = &allUiObjects[0];
 		startButton = &allUiButtonObjects[0];
 		controlsButton = &allUiButtonObjects[1];
@@ -915,9 +998,9 @@ public:
 
 		gameText->loadDefaults();
 
-		for (userButton& _button : allUiButtonObjects){
-			for (buttonText& _text : allUiButtonTextObjects){
-				if (_text.name.find(_button.name) != std::string::npos){
+		for (userButton& _button : allUiButtonObjects) {
+			for (buttonText& _text : allUiButtonTextObjects) {
+				if (_text.name.find(_button.name) != std::string::npos) {
 					_button.text = &_text;
 					_button.loadDefaults();
 				}
@@ -936,7 +1019,7 @@ public:
 class pauseMenuUi :public uiPanel {
 public:
 	uiModel* pauseOverlay;
-	userButton *pauseMenuText,*controlsPauseMenuButton, *resumePauseMenuButton, *restartPauseMenuButton, *exitPauseMenuButton;
+	userButton* pauseMenuText, * controlsPauseMenuButton, * resumePauseMenuButton, * restartPauseMenuButton, * exitPauseMenuButton;
 
 	pauseMenuUi() {
 		render = false;
@@ -948,7 +1031,7 @@ public:
 	}
 
 	void assign() override {
-		
+
 		pauseOverlay = &allUiObjects[0];
 		controlsPauseMenuButton = &allUiButtonObjects[0];
 		restartPauseMenuButton = &allUiButtonObjects[1];
@@ -979,7 +1062,7 @@ public:
 		exitPauseMenuButton->toggleRender();
 		pauseOverlay->toggleRender();
 
-	
+
 	}
 
 	// Draws all objects in the level
@@ -1012,3 +1095,12 @@ auto turnOffRender = [](uiModel* model) {
 	model->render = false;
 	};
 
+//exits the application
+auto shutdown = [](Application* application) {
+	application->Shutdown();
+	};
+
+//toggles Panel and resumes games
+auto resume = [](uiPanel* panel) {
+	panel->toggleRender();
+	};

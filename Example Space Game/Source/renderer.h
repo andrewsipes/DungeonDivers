@@ -1,5 +1,7 @@
 #include "./h2bParser.h"
 #include "./userInterface.h"
+//#include "./load_object_oriented.h"
+
 // Creation, Rendering & Cleanup
 class RendererManager
 {
@@ -21,6 +23,7 @@ class RendererManager
 	GW::MATH::GMATRIXF UIcameraMatrix;
 	GW::MATH::GMATRIXF UIorthoMatrix;
 
+	Application *app;
 
 	//for defaults
 	GameConfig* gameConfig;
@@ -35,12 +38,13 @@ public:
 	pauseMenuUi* pauseMenu;
 	std::vector <uiPanel*> panels;
 
-	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig)
+	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application)
 	{
 		//passed arguments for initializing
 		gameConfig = &_gameConfig;
 		win = _win;
 		ogl = _ogl;
+		app = &application;
 
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
@@ -56,7 +60,7 @@ public:
 
 
 			////PANELS/////
-			pauseMenu->toggleRender();
+			//pauseMenu->toggleRender();
 			//mainMenuHUD->toggleRender();
 			//playerHUD->toggleRender();
 		}
@@ -300,7 +304,7 @@ public:
 		if (mainMenuHUD->render) {
 			mainMenuHUD->startButton->HandleInput(mainMenuHUD->startButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			mainMenuHUD->controlsButton->HandleInput(mainMenuHUD->controlsButton, G_BUTTON_LEFT, gInput, turnOffRender);
-			mainMenuHUD->exitButton->HandleInput(mainMenuHUD->exitButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			mainMenuHUD->exitButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 		}
 
 		//PLAYERHUD
@@ -313,10 +317,29 @@ public:
 
 			pauseMenu->controlsPauseMenuButton->HandleInput(pauseMenu->controlsPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
-			pauseMenu->resumePauseMenuButton->HandleInput(pauseMenu->resumePauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
-			pauseMenu->exitPauseMenuButton->HandleInput(pauseMenu->exitPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			//pauseMenu->resumePauseMenuButton->HandleInput(pauseMenu, G_BUTTON_LEFT, gInput, resume);
+			pauseMenu->exitPauseMenuButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 
 		}
+
+		//KEYBINDS: Everything here should be checking if there was a key pressed and performing some action after
+		//CONTROLS:
+		//			TAB: toggles pause menu
+		//
+		//
+		//
+		//
+		if (mainMenuHUD->render == false && pauseMenu->render == false && GetAsyncKeyState(VK_TAB) & 0x8000 ) {
+			pauseMenu->render = true;
+			while (GetAsyncKeyState(VK_TAB) & 0x8000) {};	//wait for key to be lifted
+		}
+
+		else if (pauseMenu->render == true && GetAsyncKeyState(VK_TAB) & 0x8000) {
+			pauseMenu->render = false;
+			while (GetAsyncKeyState(VK_TAB) & 0x8000) {};	//wait for key to be lifted
+		}
+
+
 	}
 
 	//Render Loop for all objects (place Panels and Levels here);

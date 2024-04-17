@@ -9,6 +9,7 @@
 #include "Entities/BulletData.h"
 #include "Entities/PlayerData.h"
 #include "Entities/EnemyData.h"
+
 // Include all systems used by the game and their associated components
 #include "Systems/PlayerLogic.h"
 #include "Systems/VulkanRendererLogic.h"
@@ -16,6 +17,8 @@
 #include "Systems/PhysicsLogic.h"
 #include "Systems/BulletLogic.h"
 #include "Systems/EnemyLogic.h"
+
+#include "Components/Identification.h"
 
 // Allocates and runs all sub-systems essential to operating the game
 class Application 
@@ -30,7 +33,9 @@ class Application
 	GW::AUDIO::GMusic currentTrack;
 	// third-party gameplay & utility libraries
 	std::shared_ptr<flecs::world> game; // ECS database for gameplay
+	//std::shared_ptr<Level_Objects> lvl;
 	std::shared_ptr<GameConfig> gameConfig; // .ini file game settings
+
 	// ECS Entities and Prefabs that need to be loaded
 	ESG::BulletData weapons;
 	ESG::PlayerData players;
@@ -50,6 +55,7 @@ public:
 	bool Run();
 	bool Shutdown();
 private:
+	//void AddEntities(Level_Objects& lvl);
 	bool InitWindow();
 	bool InitInput();
 	bool InitAudio();

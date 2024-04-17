@@ -28,7 +28,7 @@ class RendererManager
 	GameConfig* gameConfig;
 
 	//create level
-	Level_Objects lvl;
+	Level_Objects* lvl;
 
 public:
 	//ui panels
@@ -37,20 +37,17 @@ public:
 	pauseMenuUi* pauseMenu;
 	std::vector <uiPanel*> panels;
 
-	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig)
+	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, GW::SYSTEM::GLog log, Level_Objects& Level)
 	{
-		GW::SYSTEM::GLog log;
-		log.Create("output.txt");
-		bool success = lvl.LoadLevel("../NewGameLevel.txt", "../NewModels", log.Relinquish());
+		//GW::SYSTEM::GLog log;
+		//log.Create("output.txt");
+		//bool success = lvl.LoadMeshes("../NewGameLevel.txt", "../NewModels", log.Relinquish());
 	
 		//passed arguments for initializing
 		gameConfig = &_gameConfig;
 		win = _win;
 		ogl = _ogl;
-
-		GW::SYSTEM::GLog log;
-		log.Create("output.txt");
-
+		lvl = &Level;
 		//load ui Panels - this doesn't turn them on but simply lay out each UI for rendering later on.
 		initializePanels(log);
 
@@ -58,7 +55,7 @@ public:
 		{
 			/////LEVELS/////
 			//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
-			bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+			//bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 
 
 			////PANELS/////
@@ -69,7 +66,7 @@ public:
 		
 
 
-		lvl.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 		//create inputs
 		gController.Create();
@@ -341,7 +338,7 @@ public:
 
 	//Render Loop for all objects (place Panels and Levels here);
 	void Render(){		
-		lvl.Render(cameraMatrix, viewMatrix, projectionMatrix);
+		lvl->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
 		for (uiPanel* panel : panels){
 			if (panel == pauseMenu && panel->render){

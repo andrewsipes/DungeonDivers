@@ -16,6 +16,8 @@ bool Application::Init()
 	gameConfig = std::make_shared<GameConfig>(); 
 	// create the ECS system
 	game = std::make_shared<flecs::world>(); 
+
+	//lvl = std::make_shared<Level_Objects>();
 	// init all other systems
 	if (InitWindow() == false) 
 		return false;
@@ -80,9 +82,33 @@ bool Application::Init()
 bool Application::Run() {
 
 	GEventResponder msgs;
+	GW::SYSTEM::GLog log;
+	log.Create("output.txt");
+	auto lvl = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
+	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 
+	Level_Objects& Level = *lvl;
+	//AddEntities(*lvl);
+	
+		for each(Model i in Level.allObjectsInLevel)
+		{
+			
+			auto e = game->entity( i.name.c_str() );
+			e.set<ESG::Name>({ i.name });
+		}
+		int count = 0;
 
+		auto f = game->filter<ESG::Name>();
+
+		f.each([&count](ESG::Name& n)
+			{
+				count++;
+			}
+		);
+		std::cout << "entity count: " << count << std::endl;
+
+		
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
 			if (+e.Read(q) && q == GWindow::Events::RESIZE)
@@ -93,7 +119,7 @@ bool Application::Run() {
 		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-			RendererManager rendererManager(win, ogl, *gameConfig);
+			RendererManager rendererManager(win, ogl, *gameConfig, log, *lvl);
 
 			while (+win.ProcessWindowEvents())
 			{
@@ -133,6 +159,7 @@ bool Application::Shutdown()
 
 	return true;
 }
+
 bool Application::InitWindow()
 {
 	// grab settings
@@ -229,6 +256,27 @@ bool Application::InitEntities()
 //
 //	return true;
 //}
+
+	//void Application::AddEntities(Level_Objects& lvl)
+	//{
+	//	for (auto& i : lvl.allObjectsInLevel)
+	//	{
+	//		auto e = game->entity(i.name);
+	//		e.set<ESG::Name>({ i.name });
+	//
+	//
+	//	}
+	//	int count = 0;
+	//	auto f = game->filter<ESG::Name>();
+	//
+	//	f.each([&count](ESG::Name& n)
+	//		{
+	//			count++;
+	//		}
+	//	);
+	//
+	//	std::cout << count << std::endl;
+	//}
 
 bool Application::GameLoop()
 {

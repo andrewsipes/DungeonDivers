@@ -39,6 +39,7 @@ public:
 	playerUi* playerHUD;
 	mainMenuUi* mainMenuHUD;
 	pauseMenuUi* pauseMenu;
+	treasureMenuUi* treasureMenu;
 	std::vector <uiPanel*> panels;
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application)
@@ -69,6 +70,7 @@ public:
 			//pauseMenu->toggleRender();
 			//mainMenuHUD->toggleRender();
 			//playerHUD->toggleRender();
+			treasureMenu->toggleRender();
 		}
 		
 
@@ -107,15 +109,21 @@ public:
 		pauseMenuUi* pause = new pauseMenuUi(*gameConfig);
 		pauseMenu = pause;
 
+		treasureMenuUi* treasure = new treasureMenuUi(*gameConfig);
+		treasureMenu = treasure;
+
 		//Load All meshes in the level at start
 		bool playerHUDSuccess = playerHUD->LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
 		bool mainMenuHUDSuccess = mainMenuHUD->LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
-		bool pauseMenuSuccess = pauseMenu->LoadMeshes("../PauseMenu.txt", "../Models/PauseMenumodels", log.Relinquish());
+		bool pauseMenuSuccess = pauseMenu->LoadMeshes("../PauseMenu.txt", "../Models/PauseMenuModels", log.Relinquish());
+		bool treasureMenuSuccess = treasureMenu->LoadMeshes("../treasureMenu.txt", "../Models/treasureMenuModels", log.Relinquish());
+
 
 		//add to vector of panels
 		panels.push_back(playerHUD);
 		panels.push_back(mainMenuHUD);
 		panels.push_back(pauseMenu);
+		panels.push_back(treasureMenu);
 
 		for (uiPanel* panel : panels) {
 			initializePanel(panel);
@@ -341,19 +349,21 @@ public:
 		//
 		//
 
-		//TOGGLE PAUSE MENU
-		if ((GetAsyncKeyState(VK_TAB) & 0x8000) && !tab){
-			if (!pauseMenu->render && !mainMenuHUD->render){
-				pauseMenu->render = true;
-			}
+		
+		{	//TOGGLE PAUSE MENU
+			if ((GetAsyncKeyState(VK_TAB) & 0x8000) && !tab) {
+				if (!pauseMenu->render && !mainMenuHUD->render) {
+					pauseMenu->render = true;
+				}
 
-			else if (pauseMenu->render){
-				pauseMenu->render = false;
+				else if (pauseMenu->render) {
+					pauseMenu->render = false;
+				}
+				tab = true;
 			}
-			tab = true;
-		}
-		else if (!(GetAsyncKeyState(VK_TAB) & 0x8000)) {
-			tab = false;
+			else if (!(GetAsyncKeyState(VK_TAB) & 0x8000)) {
+				tab = false;
+			}
 		}
 
 	
@@ -365,11 +375,13 @@ public:
 		lvl.Render(cameraMatrix, viewMatrix, projectionMatrix);
 
 		for (uiPanel* panel : panels){
-			if (panel == pauseMenu && panel->render){
-				pauseMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+
+			if (panel == treasureMenu && panel->render)
+			{
+				treasureMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 
-			else if (panel->render){
+			if (panel->render){
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 		}

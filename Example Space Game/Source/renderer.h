@@ -31,8 +31,9 @@ class RendererManager
 	GameConfig* gameConfig;
 	Level_Objects lvl;
 
-	// Define a global boolean variable to keep track of the Tab key state
+	//Global variables for key inputs
 	bool tab = false;
+	bool t = false;
 
 public:
 	//ui panels
@@ -52,6 +53,7 @@ public:
 
 		//sets default state for pausing the game
 		tab = false;
+		t = false;
 
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
@@ -70,7 +72,7 @@ public:
 			//pauseMenu->toggleRender();
 			//mainMenuHUD->toggleRender();
 			//playerHUD->toggleRender();
-			treasureMenu->toggleRender();
+			//treasureMenu->toggleRender();
 		}
 		
 
@@ -238,21 +240,18 @@ public:
 		gController.GetState(0, G_RX_AXIS, rStickX);
 
 		//check if mouse value is redundant - if so do nothing
-		if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
-		{
+		if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS){
 			// do nothing
 		}
 
 		//if value is redundant, set mouseX and mouseY to zero to prevent drift
-		else
-		{
+		else{
 			mouseX = 0;
 			mouseY = 0;
 		}
 
 
-		if (controller != GW::GReturn::FAILURE)
-		{
+		if (controller != GW::GReturn::FAILURE){
 			//Calculate total change
 			totalYChange = space - lShift + rTrigger - lTrigger;
 			totalZChange = wKey - sKey + lStickY;
@@ -265,8 +264,7 @@ public:
 			yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth + rStickX * thumbspeed;
 		}
 
-		else
-		{
+		else{
 			//Calculate total change
 			totalYChange = space - lShift;
 			totalZChange = wKey - sKey;
@@ -278,16 +276,13 @@ public:
 			pitch = (FOV * mouseY) / windowHeight;
 			yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth;
 		}
-		
-		
+			
 		//calculate translation
 		const float Camera_Speed = 10 * 0.5f;
 		float perFrameSpeed = Camera_Speed * updateTime.count();
 		float cameraPositionY = totalYChange * perFrameSpeed;
 		float cameraPositionZ = -totalZChange * perFrameSpeed;
 		float cameraPositionX = totalXChange * perFrameSpeed;
-
-
 
 		//create rotation matrix
 		GW::MATH::GMATRIXF rotationMatrix;
@@ -334,17 +329,24 @@ public:
 			pauseMenu->exitPauseMenuButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 
 			if (pauseMenu->resumePauseMenuButton->HandleInputBool(G_BUTTON_LEFT, gInput) == true) {
-
 				//resume game
 				pauseMenu->toggleRender();
 			}
 
 		}
 
+		if (treasureMenu->render)
+		{
+			if (treasureMenu->exitTreasureMenuButton->HandleInputBool(G_BUTTON_LEFT, gInput) == true)
+			{
+				treasureMenu->toggleRender();
+			}
+		}
+
 		//KEYBINDS: Everything here should be checking if there was a key pressed and performing some action after
 		//CONTROLS:
 		//			TAB: toggles pause menu
-		//
+		//			  T: toggles treasure menu
 		//
 		//
 		//
@@ -352,7 +354,7 @@ public:
 		
 		{	//TOGGLE PAUSE MENU
 			if ((GetAsyncKeyState(VK_TAB) & 0x8000) && !tab) {
-				if (!pauseMenu->render && !mainMenuHUD->render) {
+				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render) {
 					pauseMenu->render = true;
 				}
 
@@ -366,6 +368,27 @@ public:
 			}
 		}
 
+		{	//TOGGLE PAUSE MENU
+			if ((GetAsyncKeyState(0x54) & 0x8000) && !t) {
+				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render) {
+					treasureMenu->render = true;
+					
+				}
+
+				else if (treasureMenu->render) {
+					treasureMenu->render = false;
+				}
+				t = true;
+				
+			}
+			else if (!(GetAsyncKeyState(0x54) & 0x8000)) {
+				t = false;
+			}
+			
+		}
+
+		
+
 	
 
 	}
@@ -376,8 +399,7 @@ public:
 
 		for (uiPanel* panel : panels){
 
-			if (panel == treasureMenu && panel->render)
-			{
+			if (panel == treasureMenu && panel->render){
 				treasureMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 

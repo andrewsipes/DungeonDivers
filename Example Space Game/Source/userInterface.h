@@ -334,51 +334,6 @@ public:
 
 	}
 
-	//Uses the world matrix and adjusts it for placing each UI object properly
-	void loadTreasureDefaults() {
-
-		//load alpha if it exists
-		try {
-			alpha = gameConfig->at(this->name).at("alpha").as<float>();
-		}
-		catch (const std::out_of_range& e) {
-
-			std::cerr << "WARNING: NO ALPHA FOUND" << std::endl;
-		}
-
-		scale(-world.row1.x, world.row2.y);
-		translate({ world.row4.x, world.row4.y });
-
-		//Here we find the min and max X/Y values so we can draw the eventbox
-		float minX = cpuModel.vertices[0].pos.x;
-		float maxX = cpuModel.vertices[0].pos.x;
-		float minY = cpuModel.vertices[0].pos.y;
-		float maxY = cpuModel.vertices[0].pos.y;
-
-		for (H2B::VERTEX vertex : cpuModel.vertices) {
-
-			if (vertex.pos.x < minX) {
-				minX = vertex.pos.x;
-			}
-			if (vertex.pos.x > maxX) {
-				maxX = vertex.pos.x;
-			}
-			if (vertex.pos.y < minY) {
-				minY = vertex.pos.y;
-			}
-			if (vertex.pos.y > maxY) {
-				maxY = vertex.pos.y;
-			}
-		}
-
-		xPos = minX;
-		yPos = minY;
-		width = maxX - minX;
-		height = maxY - minY;
-
-
-	}
-
 	//loads button text defaults
 	void loadTextDefaults() {	
 		text->scale(-1*text->world.row1.x);
@@ -1117,8 +1072,7 @@ public:
 	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
 
 		// iterate over each model and tell it to draw itself
-		if (render)
-		{
+		if (render)		{
 			for (auto& e : allUiObjects) {
 				if (e.render)
 					e.DrawModel(_camera, _view, _proj, e.alpha);
@@ -1152,8 +1106,8 @@ public:
 
 	void assign() override {
 		treasureOverlay = &allUiObjects[0];
-		exitTreasureMenuButton = &allUiButtonObjects[10];
-		treasureMenuText = &allUiButtonObjects[9];
+		exitTreasureMenuButton = &allUiButtonObjects[9];
+		treasureMenuText = &allUiButtonObjects[10];
 	
 		for (int i = 0; i < 9; i++)
 		{
@@ -1164,7 +1118,6 @@ public:
 	}
 
 	void arrange() override {
-
 		treasureOverlay->loadDefaults();
 
 		for (userButton& _button : allUiButtonObjects) {
@@ -1182,8 +1135,7 @@ public:
 		treasureMenuText->toggleRender();
 		exitTreasureMenuButton->toggleRender();
 
-		for (userButton* treasure : treasures)
-		{
+		for (userButton* treasure : treasures)	{
 			treasure->toggleRender();
 		}
 
@@ -1193,8 +1145,7 @@ public:
 	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
 
 		// iterate over each model and tell it to draw itself
-		if (render)
-		{
+		if (render)	{
 			for (auto& e : allUiObjects) {
 				if (e.render)
 					e.DrawModel(_camera, _view, _proj, e.alpha);

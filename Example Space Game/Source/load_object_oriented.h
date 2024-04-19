@@ -740,15 +740,6 @@ public:
 					t.GetState(G_KEY_W, input); zaxis += input;
 
 
-					/*if (zaxis > 0)
-						std::cout << "W" << std::endl;
-					if (zaxis < 0)
-						std::cout << "S" << std::endl;
-					if (xaxis > 0)
-						std::cout << "D" << std::endl;
-					if (xaxis < 0)
-						std::cout << "A" << std::endl;*/
-
 					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
 
 					auto e = game->lookup("Chest_Gold");

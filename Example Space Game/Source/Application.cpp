@@ -114,7 +114,6 @@ bool Application::Run() {
 			//mainMenuMusic.Play(true);
 			while (+win.ProcessWindowEvents() && running == true)
 			{
-				//rendererManager.UpdateLevel(*lvl);
 				GameLoop();
 				glClearColor(clr[0], clr[1], clr[2], clr[3]);
 

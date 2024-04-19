@@ -672,6 +672,7 @@ public:
 		log.LogCategorized("MESSAGE", "Game Level File Reading Complete.");
 		// level loaded into CPU ram
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
+	}
 
 
 

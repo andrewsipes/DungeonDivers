@@ -77,7 +77,7 @@ public:
 
 			////PANELS/////
 			//pauseMenu->toggleRender();
-			mainMenuHUD->toggleRender();
+			//mainMenuHUD->toggleRender();
 			//playerHUD->toggleRender();
 			//treasureMenu->toggleRender();
 		}
@@ -240,6 +240,8 @@ public:
 			reset = false;
 		}
 
+		GW::MATH::GMATRIXF rotationMatrix;
+
 		//Keyboard / mouse
 		gInput.GetState(G_KEY_SPACE, space);
 		gInput.GetState(G_KEY_LEFTSHIFT, lShift);
@@ -259,19 +261,6 @@ public:
 
 		if (freecam)
 		{
-			//check if mouse value is redundant - if so do nothing
-			if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
-			{
-				// do nothing
-			}
-
-			//if value is redundant, set mouseX and mouseY to zero to prevent drift
-			else
-			{
-				mouseX = 0;
-				mouseY = 0;
-			}
-
 
 			if (controller != GW::GReturn::FAILURE)
 			{
@@ -309,9 +298,7 @@ public:
 			float cameraPositionZ = -totalZChange * perFrameSpeed;
 			float cameraPositionX = totalXChange * perFrameSpeed;
 
-		//create rotation matrix
-		GW::MATH::GMATRIXF rotationMatrix;
-		GW::MATH::GMatrix::IdentityF(rotationMatrix);
+		//GW::MATH::GMatrix::IdentityF(rotationMatrix);
 		GW::MATH::GMatrix::InverseF(viewMatrix, rotationMatrix);
 
 		//check if mouse value is redundant - if so do nothing
@@ -339,7 +326,7 @@ public:
 		gMatrixProxy.TranslateLocalF(rotationMatrix, cameraTranslationVector, rotationMatrix);
 
 			//apply rotation 
-			gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
+			//gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
 	
 		}
 		else 
@@ -351,6 +338,8 @@ public:
 		}
 		//get view matrix
 		gMatrixProxy.InverseF(rotationMatrix, viewMatrix);
+
+		callTime = currTime;
 	}
 
 	//Event Handling for all buttons - manually place each button here and tag the lamda expression it should execute

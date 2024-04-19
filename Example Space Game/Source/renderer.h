@@ -206,7 +206,6 @@ public:
 
 		return ortho;
 	}
-
 	//Updates camera movement based on movement
 	void UpdateCamera(int windowWidth, int windowHeight)
 	{

@@ -698,6 +698,78 @@ public:
 		allObjectsInLevel.clear();
 	}
 
+	void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::world> game)
+	{
+		for each (Model i in Level->allObjectsInLevel)
+		{
+
+			auto e = game->entity(i.name.c_str());
+			e.set<ESG::Name>({ i.name });
+			e.set<ESG::World>({ i.world });
+
+			if (i.name == "Chest_Gold")
+			{
+				e.add<ESG::Player>();
+			}
+		}
+	}
+
+	void AddSystems(	std::shared_ptr<Level_Objects> level,
+						std::shared_ptr<flecs::world> game, 
+						std::weak_ptr<const GameConfig> gameConfig, 
+						GW::INPUT::GInput immediateInput,
+						GW::INPUT::GBufferedInput bufferedInput, 
+						GW::INPUT::GController controllerInput, 
+						GW::AUDIO::GAudio _audioEngine, 
+						GW::CORE::GEventGenerator eventPusher)
+	{
+		flecs::system playerSystem;
+
+		
+		std::shared_ptr<const GameConfig> readCfg = gameConfig.lock();
+		float speed = (*readCfg).at("Player1").at("speed").as<float>();
+		playerSystem = game->system<ESG::Player, ESG::World>("Player Move System")
+			.iter([immediateInput, game, level, speed](flecs::iter it, ESG::Player*, ESG::World* p)
+				{
+					float xaxis = 0, input = 0, zaxis = 0;
+					
+					GW::INPUT::GInput t = immediateInput;
+					t.GetState(G_KEY_A, input); xaxis -= input;
+					t.GetState(G_KEY_D, input); xaxis += input;
+					t.GetState(G_KEY_S, input); zaxis -= input;
+					t.GetState(G_KEY_W, input); zaxis += input;
+
+
+					/*if (zaxis > 0)
+						std::cout << "W" << std::endl;
+					if (zaxis < 0)
+						std::cout << "S" << std::endl;
+					if (xaxis > 0)
+						std::cout << "D" << std::endl;
+					if (xaxis < 0)
+						std::cout << "A" << std::endl;*/
+
+					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
+
+					auto e = game->lookup("Chest_Gold");
+					ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+					int index = 0;
+					for each (Model m in level->allObjectsInLevel)
+					{
+						if (m.name == "Chest_Gold")
+						{
+							level->allObjectsInLevel[index].world = edit->value;
+							break;
+						}
+						index++;
+					}
+
+
+				});
+	}
+
+
 	// *THIS APPROACH COMBINES DATA & LOGIC*
 	// *WITH THIS APPROACH THE CURRENT RENDERER SHOULD BE JUST AN API MANAGER CLASS*
 	// *ALL ACTUAL GPU LOADING AND RENDERING SHOULD BE HANDLED BY THE MODEL CLASS*

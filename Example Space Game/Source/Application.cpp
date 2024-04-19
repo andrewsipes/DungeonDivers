@@ -84,26 +84,19 @@ bool Application::Run() {
 	auto lvl = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	lvl->AddEntities(lvl, game);
+	lvl->AddSystems(lvl, game, gameConfig, immediateInput, bufferedInput, gamePads, audioEngine, eventPusher);
+	
+		/*int count = 0;
 
-	Level_Objects& Level = *lvl;
-	//AddEntities(*lvl);
+		auto f = game->filter<ESG::Player, ESG::World, ESG::ControllerID, ESG::Name>();
 
-		for each(Model i in Level.allObjectsInLevel)
-		{
-
-			auto e = game->entity( i.name.c_str() );
-			e.set<ESG::Name>({ i.name });
-		}
-		int count = 0;
-
-		auto f = game->filter<ESG::Name>();
-
-		f.each([&count](ESG::Name& n)
+		f.each([&count](ESG::Player a, ESG::World s , ESG::ControllerID d, ESG::Name n)
 			{
-				count++;
+				std::cout << n.name << std::endl;
 			}
 		);
-		std::cout << "entity count: " << count << std::endl;
+		std::cout << "entity count: " << count << std::endl;*/
 
 
 		msgs.Create([&](const GW::GEvent& e) {
@@ -121,10 +114,11 @@ bool Application::Run() {
 			//mainMenuMusic.Play(true);
 			while (+win.ProcessWindowEvents() && running == true)
 			{
-
+				//rendererManager.UpdateLevel(*lvl);
+				GameLoop();
 				glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				//Update camera then render
 				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());

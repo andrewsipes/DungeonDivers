@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(UntitledGame)
+project(DungeonDivers)
 
 set(PRE_COMPILED
     ./Source/precompiled.h 
@@ -43,13 +43,13 @@ ADD_DEFINITIONS(-D_UNICODE)
 if(WIN32)
 	# by default CMake selects "ALL_BUILD" as the startup project 
 	set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} 
-		 PROPERTY VS_STARTUP_PROJECT UntitledGame)
+		 PROPERTY VS_STARTUP_PROJECT DungeonDivers)
 
 	#VULKAN ONLY KEEP COMMENTED
 	#source_group(TREE ${CMAKE_SOURCE_DIR} FILES ${SOURCE_FILES})
-	#target_include_directories(UntitledGame PUBLIC $ENV{VULKAN_SDK}/Include/)
-	#target_link_directories(UntitledGame PUBLIC $ENV{VULKAN_SDK}/Lib/)
-	#target_compile_options(UntitledGame PRIVATE "/MD")
+	#target_include_directories(DungeonDivers PUBLIC $ENV{VULKAN_SDK}/Include/)
+	#target_link_directories(DungeonDivers PUBLIC $ENV{VULKAN_SDK}/Lib/)
+	#target_compile_options(DungeonDivers PRIVATE "/MD")
 
 	#this will tell Visual Studio to put the shaders under their own group in the solution explorer 
 	set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -71,15 +71,15 @@ if (UNIX AND NOT APPLE)
      link_libraries(${OPENGL_LIBRARIES})
 endif()
 
-add_executable (UntitledGame
+add_executable (DungeonDivers
 	${SOURCE_CODE}
 	${VERTEX_SHADERS}
 	${PIXEL_SHADERS})
 
-target_compile_features(UntitledGame PUBLIC cxx_std_17)
+target_compile_features(DungeonDivers PUBLIC cxx_std_17)
 
 # adding gateware.h and other librairies as a precompiled headers to reduce compile times
-target_precompile_headers(UntitledGame PRIVATE ${PRE_COMPILED})
+target_precompile_headers(DungeonDivers PRIVATE ${PRE_COMPILED})
 
 # Disable all shaders from compiling since they may have OpenGL specifics
 file(

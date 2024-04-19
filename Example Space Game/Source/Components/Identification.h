@@ -12,6 +12,9 @@ namespace ESG
 	struct ControllerID {
 		unsigned index = 0;
 	};
+	struct Name {
+		std::string name = "";
+	};
 };
 
 #endif

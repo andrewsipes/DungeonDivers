@@ -11,7 +11,7 @@ namespace ESG
 	struct Velocity { GW::MATH2D::GVECTOR2F value; };
 	struct Orientation { GW::MATH2D::GMATRIX2F value; };
 	struct Acceleration { GW::MATH2D::GVECTOR2F value; };
-
+	
 	// Individual TAGs
 	struct Collidable {}; 
 	

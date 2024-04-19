@@ -1,3 +1,5 @@
+
+
 #include "./FileIntoString.h"
 #include "./stb_image.h"
 #include "./OpenGLExtensions.h"
@@ -444,7 +446,6 @@ class Level_Objects {
 
 private:
 	// store all our models
-	std::vector<Model> allObjectsInLevel;
 
 	//sunLight stuff
 	SUNLIGHT_DATA sunLight;
@@ -459,6 +460,7 @@ private:
 
 public:
 
+	std::vector<Model> allObjectsInLevel;
 	// Imports the default level txt format and creates a Model from each .h2b
 	bool virtual LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log) {
 
@@ -575,7 +577,7 @@ public:
 				else if (std::strcmp(linebuffer, "SPOT") == 0) {
 
 					light.SetType("SPOT");
-				
+
 				}
 
 				log.LogCategorized("INFO", (std::string("LIGHT TYPE: ") + linebuffer).c_str());
@@ -705,8 +707,8 @@ public:
 		// level loaded into CPU ram
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
 
-	
-		
+
+
 
 		return true;
 	}

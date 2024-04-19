@@ -46,9 +46,6 @@ namespace ESG
 		// control if the system is actively running
 		bool Activate(bool runSystem);
 
-		void CheckCollisionWithEnemies(const Position& playerPosition);
-		void ReducePlayerHealth();
-
 		// release any resources allocated by the system
 		bool Shutdown(); 
 

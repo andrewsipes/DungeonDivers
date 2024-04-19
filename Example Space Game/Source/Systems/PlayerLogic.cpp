@@ -60,9 +60,6 @@ bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 			p[i].value.x = G_LARGER(p[i].value.x, -0.8f);
 			p[i].value.x = G_SMALLER(p[i].value.x, +0.8f);
 
-			// Check for collision with enemies
-			CheckCollisionWithEnemies(p[i]);
-
 			// fire weapon if they are in a firing state
 			if (it.entity(i).has<Firing>()) 
 			{
@@ -96,16 +93,6 @@ bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 	_eventPusher.Register(onExplode);
 
 	return true;
-}
-
-void ESG::PlayerLogic::CheckCollisionWithEnemies(const Position& playerPosition)
-{
-	// Implementation of collision detection logic
-}
-
-void ESG::PlayerLogic::ReducePlayerHealth()
-{
-	// Implementation of reducing player health logic
 }
 
 // Free any resources used to run this system

@@ -4,7 +4,6 @@
 
 // Contains our global game settings
 #include "../GameConfig.h"
-
 #include "../Precompiled.h"
 
 // example space game (avoid name collisions)
@@ -18,9 +17,6 @@ namespace ESG
 
 		// Unload the entities/prefabs from the ECS
 		bool Unload(std::shared_ptr<flecs::world> _game);
-
-		// Declaration of the function to find and operate on an entity by name
-		void FindAndOperateOnEntity(const std::string& entityName, flecs::world& ecsWorld);
 	};
 };
 

@@ -12,10 +12,9 @@ GameConfig::GameConfig() : ini::IniFile()
 	const char* defaults = "../defaults.ini";
 	const char* saved ="../saved.ini";
 
-
 	// if they both exist choose the newest one
-	if (std::filesystem::exists(defaults) && 
-		std::filesystem::exists(saved)) {
+	if (std::filesystem::exists(defaults) && std::filesystem::exists(saved)) 
+	{
 		// Load the newer file
 		auto dtime = std::filesystem::last_write_time(defaults);
 		auto stime = std::filesystem::last_write_time(saved);
@@ -24,10 +23,13 @@ GameConfig::GameConfig() : ini::IniFile()
 		else
 			(*this).load("../saved.ini"); // what happens most of the time
 	}
-	else if (std::filesystem::exists(defaults)) { // probably the first run after install
+	else if (std::filesystem::exists(defaults)) 
+	{ 
+		// probably the first run after install
 		(*this).load("../defaults.ini");
 	}
-	else { // the default file is missing or corrupted, this is bad
+	else // the default file is missing or corrupted, this is bad
+	{ 
 		std::abort(); // a more graceful approach would be to overwrite defaults.ini
 	}
 }

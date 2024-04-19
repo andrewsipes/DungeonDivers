@@ -9,10 +9,13 @@ namespace ESG
 	struct Bullet {};
 	struct Enemy {};
 	struct Lives {};
-	struct ControllerID {
+	struct ControllerID
+	{
 		unsigned index = 0;
 	};
-	struct Name {
+
+	struct Name
+	{
 		std::string name = "";
 	};
 };

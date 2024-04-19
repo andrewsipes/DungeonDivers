@@ -9,7 +9,6 @@
 // Creation, Rendering & Cleanup
 class RendererManager
 {
-
 	// proxy handles
 	GW::SYSTEM::GWindow win;
 	GW::GRAPHICS::GOpenGLSurface ogl;
@@ -76,7 +75,6 @@ public:
 			//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
 			//bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 
-
 			////PANELS/////
 			//pauseMenu->toggleRender();
 			mainMenuHUD->toggleRender();
@@ -104,12 +102,10 @@ public:
 		UIorthoMatrix = initializeOrthoprojectionMatrix();
 		gMatrixProxy.IdentityF(UIcameraMatrix);
 		gMatrixProxy.InverseF(UIcameraMatrix, UIviewMatrix);
-			
 	}
 
 	//initializes all panels
-	void initializePanels(GW::SYSTEM::GLog &log) {
-
+	void initializePanels(GW::SYSTEM::GLog& log) {
 		//assign the panels to the preset renderManager pointers
 		playerUi* player = new playerUi(*gameConfig);
 		playerHUD = player;
@@ -142,14 +138,13 @@ public:
 	}
 
 	//initialize single panel
-	void initializePanel(uiPanel *panel) {
+	void initializePanel(uiPanel* panel) {
 		panel->assign();
 		panel->arrange();
 		panel->start();
 		panel->UploadLevelToGPU(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
-
 	}
-	
+
 	//initializes a world matrix and sets it to identity
 	GW::MATH::GMATRIXF initializeWorldMatrix()
 	{
@@ -180,7 +175,6 @@ public:
 	//initializes projection matrix and returns one
 	GW::MATH::GMATRIXF initializeProjectionMatrix(GW::GRAPHICS::GOpenGLSurface _ogl, float degrees, float _near, float _far)
 	{
-
 		GW::MATH::GMATRIXF projMatrix;
 		GW::MATH::GMatrix::IdentityF(projMatrix);
 
@@ -223,7 +217,8 @@ public:
 		float space, lShift, rTrigger, lTrigger, wKey, sKey, aKey, dKey, lStickY, lStickX, rStickX, rStickY, mouseX, mouseY, num0;
 
 		//camera variables
-		float totalYChange, totalZChange, totalXChange, thumbspeed, FOV, pitch,yaw;
+		float totalYChange, totalZChange, totalXChange, thumbspeed, FOV, pitch, yaw;
+
 		// current time
 		std::chrono::high_resolution_clock::time_point currTime = std::chrono::high_resolution_clock::now();
 
@@ -255,7 +250,7 @@ public:
 		GW::GReturn mouse = gInput.GetMouseDelta(mouseX, mouseY);
 
 		//controller
-		GW:: GReturn controller = gController.GetState(0, G_RIGHT_TRIGGER_AXIS, rTrigger);
+		GW::GReturn controller = gController.GetState(0, G_RIGHT_TRIGGER_AXIS, rTrigger);
 		gController.GetState(0, G_LEFT_TRIGGER_AXIS, lTrigger);
 		gController.GetState(0, G_LY_AXIS, lStickY);
 		gController.GetState(0, G_LX_AXIS, lStickX);
@@ -314,19 +309,34 @@ public:
 			float cameraPositionZ = -totalZChange * perFrameSpeed;
 			float cameraPositionX = totalXChange * perFrameSpeed;
 
+		//create rotation matrix
+		GW::MATH::GMATRIXF rotationMatrix;
+		GW::MATH::GMatrix::IdentityF(rotationMatrix);
+		GW::MATH::GMatrix::InverseF(viewMatrix, rotationMatrix);
 
+		//check if mouse value is redundant - if so do nothing
+		if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
+		{
+			// do nothing
 
-			//create rotation matrix
-			GW::MATH::GMATRIXF rotationMatrix;
-			GW::MATH::GMatrix::IdentityF(rotationMatrix);
+			//gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
 
-			gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
+			gMatrixProxy.RotateXLocalF(rotationMatrix, -pitch, rotationMatrix);
+			gMatrixProxy.RotateYGlobalF(rotationMatrix, -yaw, rotationMatrix);
+		}
 
-			//Translation vector
-			GW::MATH::GVECTORF cameraTranslationVector = { cameraPositionX, cameraPositionY, cameraPositionZ, 1.0f };
+		//if value is redundant, set mouseX and mouseY to zero to prevent drift
+		else
+		{
+			mouseX = 0;
+			mouseY = 0;
+		}
 
-			//apply translation to the camera
-			gMatrixProxy.TranslateLocalF(cameraMatrix, cameraTranslationVector, cameraMatrix);
+		//Translation vector
+		GW::MATH::GVECTORF cameraTranslationVector = { cameraPositionX, cameraPositionY, cameraPositionZ, 1.0f };
+
+		//apply translation to the camera
+		gMatrixProxy.TranslateLocalF(rotationMatrix, cameraTranslationVector, rotationMatrix);
 
 			//apply rotation 
 			gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
@@ -340,15 +350,11 @@ public:
 			gMatrixProxy.InverseF(cameraMatrix, cameraMatrix);
 		}
 		//get view matrix
-		gMatrixProxy.InverseF(cameraMatrix, viewMatrix);
-
-		//update call time for next calc
-		callTime = currTime;
+		gMatrixProxy.InverseF(rotationMatrix, viewMatrix);
 	}
 
 	//Event Handling for all buttons - manually place each button here and tag the lamda expression it should execute
 	void eventHandling() {
-
 		//MAINMENU
 		if (mainMenuHUD->render) {
 			mainMenuHUD->startButton->HandleInput(mainMenuHUD->startButton, G_BUTTON_LEFT, gInput, turnOffRender);
@@ -358,7 +364,6 @@ public:
 
 		//PLAYERHUD
 		if (playerHUD->render) {
-
 		}
 
 		//PAUSEMENU
@@ -449,10 +454,9 @@ public:
 		}
 
 		eventHandling();
-	
 	}
 
-	~RendererManager(){
+	~RendererManager() {
 		for (uiPanel* panel : panels)
 		{
 			delete panel;

@@ -4,7 +4,6 @@ d#include <map>
 #include "./renderer.h"
 #include "../gateware-main/Gateware.h"
 
-
 using namespace GW;
 using namespace CORE;
 using namespace SYSTEM;
@@ -15,13 +14,10 @@ bool Application::Init()
 {
 	eventPusher.Create();
 
-
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>();
 	// create the ECS system
 	game = std::make_shared<flecs::world>();
-
-	//lvl = std::make_shared<Level_Objects>();
 	// init all other systems
 	if (InitWindow() == false)
 		return false;
@@ -114,8 +110,8 @@ bool Application::Run() {
 			GW::SYSTEM::GWindow::Events q;
 			if (+e.Read(q) && q == GWindow::Events::RESIZE)
 				clr[2] += 0.01f;
-			});
-		win.Register(msgs);
+		});
+	win.Register(msgs);
 
 		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
@@ -128,7 +124,7 @@ bool Application::Run() {
 
 				glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 				//Update camera then render
 				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
@@ -139,7 +135,6 @@ bool Application::Run() {
 			}
 		}
 	return 0;
-
 }
 
 

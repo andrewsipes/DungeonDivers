@@ -13,7 +13,7 @@ namespace ESG
 	struct Acceleration { GW::MATH2D::GVECTOR2F value; };
 	
 	// Individual TAGs
-	struct Collidable {}; 
+	struct Collidable { GW::MATH2D::GRECTANGLE2D rectCollider; };
 	
 	// ECS Relationship tags
 	struct CollidedWith {};

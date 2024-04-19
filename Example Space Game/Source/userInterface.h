@@ -1,4 +1,7 @@
+#include <map>
+#include <string>
 #include "./load_object_oriented.h"
+#include "../gateware-main/Gateware.h"
 
 //This entire .H file handles the UserInterface Classes, and their accompanying methods
 //In order to use this properly, objects should be created in render.h and handled as needed for rendering, events, etc.
@@ -11,11 +14,25 @@ public:
 	bool render;
 	float alpha = 1.0f;
 
+	//Audio implementation below//
+	//Pointer to the SFX map from application.cpp
+	std::map<std::string, GW::AUDIO::GSound>* soundEffects;
+
+
+	//UI Constructor
+	uiModel() : render(false), soundEffects(nullptr) {}
+
+	//method to call the sound effects map
+	void setSoundEffects(std::map<std::string, GW::AUDIO::GSound>* se) 
+	{
+		soundEffects = se;
+	}
+
 	GameConfig* gameConfig;
 
-	uiModel(){
-		render = false;
-	}
+	//uiModel(){
+	//	render = false;
+	//}
 
 	void SetUpPipeline(float alpha) {
 		glUseProgram(shaderExecutable);
@@ -424,7 +441,11 @@ public:
 				gInput.GetState(keyPress, state);
 
 				//check if clicked
-				if (state > 0) {
+				if (state > 0) 
+				{
+					if (soundEffects && soundEffects->count("UIAccept") > 0) {
+						soundEffects->at("UIAccept").Play();
+					}
 
 					onPress(model);
 				}

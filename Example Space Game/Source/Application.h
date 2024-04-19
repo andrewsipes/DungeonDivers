@@ -1,6 +1,8 @@
 #ifndef APPLICATION_H
 #define APPLICATION_H
 
+#include <map>
+#include <string>
 // include events
 #include "Events/Playevents.h"
 // Contains our global game settings
@@ -27,6 +29,8 @@ class Application
 	GW::INPUT::GInput immediateInput; // twitch keybaord/mouse
 	GW::INPUT::GBufferedInput bufferedInput; // event keyboard/mouse
 	GW::AUDIO::GAudio audioEngine; // can create music & sound effects
+	std::map<std::string, GW::AUDIO::GMusic> musicTracks;
+	std::map<std::string, GW::AUDIO::GSound> soundEffects;
 	GW::AUDIO::GMusic currentTrack;
 	// third-party gameplay & utility libraries
 	std::shared_ptr<flecs::world> game; // ECS database for gameplay
@@ -59,6 +63,9 @@ private:
 	bool InitEntities();
 	bool InitSystems();
 	bool GameLoop();
+
+	//separate audio manager from initaudio
+	bool LoadAudioResources();
 };
 
 #endif 

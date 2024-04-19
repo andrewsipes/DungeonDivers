@@ -70,7 +70,7 @@ public:
 
 			////PANELS/////
 			//pauseMenu->toggleRender();
-			//mainMenuHUD->toggleRender();
+			mainMenuHUD->toggleRender();
 			//playerHUD->toggleRender();
 			//treasureMenu->toggleRender();
 		}

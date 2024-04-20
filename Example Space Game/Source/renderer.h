@@ -361,21 +361,17 @@ public:
 			pauseMenu->controlsPauseMenuButton->HandleInput(pauseMenu->controlsPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			pauseMenu->exitPauseMenuButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
-
-			if (pauseMenu->resumePauseMenuButton->HandleInputBool(G_BUTTON_LEFT, gInput) == true) {
-				//resume game
-				pauseMenu->toggleRender();
-			}
+			pauseMenu->resumePauseMenuButton->HandleInput(dynamic_cast<uiPanel*>(pauseMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
 
 		}
 
+		//TREASURE MENU
 		if (treasureMenu->render)
 		{
-			if (treasureMenu->exitTreasureMenuButton->HandleInputBool(G_BUTTON_LEFT, gInput) == true)
-			{
-				treasureMenu->toggleRender();
-			}
+			treasureMenu->exitTreasureMenuButton->HandleInput(dynamic_cast<uiPanel*>(treasureMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
 		}
+
+		
 
 		//KEYBINDS: Everything here should be checking if there was a key pressed and performing some action after
 		//CONTROLS:
@@ -385,25 +381,26 @@ public:
 		//
 		//
 
-		
 		{	//TOGGLE PAUSE MENU
-			if ((GetAsyncKeyState(VK_TAB) & 0x8000) && !tab) {
+			if (!tab && (GetAsyncKeyState(VK_TAB) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render) {
 					pauseMenu->render = true;
+
 				}
 
 				else if (pauseMenu->render) {
 					pauseMenu->render = false;
 				}
 				tab = true;
+
 			}
-			else if (!(GetAsyncKeyState(VK_TAB) & 0x8000)) {
+			else if (tab && !(GetAsyncKeyState(VK_TAB) & 0x8000)) {
 				tab = false;
 			}
-		}
 
+		}
 		{	//TOGGLE PAUSE MENU
-			if ((GetAsyncKeyState(0x54) & 0x8000) && !t) {
+			if (!t &&(GetAsyncKeyState(0x54) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render) {
 					treasureMenu->render = true;
 					
@@ -415,7 +412,7 @@ public:
 				t = true;
 				
 			}
-			else if (!(GetAsyncKeyState(0x54) & 0x8000)) {
+			else if (t && !(GetAsyncKeyState(0x54) & 0x8000)) {
 				t = false;
 			}
 			

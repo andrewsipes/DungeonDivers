@@ -6,6 +6,8 @@
 //This entire .H file handles the UserInterface Classes, and their accompanying methods
 //In order to use this properly, objects should be created in render.h and handled as needed for rendering, events, etc.
 
+class uiPanel;
+
 //uiModel is a derivate of the original model with updated definitions specific to UI
 class uiModel : public Model
 {
@@ -505,6 +507,54 @@ public:
 
 	}
 
+	//overload for lambdas that require application as input
+	void HandleInput(uiPanel* panel, int keyPress, GW::INPUT::GInput gInput, std::function<void(uiPanel*)> onPress) {
+
+		float mouseX, mouseY;
+		float screenWidth = gameConfig->at("Window").at("width").as<int>();
+		float screenHeight = gameConfig->at("Window").at("height").as<int>();
+
+		GW::GReturn mousePos = gInput.GetMousePosition(mouseX, mouseY);
+
+		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
+		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
+
+
+#ifndef NDEBUG
+
+		/*	std::cout << "mouseX:" << mouseX << std::endl;
+			std::cout << "mouseY:" << mouseY << std::endl;
+			std::cout << "xPos:" << xPos << std::endl;
+			std::cout << "yPos:" << yPos << std::endl;*/
+
+
+#endif
+
+
+
+		if (render)
+		{
+			//check if mouse position is within button bounds
+			if (mouseX >= xPos && mouseX <= xPos + width &&
+				mouseY >= yPos && mouseY <= yPos + height) {
+
+				float state;
+
+				gInput.GetState(keyPress, state);
+
+				//check if clicked
+				if (state > 0) {
+
+					onPress(panel);
+				}
+			}
+
+
+		}
+
+
+	}
+
 	//specific handle for checking if the button press and returns a bool
 	bool HandleInputBool(int keyPress, GW::INPUT::GInput gInput) {
 
@@ -542,7 +592,7 @@ public:
 				}
 
 				else
-					false;
+					return false;
 			}
 		}
 
@@ -1188,14 +1238,16 @@ auto turnOffRender = [](uiModel* model) {
 	model->render = false;
 	};
 
+//Stops Rendering specific Model 
+auto turnOffPanel = [](uiPanel* panel) {
+	panel->render = false;
+	};
+
 //exits the application
 auto shutdown = [](Application* application) {
 	application->Shutdown();
 	};
 
-//toggles Panel and resumes games
-auto resume = []() {
 
-	};
 	
 

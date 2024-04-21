@@ -399,6 +399,7 @@ public:
 			}
 
 		}
+
 		{	//TOGGLE PAUSE MENU
 			if (!t &&(GetAsyncKeyState(0x54) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render) {

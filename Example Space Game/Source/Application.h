@@ -19,8 +19,10 @@
 #include "Systems/PhysicsLogic.h"
 #include "Systems/BulletLogic.h"
 #include "Systems/EnemyLogic.h"
-
 #include "Components/Identification.h"
+
+//include PlayerStats
+#include "playerStats.h"
 
 // Allocates and runs all sub-systems essential to operating the game
 class Application
@@ -53,7 +55,6 @@ class Application
 	ESG::EnemyLogic enemySystem;
 	// EventGenerator for Game Events
 	GW::CORE::GEventGenerator eventPusher;
-
 
 public:
 	bool running;

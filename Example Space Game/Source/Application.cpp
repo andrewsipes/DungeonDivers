@@ -86,6 +86,10 @@ bool Application::Run() {
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 
 	Level_Objects& Level = *lvl;
+	PlayerStats player(*gameConfig); //track player data
+
+	player.saveScore();
+
 	//AddEntities(*lvl);
 
 		for each(Model i in Level.allObjectsInLevel)

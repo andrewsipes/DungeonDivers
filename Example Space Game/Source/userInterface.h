@@ -15,11 +15,11 @@ class uiModel : public Model
 public:
 	bool render;
 	float alpha = 1.0f;
+	GameConfig* gameConfig;
 
 	//Audio implementation below//
 	//Pointer to the SFX map from application.cpp
 	std::map<std::string, GW::AUDIO::GSound>* soundEffects;
-
 
 	//UI Constructor
 	uiModel() : render(false), soundEffects(nullptr) {}
@@ -30,7 +30,6 @@ public:
 		soundEffects = se;
 	}
 
-	GameConfig* gameConfig;
 
 	//uiModel(){
 	//	render = false;
@@ -127,7 +126,7 @@ public:
 		}
 		catch (const std::out_of_range& e) {
 
-			std::cerr << "WARNING: NO ALPHA FOUND" << std::endl;
+			//std::cerr << "WARNING: NO ALPHA FOUND" << std::endl;
 		}
 
 		scale(-world.row1.x, world.row2.y);
@@ -885,7 +884,7 @@ public:
 	}
 
 	//updates Score UI
-	void updateScore(int score) {
+	void updateHUDScore(int score) {
 
 		//prevents score from going too high
 		if (score > 9999)
@@ -931,7 +930,7 @@ public:
 	}
 
 	//updates Hearts UI
-	void updateHearts(int life) {
+	void updateHUDHearts(int life) {
 
 		//prevents life from going too high
 		if (life > 8)
@@ -954,9 +953,9 @@ public:
 	}
 
 	//combines updating score and life into single method
-	void update(int score, int life) {
-		updateHearts(life);
-		updateScore(score);
+	void updateHUD(int score, int life) {
+		updateHUDHearts(life);
+		updateHUDScore(score);
 	}
 
 	//assigns the panel elements to the appropiate pointers so we can control them easily
@@ -1037,8 +1036,8 @@ public:
 	void start() override {
 
 		//Set Default values
-		updateHearts(gameConfig->at("Player1").at("hearts").as<int>());
-		updateScore(gameConfig->at("Player1").at("score").as<int>());
+		updateHUDHearts(gameConfig->at("Player1").at("hearts").as<int>());
+		updateHUDScore(gameConfig->at("Player1").at("score").as<int>());
 		levelText->toggleRender();
 		levelDigit[0]->toggleRender();
 
@@ -1238,7 +1237,7 @@ auto turnOffRender = [](uiModel* model) {
 	model->render = false;
 	};
 
-//Stops Rendering specific Model 
+//Stops Rendering specific Panel
 auto turnOffPanel = [](uiPanel* panel) {
 	panel->render = false;
 	};

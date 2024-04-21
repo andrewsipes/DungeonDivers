@@ -76,68 +76,49 @@ bool Application::Init()
 //	return true;
 //}
 
-bool Application::Run() {
+bool Application::Run() 
+{
 	running = true;
 	GEventResponder msgs;
 	GW::SYSTEM::GLog log;
 	log.Create("output.txt");
 	auto lvl = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	lvl->LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish());
+	lvl->AddEntities(lvl, game);
+	lvl->AddSystems(lvl, game, gameConfig, immediateInput, bufferedInput, gamePads, audioEngine, eventPusher);
 
-	Level_Objects& Level = *lvl;
-	//AddEntities(*lvl);
-
-		for each(Model i in Level.allObjectsInLevel)
-		{
-
-			auto e = game->entity( i.name.c_str() );
-			e.set<ESG::Name>({ i.name });
-		}
-		int count = 0;
-
-		auto f = game->filter<ESG::Name>();
-
-		f.each([&count](ESG::Name& n)
-			{
-				count++;
-			}
-		);
-		std::cout << "entity count: " << count << std::endl;
-
-
-		msgs.Create([&](const GW::GEvent& e) {
-			GW::SYSTEM::GWindow::Events q;
-			if (+e.Read(q) && q == GWindow::Events::RESIZE)
-				clr[2] += 0.01f;
+	msgs.Create([&](const GW::GEvent& e) {
+		GW::SYSTEM::GWindow::Events q;
+		if (+e.Read(q) && q == GWindow::Events::RESIZE)
+			clr[2] += 0.01f;
 		});
 	win.Register(msgs);
 
-		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
-		{
-			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-			RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
-			//auto& mainMenuMusic = musicTracks["MainMenu"];
-			//mainMenuMusic.Play(true);
-			while (+win.ProcessWindowEvents() && running == true)
-			{
+	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+	{
+		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
+		RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
+		//auto& mainMenuMusic = musicTracks["MainMenu"];
+		//mainMenuMusic.Play(true);
 
-				glClearColor(clr[0], clr[1], clr[2], clr[3]);
+		while (+win.ProcessWindowEvents() && running == true)
+		{
+			//rendererManager.UpdateLevel(*lvl);
+			GameLoop();
+			glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				//Update camera then render
-				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
-				rendererManager.Render();
-				ogl.UniversalSwapBuffers();
-
-
-			}
+			//Update camera then render
+			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+			rendererManager.Render();
+			ogl.UniversalSwapBuffers();
 		}
+	}
 	return 0;
+
 }
-
-
 
 bool Application::Shutdown()
 {
@@ -184,7 +165,6 @@ bool Application::InitInput()
 		return false;
 	return true;
 }
-
 
 //bool Application::InitAudio()
 //{
@@ -294,7 +274,6 @@ bool Application::LoadAudioResources()
 	std::cout << "All music and sfx loaded!" << std::endl;
 	return true;
 }
-
 
 //bool Application::InitGraphics()
 //{

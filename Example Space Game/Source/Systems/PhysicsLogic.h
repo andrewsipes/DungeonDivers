@@ -21,10 +21,11 @@ namespace ESG
 		flecs::query<Collidable, Position, Orientation> queryCache;
 
 		// defines what to be tested
-		static constexpr unsigned rectSize = 4;
+		static constexpr unsigned polysize = 4;
+
 		struct SHAPE 
 		{
-			GW::MATH2D::GVECTOR2F rect[rectSize];
+			GW::MATH2D::GVECTOR2F poly[polysize];
 			flecs::entity owner;
 		};
 

@@ -22,12 +22,12 @@ bool ESG::EnemyData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<con
 	float yscale = (*readCfg).at("Enemy1").at("yscale").as<float>();
 	float angle = (*readCfg).at("Enemy1").at("angle").as<float>();
 	int health = (*readCfg).at("Enemy1").at("health").as<int>();
-	
+
 	// default projectile orientation & scale
 	GW::MATH2D::GMATRIX2F world;
 	GW::MATH2D::GMatrix2D::Rotate2F(GW::MATH2D::GIdentityMatrix2F, G_DEGREE_TO_RADIAN_F(angle), world);
 	GW::MATH2D::GMatrix2D::Scale2F(world, GW::MATH2D::GVECTOR2F{ xscale, yscale }, world);
-	
+
 	// add prefab to ECS
 	auto enemyPrefab = _game->prefab("Bee")
 		// .set<> in a prefab means components are shared (instanced)
@@ -40,8 +40,6 @@ bool ESG::EnemyData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<con
 		.override<Position>()
 		.override<Enemy>() // Tag this prefab as an enemy (for queries/systems)
 		.override<Collidable>(); // can be collided with
-
-		//.add<ESG::BoundingBox>(); // Add BoundingBox component
 
 	// register this prefab by name so other systems can use it
 	RegisterPrefab("Bee", enemyPrefab);

@@ -27,6 +27,7 @@ class Application
 {
 	// gateware libs used to access operating system
 	GW::SYSTEM::GWindow win; // gateware multi-platform window
+
 	GW::GRAPHICS::GOpenGLSurface ogl; // gateware openGL API wrapper
 	GW::INPUT::GController gamePads; // controller support
 	GW::INPUT::GInput immediateInput; // twitch keybaord/mouse

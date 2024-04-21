@@ -76,7 +76,7 @@ bool Application::Init()
 //	return true;
 //}
 
-bool Application::Run() 
+bool Application::Run()
 {
 	running = true;
 	GEventResponder msgs;
@@ -87,26 +87,28 @@ bool Application::Run()
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 	lvl->AddEntities(lvl, game);
 	lvl->AddSystems(lvl, game, gameConfig, immediateInput, bufferedInput, gamePads, audioEngine, eventPusher);
-	
-		msgs.Create([&](const GW::GEvent& e) {
-			GW::SYSTEM::GWindow::Events q;
-			if (+e.Read(q) && q == GWindow::Events::RESIZE)
-				clr[2] += 0.01f;
+
+	msgs.Create([&](const GW::GEvent& e) {
+		GW::SYSTEM::GWindow::Events q;
+	if (+e.Read(q) && q == GWindow::Events::RESIZE)
+		clr[2] += 0.01f;
 		});
 	win.Register(msgs);
 
-		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
-		{
-			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-			RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
-			auto& mainMenuMusic = musicTracks["Level2"];
-			mainMenuMusic.Play(true);
-			while (+win.ProcessWindowEvents() && running == true)
-			{
-				GameLoop();
-				glClearColor(clr[0], clr[1], clr[2], clr[3]);
+	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+	{
+		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
+		RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
+		auto& mainMenuMusic = musicTracks["MainMenu"];
+		mainMenuMusic.Play(true);
 
-				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		while (+win.ProcessWindowEvents() && running == true)
+		{
+			//rendererManager.UpdateLevel(*lvl);
+			GameLoop();
+			glClearColor(clr[0], clr[1], clr[2], clr[3]);
+
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			//Update camera then render
 			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());

@@ -433,7 +433,7 @@ public:
 };
 
 // class Level_Objects is simply a list of all the Models currently used by the level
-class Level_Objects 
+class Level_Objects
 {
 private:
 	// store all our models
@@ -478,7 +478,7 @@ public:
 		UnloadLevel();// clear previous level data if there is any
 		GW::SYSTEM::GFile file;
 		file.Create();
-		if (-file.OpenTextRead(gameLevelPath)) 
+		if (-file.OpenTextRead(gameLevelPath))
 		{
 			log.LogCategorized(
 				"ERROR", (std::string("Game level not found: ") + gameLevelPath).c_str());
@@ -548,13 +548,13 @@ public:
 				newModel.SetWorldMatrix(transform);
 
 				// If we find and load it - add it to the level
-				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) 
+				if (newModel.LoadModelDataFromDisk(modelFile.c_str()))
 				{
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
 					allObjectsInLevel.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
-				else 
+				else
 				{
 					// notify user that a model file is missing but continue loading
 					log.LogCategorized("ERROR",
@@ -750,22 +750,22 @@ public:
 			{
 				e.add<ESG::Player>();
 			}
-			
+
 		}
 	}
 
-	void AddSystems(	std::shared_ptr<Level_Objects> level,
-						std::shared_ptr<flecs::world> game, 
-						std::weak_ptr<const GameConfig> gameConfig, 
-						GW::INPUT::GInput immediateInput,
-						GW::INPUT::GBufferedInput bufferedInput, 
-						GW::INPUT::GController controllerInput, 
-						GW::AUDIO::GAudio _audioEngine, 
-						GW::CORE::GEventGenerator eventPusher)
+	void AddSystems(std::shared_ptr<Level_Objects> level,
+		std::shared_ptr<flecs::world> game,
+		std::weak_ptr<const GameConfig> gameConfig,
+		GW::INPUT::GInput immediateInput,
+		GW::INPUT::GBufferedInput bufferedInput,
+		GW::INPUT::GController controllerInput,
+		GW::AUDIO::GAudio _audioEngine,
+		GW::CORE::GEventGenerator eventPusher)
 	{
 		flecs::system playerSystem;
 
-		
+
 		std::shared_ptr<const GameConfig> readCfg = gameConfig.lock();
 		float speed = (*readCfg).at("Player1").at("speed").as<float>();
 		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
@@ -774,28 +774,28 @@ public:
 			.iter([immediateInput, game, level, speed](flecs::iter it, ESG::Player*, ESG::World* p)
 				{
 					float xaxis = 0, input = 0, zaxis = 0;
-					GW::INPUT::GInput t = immediateInput;
-					t.GetState(G_KEY_A, input); xaxis -= input;
-					t.GetState(G_KEY_D, input); xaxis += input;
-					t.GetState(G_KEY_S, input); zaxis -= input;
-					t.GetState(G_KEY_W, input); zaxis += input;
+		GW::INPUT::GInput t = immediateInput;
+		t.GetState(G_KEY_A, input); xaxis -= input;
+		t.GetState(G_KEY_D, input); xaxis += input;
+		t.GetState(G_KEY_S, input); zaxis -= input;
+		t.GetState(G_KEY_W, input); zaxis += input;
 
 
-					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
+		GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
 
-					auto e = game->lookup("Chest_Gold");
-					ESG::World* edit = game->entity(e).get_mut<ESG::World>();
-					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
-					int index = 0;
-					for each (Model m in level->allObjectsInLevel)
-					{
-						if (m.name == "Chest_Gold")
-						{
-							level->allObjectsInLevel[index].world = edit->value;
-							break;
-						}
-						index++;
-					}
+		auto e = game->lookup("Chest_Gold");
+		ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+		GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+		int index = 0;
+		for each (Model m in level->allObjectsInLevel)
+		{
+			if (m.name == "Chest_Gold")
+			{
+				level->allObjectsInLevel[index].world = edit->value;
+				break;
+			}
+			index++;
+		}
 				});
 
 		flecs::system playerShootSystem = game->system<ESG::Player, ESG::World>("Player Shoot System")
@@ -831,55 +831,53 @@ public:
 						}
 						index++;
 					}
-					
+
 
 					switch (shootState)
 					{
-						case 1:
-						{
-							level->allObjectsInLevel.push_back(modelToDupe);
-							auto e = game->entity(modelToDupe.name.c_str());
-							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-							e.add<ESG::Bullet>();
+					case 1:
+					{
+						level->allObjectsInLevel.push_back(modelToDupe);
+						auto e = game->entity(modelToDupe.name.c_str());
+						e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+						e.add<ESG::Bullet>();
 
-							break;
-						}
-
-						case 2:
-						{
-							level->allObjectsInLevel.push_back(modelToDupe);
-							auto e = game->entity(modelToDupe.name.c_str());
-							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-							e.add<ESG::Bullet>();
-							break;
-						}
-
-						case 3:
-						{
-							level->allObjectsInLevel.push_back(modelToDupe);
-							auto e = game->entity(modelToDupe.name.c_str());
-							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-							e.add<ESG::Bullet>();
-							break;
-						}
-
-						case 4:
-						{
-							level->allObjectsInLevel.push_back(modelToDupe);
-							auto e = game->entity(modelToDupe.name.c_str());
-							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-							e.add<ESG::Bullet>();
-							break;
-						}
-
-						case 0:
-							break;
+						break;
 					}
-				});
+
+					case 2:
+					{
+						level->allObjectsInLevel.push_back(modelToDupe);
+						auto e = game->entity(modelToDupe.name.c_str());
+						e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+						e.add<ESG::Bullet>();
+						break;
+					}
+
+					case 3:
+					{
+						level->allObjectsInLevel.push_back(modelToDupe);
+						auto e = game->entity(modelToDupe.name.c_str());
+						e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+						e.add<ESG::Bullet>();
+						break;
+					}
+
+					case 4:
+					{
+						level->allObjectsInLevel.push_back(modelToDupe);
+						auto e = game->entity(modelToDupe.name.c_str());
+						e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+						e.add<ESG::Bullet>();
+						break;
+					}
+
+					case 0:
+						break;
+					}
+			});
 	}
-
-
-	
+};
 
 
 	// *THIS APPROACH COMBINES DATA & LOGIC*

@@ -1,5 +1,3 @@
-
-
 #include "./FileIntoString.h"
 #include "./stb_image.h"
 #include "./OpenGLExtensions.h"
@@ -62,6 +60,8 @@ public:
 
 	// Shader variables needed by this model.
 	GW::MATH::GMATRIXF world;
+	GW::MATH::GOBBF gob;
+
 	//cube stuff
 	std::string skyBox = "";
 
@@ -74,6 +74,26 @@ public:
 	GLuint vertexShader;
 	GLuint fragmentShader;
 	GLuint shaderExecutable;
+
+	GW::MATH2D::GVECTOR3F boundry[8];
+
+	// *NEW* converts the vec3 boundries to an OBB
+	GW::MATH::GOBBF ComputeOBB() const 
+	{
+		GW::MATH::GOBBF out = 
+		{
+			GW::MATH::GIdentityVectorF,
+			GW::MATH::GIdentityVectorF,
+			GW::MATH::GIdentityQuaternionF // initally unrotated (local space)
+		};
+		out.center.x = (boundry[0].x + boundry[6].x) * 0.5f;
+		out.center.y = (boundry[0].y + boundry[6].y) * 0.5f;
+		out.center.z = (boundry[0].z + boundry[6].z) * 0.5f;
+		out.extent.x = std::fabsf(boundry[0].x - boundry[6].x) * 0.5f;
+		out.extent.y = std::fabsf(boundry[0].y - boundry[6].y) * 0.5f;
+		out.extent.z = std::fabsf(boundry[0].z - boundry[6].z) * 0.5f;
+		return out;
+	}
 
 	inline void SetName(std::string modelName) {
 		name = modelName;
@@ -413,7 +433,8 @@ public:
 };
 
 // class Level_Objects is simply a list of all the Models currently used by the level
-class Level_Objects {
+class Level_Objects 
+{
 private:
 	// store all our models
 
@@ -429,11 +450,11 @@ private:
 	std::vector<Light> lights;			//this vector will show all the data pulled from the textfile
 
 public:
-	//std::vector<Model> allObjectsInLevel;
-
 	std::vector<Model> allObjectsInLevel;
+
 	// Imports the default level txt format and creates a Model from each .h2b
-	bool virtual LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log) {
+	bool virtual LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log)
+	{
 		//light stuff RGBA
 		sunLightDir = { 1.0f, -1.0f, 2.0f, 0.0f };
 		GW::MATH::GVector::NormalizeF(sunLightDir, sunLightDir);
@@ -457,7 +478,8 @@ public:
 		UnloadLevel();// clear previous level data if there is any
 		GW::SYSTEM::GFile file;
 		file.Create();
-		if (-file.OpenTextRead(gameLevelPath)) {
+		if (-file.OpenTextRead(gameLevelPath)) 
+		{
 			log.LogCategorized(
 				"ERROR", (std::string("Game level not found: ") + gameLevelPath).c_str());
 			return false;
@@ -471,6 +493,7 @@ public:
 			if (std::strcmp(linebuffer, "MESH") == 0)
 			{
 				Model newModel;
+				//Model add = { linebuffer };
 				file.ReadLine(linebuffer, 1024, '\n');
 				log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
 				// create the model file name from this (strip the .001)
@@ -502,17 +525,37 @@ public:
 					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
 				log.LogCategorized("INFO", loc.c_str());
 
+				// *NEW* finally read in the boundry data for this model
+				//for (int i = 0; i < 8; ++i) 
+				//{
+				//	file.ReadLine(linebuffer, 1024, '\n');
+				//	// read floats
+				//	std::sscanf(linebuffer + 9, "%f, %f, %f",
+				//		&add.boundry[i].x, &add.boundry[i].y, &add.boundry[i].z);
+				//}
+				//std::string bounds = "Boundry: Left ";
+				//bounds += std::to_string(add.boundry[0].x) +
+				//	" Right " + std::to_string(add.boundry[6].x) +
+				//	" Bottom " + std::to_string(add.boundry[0].y) +
+				//	" Top " + std::to_string(add.boundry[6].y) +
+				//	" Near " + std::to_string(add.boundry[0].z) +
+				//	" Far " + std::to_string(add.boundry[6].z);
+				//log.LogCategorized("INFO", bounds.c_str());
+
 				// Add new model to list of all Models
 				log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
 				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
 				newModel.SetWorldMatrix(transform);
-				// If we find and load it add it to the level
-				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
+
+				// If we find and load it - add it to the level
+				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) 
+				{
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
 					allObjectsInLevel.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
-				else {
+				else 
+				{
 					// notify user that a model file is missing but continue loading
 					log.LogCategorized("ERROR",
 						(std::string("H2B Not Found: ") + modelFile).c_str());
@@ -673,9 +716,6 @@ public:
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
 	}
 
-
-
-
 	// Upload the CPU level to GPU
 	void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 		// iterate over each model and tell it to draw itself
@@ -683,7 +723,7 @@ public:
 			e.UploadModelData2GPU(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
 		}
 	}
-	
+
 	// Draws all objects in the level
 	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 		// iterate over each model and tell it to draw itself
@@ -701,10 +741,10 @@ public:
 	{
 		for each (Model i in Level->allObjectsInLevel)
 		{
-
 			auto e = game->entity(i.name.c_str());
 			e.set<ESG::Name>({ i.name });
 			e.set<ESG::World>({ i.world });
+			//e.set<ESG::BoundingBox>({ i.gob });
 
 			if (i.name == "Chest_Gold")
 			{
@@ -734,7 +774,6 @@ public:
 			.iter([immediateInput, game, level, speed](flecs::iter it, ESG::Player*, ESG::World* p)
 				{
 					float xaxis = 0, input = 0, zaxis = 0;
-					
 					GW::INPUT::GInput t = immediateInput;
 					t.GetState(G_KEY_A, input); xaxis -= input;
 					t.GetState(G_KEY_D, input); xaxis += input;
@@ -847,4 +886,3 @@ public:
 	// *WITH THIS APPROACH THE CURRENT RENDERER SHOULD BE JUST AN API MANAGER CLASS*
 	// *ALL ACTUAL GPU LOADING AND RENDERING SHOULD BE HANDLED BY THE MODEL CLASS*
 	// For example: anything that is not a global API object should be encapsulated.
-};

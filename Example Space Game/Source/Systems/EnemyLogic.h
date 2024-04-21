@@ -17,12 +17,20 @@ namespace ESG
 		// non-ownership handle to configuration settings
 		std::weak_ptr<const GameConfig> gameConfig;
 
+		// handle to our running ECS system
+		flecs::system enemySystem;
+		//flecs::system collisionSystem;
+
+		// permanent handle to audio system
+		GW::AUDIO::GAudio audioEngine;
+
 		// handle to events
 		GW::CORE::GEventGenerator eventPusher;
 
 	public:
 		// attach the required logic to the ECS 
-		bool Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::CORE::GEventGenerator _eventPusher);
+		bool Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig,
+			GW::AUDIO::GAudio _audioEngine, GW::CORE::GEventGenerator _eventPusher);
 
 		// control if the system is actively running
 		bool Activate(bool runSystem);

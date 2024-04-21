@@ -82,8 +82,6 @@ public:
 			playerHUD->toggleRender();
 			//treasureMenu->toggleRender();
 		}
-		
-
 
 		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 

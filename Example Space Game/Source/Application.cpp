@@ -76,7 +76,8 @@ bool Application::Init()
 //	return true;
 //}
 
-bool Application::Run() {
+bool Application::Run() 
+{
 	running = true;
 	GEventResponder msgs;
 	GW::SYSTEM::GLog log;
@@ -87,18 +88,6 @@ bool Application::Run() {
 	lvl->AddEntities(lvl, game);
 	lvl->AddSystems(lvl, game, gameConfig, immediateInput, bufferedInput, gamePads, audioEngine, eventPusher);
 	
-		/*int count = 0;
-
-		auto f = game->filter<ESG::Player, ESG::World, ESG::ControllerID, ESG::Name>();
-
-		f.each([&count](ESG::Player a, ESG::World s , ESG::ControllerID d, ESG::Name n)
-			{
-				std::cout << n.name << std::endl;
-			}
-		);
-		std::cout << "entity count: " << count << std::endl;*/
-
-
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
 			if (+e.Read(q) && q == GWindow::Events::RESIZE)
@@ -119,18 +108,15 @@ bool Application::Run() {
 
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				//Update camera then render
-				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
-				rendererManager.Render();
-				ogl.UniversalSwapBuffers();
-
-
-			}
+			//Update camera then render
+			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+			rendererManager.Render();
+			ogl.UniversalSwapBuffers();
 		}
+	}
 	return 0;
+
 }
-
-
 
 bool Application::Shutdown()
 {
@@ -177,7 +163,6 @@ bool Application::InitInput()
 		return false;
 	return true;
 }
-
 
 //bool Application::InitAudio()
 //{
@@ -287,7 +272,6 @@ bool Application::LoadAudioResources()
 	std::cout << "All music and sfx loaded!" << std::endl;
 	return true;
 }
-
 
 //bool Application::InitGraphics()
 //{

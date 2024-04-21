@@ -1,3 +1,4 @@
+#pragma once
 #include <map>
 #include <string>
 #include "./load_object_oriented.h"
@@ -5,7 +6,6 @@
 
 //This entire .H file handles the UserInterface Classes, and their accompanying methods
 //In order to use this properly, objects should be created in render.h and handled as needed for rendering, events, etc.
-
 class uiPanel;
 
 //uiModel is a derivate of the original model with updated definitions specific to UI

@@ -88,8 +88,6 @@ bool Application::Run() {
 	Level_Objects& Level = *lvl;
 	PlayerStats player(*gameConfig); //track player data
 
-	player.saveScore();
-
 	//AddEntities(*lvl);
 
 		for each(Model i in Level.allObjectsInLevel)

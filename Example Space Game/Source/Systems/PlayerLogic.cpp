@@ -192,7 +192,7 @@ bool ESG::PlayerLogic::FireLasers(flecs::world& stage, Position origin)
 	origin.value.x += 0.1f;
 	auto laserRight = stage.entity().is_a(bullet)
 		.set<Position>(origin);
-	// if this shot is charged
+	// if this shot is charged \
 	if (chargeEnd - chargeStart >= chargeTime) 
 	{
 		chargeEnd = chargeStart;

@@ -62,7 +62,6 @@ public:
 
 	// Shader variables needed by this model.
 	GW::MATH::GMATRIXF world;
-
 	//cube stuff
 	std::string skyBox = "";
 
@@ -711,6 +710,7 @@ public:
 			{
 				e.add<ESG::Player>();
 			}
+			
 		}
 	}
 
@@ -728,6 +728,8 @@ public:
 		
 		std::shared_ptr<const GameConfig> readCfg = gameConfig.lock();
 		float speed = (*readCfg).at("Player1").at("speed").as<float>();
+		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
+
 		playerSystem = game->system<ESG::Player, ESG::World>("Player Move System")
 			.iter([immediateInput, game, level, speed](flecs::iter it, ESG::Player*, ESG::World* p)
 				{
@@ -755,10 +757,90 @@ public:
 						}
 						index++;
 					}
+				});
 
+		flecs::system playerShootSystem = game->system<ESG::Player, ESG::World>("Player Shoot System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*, ESG::World* p)
+				{
+					float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
 
+					GW::INPUT::GInput t = immediateInput;
+					t.GetState(G_KEY_UP, input); shootUp += input;
+					t.GetState(G_KEY_DOWN, input); shootDown += input;
+					t.GetState(G_KEY_LEFT, input); shootLeft += input;
+					t.GetState(G_KEY_RIGHT, input); shootRight += input;
+
+					int shootState = 0;
+
+					if (shootUp > 0)
+						shootState = 1;
+					if (shootLeft > 0)
+						shootState = 2;
+					if (shootRight > 0)
+						shootState = 3;
+					if (shootDown > 0)
+						shootState = 4;
+
+					int index = 0;
+					Model modelToDupe;
+					for each (Model m in level->allObjectsInLevel)
+					{
+						if (m.name == "Chest_Gold")
+						{
+							modelToDupe = m;
+							break;
+						}
+						index++;
+					}
+					
+
+					switch (shootState)
+					{
+						case 1:
+						{
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+							e.add<ESG::Bullet>();
+
+							break;
+						}
+
+						case 2:
+						{
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+							e.add<ESG::Bullet>();
+							break;
+						}
+
+						case 3:
+						{
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+							e.add<ESG::Bullet>();
+							break;
+						}
+
+						case 4:
+						{
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+							e.add<ESG::Bullet>();
+							break;
+						}
+
+						case 0:
+							break;
+					}
 				});
 	}
+
+
+	
 
 
 	// *THIS APPROACH COMBINES DATA & LOGIC*

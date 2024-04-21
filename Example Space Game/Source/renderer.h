@@ -64,6 +64,7 @@ public:
 		t = false;
 
 		GW::SYSTEM::GLog log;
+
 		log.Create("output.txt");
 
 		//load ui Panels - this doesn't turn them on but simply lay out each UI for rendering later on.
@@ -78,7 +79,7 @@ public:
 			////PANELS/////
 			//pauseMenu->toggleRender();
 			//mainMenuHUD->toggleRender();
-			//playerHUD->toggleRender();
+			playerHUD->toggleRender();
 			//treasureMenu->toggleRender();
 		}
 		

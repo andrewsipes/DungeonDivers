@@ -110,8 +110,8 @@ bool Application::Run() {
 		{
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 			RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
-			//auto& mainMenuMusic = musicTracks["MainMenu"];
-			//mainMenuMusic.Play(true);
+			auto& mainMenuMusic = musicTracks["Level2"];
+			mainMenuMusic.Play(true);
 			while (+win.ProcessWindowEvents() && running == true)
 			{
 				GameLoop();
@@ -259,10 +259,10 @@ bool Application::LoadAudioResources()
 	};
 
 	//Load up the music tracks
-	if (!loadAudio(musicTracks, "MainMenu", "../Music/Main_Menu.wav", 0.15f) ||
-		!loadAudio(musicTracks, "Level1", "../Music/Level_1.wav", 0.15f) ||
-		!loadAudio(musicTracks, "Level2", "../Music/Level_2.wav", 0.15f) ||
-		!loadAudio(musicTracks, "Level3", "../Music/Level_3.wav", 0.15f))
+	if (!loadAudio(musicTracks, "MainMenu", "../Music/Main_Menu.wav", 0.005f) ||
+		!loadAudio(musicTracks, "Level1", "../Music/Level_1.wav", 0.005f) ||
+		!loadAudio(musicTracks, "Level2", "../Music/Level_2.wav", 0.005f) ||
+		!loadAudio(musicTracks, "Level3", "../Music/Level_3.wav", 0.005f))
 	{
 		return false;
 	}

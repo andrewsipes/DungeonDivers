@@ -126,7 +126,6 @@ public:
 		}
 		catch (const std::out_of_range& e) {
 
-			//std::cerr << "WARNING: NO ALPHA FOUND" << std::endl;
 		}
 
 		scale(-world.row1.x, world.row2.y);
@@ -315,7 +314,7 @@ public:
 		}
 		catch (const std::out_of_range& e) {
 
-			std::cerr << "WARNING: NO ALPHA FOUND" << std::endl;
+		
 		}
 
 		scale(-world.row1.x, world.row2.y); 

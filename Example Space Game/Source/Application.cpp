@@ -119,16 +119,24 @@ bool Application::Run() {
 		{
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 			RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
-			auto& mainMenuMusic = musicTracks["MainMenu"];
-			mainMenuMusic.Play(true);
+
+			#ifdef NDEBUG
+				auto& mainMenuMusic = musicTracks["MainMenu"];
+				mainMenuMusic.Play(true);
+			#endif
+
 			while (+win.ProcessWindowEvents() && running == true)
 			{
 
 				glClearColor(clr[0], clr[1], clr[2], clr[3]);
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+				#ifdef NDEBUG
+					if (rendererManager.mainMenuHUD->render){
+						rendererManager.freecam = false;
+					}
+				#endif
 
-				//Update camera then render
 				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
 				rendererManager.Render();
 				ogl.UniversalSwapBuffers();

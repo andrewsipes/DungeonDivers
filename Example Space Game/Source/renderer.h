@@ -21,7 +21,8 @@ class RendererManager
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
 	bool reset = false;
-	bool freecam = true;
+	GW::MATH::GVECTORF mainMenuCamPos;
+	GW::MATH::GVECTORF mainMenuLookAtPos;
 
 	//for ui
 	GW::MATH::GMATRIXF UIviewMatrix;
@@ -39,12 +40,15 @@ class RendererManager
 	bool t = false;
 
 public:
+
 	//ui panels
 	playerUi* playerHUD;
 	mainMenuUi* mainMenuHUD;
 	pauseMenuUi* pauseMenu;
 	treasureMenuUi* treasureMenu;
 	std::vector <uiPanel*> panels;
+	
+	bool freecam;
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, Level_Objects& Level)
 	{
@@ -59,9 +63,26 @@ public:
 		app = &application;
 		lvl = &Level;
 
-		//sets default state for pausing the game
+		//sets default state for menu keybinds
 		tab = false;
 		t = false;
+
+		mainMenuCamPos = {
+		gameConfig->at("MainMenuCameraPos").at("posx").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("posy").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("posz").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("posw").as<float>() };
+
+
+		//{-2.0f, 4.0f, 6.0,1.0 };
+		mainMenuLookAtPos = {
+		gameConfig->at("MainMenuCameraPos").at("lookx").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("looky").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("lookz").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("lookw").as<float>() };
+
+		//sets default state for freecam
+		freecam = true;
 
 		GW::SYSTEM::GLog log;
 		log.Create("output.txt");
@@ -77,7 +98,7 @@ public:
 
 			////PANELS/////
 			//pauseMenu->toggleRender();
-			//mainMenuHUD->toggleRender();
+			mainMenuHUD->toggleRender();
 			//playerHUD->toggleRender();
 			//treasureMenu->toggleRender();
 		}
@@ -259,8 +280,7 @@ public:
 		gController.GetState(0, G_RY_AXIS, rStickY);
 		gController.GetState(0, G_RX_AXIS, rStickX);
 
-		if (freecam)
-		{
+		if (freecam){
 
 			if (controller != GW::GReturn::FAILURE)
 			{
@@ -298,44 +318,45 @@ public:
 			float cameraPositionZ = -totalZChange * perFrameSpeed;
 			float cameraPositionX = totalXChange * perFrameSpeed;
 
-		//GW::MATH::GMatrix::IdentityF(rotationMatrix);
-		GW::MATH::GMatrix::InverseF(viewMatrix, rotationMatrix);
+			//GW::MATH::GMatrix::IdentityF(rotationMatrix);
+			GW::MATH::GMatrix::InverseF(viewMatrix, rotationMatrix);
 
-		//check if mouse value is redundant - if so do nothing
-		if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
-		{
-			// do nothing
+			//check if mouse value is redundant - if so do nothing
+			if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
+			{
+				gMatrixProxy.RotateXLocalF(rotationMatrix, -pitch, rotationMatrix);
+				gMatrixProxy.RotateYGlobalF(rotationMatrix, -yaw, rotationMatrix);
+			}
 
-			//gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
+			//if value is redundant, set mouseX and mouseY to zero to prevent drift
+			else
+			{
+				mouseX = 0;
+				mouseY = 0;
+			}
 
-			gMatrixProxy.RotateXLocalF(rotationMatrix, -pitch, rotationMatrix);
-			gMatrixProxy.RotateYGlobalF(rotationMatrix, -yaw, rotationMatrix);
+			//Translation vector
+			GW::MATH::GVECTORF cameraTranslationVector = { cameraPositionX, cameraPositionY, cameraPositionZ, 1.0f };
+
+			//apply translation to the camera
+			gMatrixProxy.TranslateLocalF(rotationMatrix, cameraTranslationVector, rotationMatrix);
+
+		
 		}
 
-		//if value is redundant, set mouseX and mouseY to zero to prevent drift
-		else
+		//Freeze the camera in main menu
+		else if (mainMenuHUD->render)
 		{
-			mouseX = 0;
-			mouseY = 0;
+			cameraMatrix = initializeCamView(mainMenuCamPos, mainMenuLookAtPos);
 		}
 
-		//Translation vector
-		GW::MATH::GVECTORF cameraTranslationVector = { cameraPositionX, cameraPositionY, cameraPositionZ, 1.0f };
-
-		//apply translation to the camera
-		gMatrixProxy.TranslateLocalF(rotationMatrix, cameraTranslationVector, rotationMatrix);
-
-			//apply rotation 
-			//gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
-	
-		}
-		else 
-		{
+		else {
 			gMatrixProxy.InverseF(cameraMatrix, cameraMatrix);
 			gMatrixProxy.IdentityF(cameraMatrix);
 			auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ 1.826, 13.327, 1.267, 1 }, GW::MATH::GVECTORF{ 1.826, 12.327, 1.2671, 1 }, GW::MATH::GVECTORF{ 0, 1, 0, 0 }, cameraMatrix);
 			gMatrixProxy.InverseF(cameraMatrix, cameraMatrix);
 		}
+
 		//get view matrix
 		gMatrixProxy.InverseF(rotationMatrix, viewMatrix);
 

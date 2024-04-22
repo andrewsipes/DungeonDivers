@@ -862,8 +862,8 @@ public:
 class playerUi : public uiPanel {
 
 public:
-	uiModel* levelText, * startText, * pauseText, * levelCompleteText;
-	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4;
+	uiModel* levelText, * startText, * pauseText, * levelCompleteText, *enemyText, *treasureText;
+	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, enemyDigit, treasureDigit;
 
 	userButton* button;
 
@@ -926,22 +926,59 @@ public:
 	void updateHUDHearts(int life) {
 
 		//prevents life from going too high
-		if (life > 8)
-		{
+		if (life > 8){
 			life = 8;
 		}
 
 		//turn all hearts off
-		for (uiModel* heart : hearts)
-		{
+		for (uiModel* heart : hearts){
 			heart->render = false;
 		}
 
 		//turn on the ones needed
-		for (int i = 0; i < life; i++)
-		{
+		for (int i = 0; i < life; i++){
 			hearts[i]->toggleRender();
 		}
+
+	}
+
+	//updates enemy UI
+	void updateEnemies(int currEnemies, int updateEnemies) {
+
+		int enemies = currEnemies + updateEnemies;
+
+		//prevents count from going too high
+		if (enemies > 0){
+			enemies = 9;
+		}
+
+		//toggle all digits off
+		for (uiModel* digit : enemyDigit) {
+			digit->render = false;
+		}
+	
+		//Used the extracted values to update enemy text
+		enemyDigit[enemies]->toggleRender();
+
+	}
+
+	//updates treasure UI
+	void updateTreasure(int currTreasure, int updateTreasure) {
+
+		int treasure = currTreasure + updateTreasure;
+
+		//prevents count from going too high
+		if (treasure > 3) {
+			treasure = 3;
+		}
+
+		//toggle all digits off
+		for (uiModel* digit : treasureDigit) {
+			digit->render = false;
+		}
+
+		//Used the extracted values to update trasure text
+		treasureDigit[treasure]->toggleRender();
 
 	}
 
@@ -959,6 +996,9 @@ public:
 		pauseText = &allUiObjects[9];
 		startText = &allUiObjects[10];
 		levelCompleteText = &allUiObjects[11];
+		enemyText = &allUiObjects[62];
+		treasureText = &allUiObjects[63];
+
 
 		//assign hearts
 		for (int i = 0; i < 8; i++) {
@@ -990,6 +1030,16 @@ public:
 			scoreDigit4.push_back(&allUiObjects[i + 52]);
 		}
 
+		//assign enemy text numbers
+		for (int i = 0; i < 10; i++) {
+			enemyDigit.push_back(&allUiObjects[i + 64]);
+		}
+
+		//assign treasure text numbers
+		for (int i = 0; i < 10; i++) {
+			treasureDigit.push_back(&allUiObjects[i + 74]);
+		}
+
 	}
 
 	//updates the vertices for the player HUD to be in their correct positions
@@ -999,6 +1049,8 @@ public:
 		pauseText->loadDefaults();
 		startText->loadDefaults();
 		levelCompleteText->loadDefaults();
+		enemyText->loadDefaults();
+		treasureText->loadDefaults();
 
 		for (uiModel* heart : hearts) {
 			heart->loadDefaults();
@@ -1023,6 +1075,14 @@ public:
 		for (uiModel* digit : scoreDigit4) {
 			digit->loadDefaults();
 		}
+
+		for (uiModel* digit : enemyDigit) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : treasureDigit) {
+			digit->loadDefaults();
+		}
 	}
 
 	//turns default playerHUD on
@@ -1033,6 +1093,13 @@ public:
 		updateHUDScore(gameConfig->at("Player1").at("score").as<int>());
 		levelText->toggleRender();
 		levelDigit[0]->toggleRender();
+		enemyText->toggleRender();
+		treasureText->toggleRender();
+		enemyDigit[0]->toggleRender();
+		treasureDigit[0]->toggleRender();
+
+		updateEnemies(9, -1);
+		updateTreasure(3, -2);
 
 	}
 };

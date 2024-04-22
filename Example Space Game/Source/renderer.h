@@ -92,8 +92,8 @@ public:
 
 			////PANELS/////
 			//pauseMenu->toggleRender();
-			mainMenuHUD->toggleRender();
-			//playerHUD->toggleRender();
+			//mainMenuHUD->toggleRender();
+			playerHUD->toggleRender();
 			//treasureMenu->toggleRender();
 		}
 		
@@ -366,12 +366,8 @@ public:
 			mainMenuHUD->exitButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 		}
 
-		//PLAYERHUD
-		if (playerHUD->render) {
-		}
-
 		//PAUSEMENU
-		if (pauseMenu->render){
+		else if (pauseMenu->render){
 
 			pauseMenu->controlsPauseMenuButton->HandleInput(pauseMenu->controlsPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
@@ -381,7 +377,7 @@ public:
 		}
 
 		//TREASURE MENU
-		if (treasureMenu->render)
+		else if (treasureMenu->render)
 		{
 			treasureMenu->exitTreasureMenuButton->HandleInput(dynamic_cast<uiPanel*>(treasureMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
 		}
@@ -446,7 +442,11 @@ public:
 
 		for (uiPanel* panel : panels){
 
-			if (panel->render){
+			if (panel == playerHUD && panel->render)
+			{
+				playerHUD->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+			}
+			else if (panel->render){
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 		}

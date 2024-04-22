@@ -83,7 +83,8 @@ bool Application::Run() {
 	log.Create("output.txt");
 	auto lvl = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	//lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	bool levelSuccess = lvl->LoadMeshes("../Level2.txt", "../Models/Level2Models", log.Relinquish());
 
 	Level_Objects& Level = *lvl;
 	PlayerStats player(*gameConfig); //track player data

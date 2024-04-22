@@ -8,7 +8,7 @@
 //In order to use this properly, objects should be created in render.h and handled as needed for rendering, events, etc.
 class uiPanel;
 
-//uiModel is a derivate of the original model with updated definitions specific to UI
+//uiModel is a derivative of the original model class with updated definitions specific to UI
 class uiModel : public Model
 {
 
@@ -29,11 +29,6 @@ public:
 	{
 		soundEffects = se;
 	}
-
-
-	//uiModel(){
-	//	render = false;
-	//}
 
 	void SetUpPipeline(float alpha) {
 		glUseProgram(shaderExecutable);
@@ -867,7 +862,6 @@ public:
 class playerUi : public uiPanel {
 
 public:
-	//uiModel* heart0, *heart1, * heart2, * heart3, * heart4, * heart5, * heart6, * heart7;
 	uiModel* levelText, * startText, * pauseText, * levelCompleteText;
 	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4;
 
@@ -1088,6 +1082,7 @@ public:
 	}
 };
 
+//panel for pause menu
 class pauseMenuUi :public uiPanel {
 public:
 	uiModel* pauseOverlay;
@@ -1158,6 +1153,7 @@ public:
 
 };
 
+//panel for treasuremenu
 class treasureMenuUi :public uiPanel {
 public:
 	uiModel* treasureOverlay;

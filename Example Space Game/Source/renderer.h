@@ -52,10 +52,6 @@ public:
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, Level_Objects& Level)
 	{
-		//GW::SYSTEM::GLog log;
-		//log.Create("output.txt");
-		//bool success = lvl.LoadMeshes("../NewGameLevel.txt", "../NewModels", log.Relinquish());
-	
 		//passed arguments for initializing
 		gameConfig = &_gameConfig;
 		win = _win;
@@ -73,8 +69,6 @@ public:
 		gameConfig->at("MainMenuCameraPos").at("posz").as<float>(),
 		gameConfig->at("MainMenuCameraPos").at("posw").as<float>() };
 
-
-		//{-2.0f, 4.0f, 6.0,1.0 };
 		mainMenuLookAtPos = {
 		gameConfig->at("MainMenuCameraPos").at("lookx").as<float>(),
 		gameConfig->at("MainMenuCameraPos").at("looky").as<float>(),
@@ -451,10 +445,6 @@ public:
 		lvl->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
 		for (uiPanel* panel : panels){
-
-			if (panel == treasureMenu && panel->render){
-				treasureMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
-			}
 
 			if (panel->render){
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);

@@ -21,7 +21,7 @@ class RendererManager
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
 	bool reset = false;
-	bool freecam = true;
+	bool freecam = false;
 
 	//for ui
 	GW::MATH::GMATRIXF UIviewMatrix;

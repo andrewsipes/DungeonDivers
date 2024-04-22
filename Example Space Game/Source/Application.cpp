@@ -90,8 +90,8 @@ bool Application::Run()
 
 	msgs.Create([&](const GW::GEvent& e) {
 		GW::SYSTEM::GWindow::Events q;
-	if (+e.Read(q) && q == GWindow::Events::RESIZE)
-		clr[2] += 0.01f;
+		if (+e.Read(q) && q == GWindow::Events::RESIZE)
+			clr[2] += 0.01f;
 		});
 	win.Register(msgs);
 

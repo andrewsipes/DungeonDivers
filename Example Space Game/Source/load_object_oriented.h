@@ -51,7 +51,7 @@ MessageCallback(GLenum source, GLenum type, GLuint id,
 // class Model contains everyhting needed to draw a single 3D model
 class Model {
 public:
-
+	
 	// Name of the Model in the GameLevel (useful for debugging)
 	std::string name;
 
@@ -93,6 +93,11 @@ public:
 		out.extent.y = std::fabsf(boundry[0].y - boundry[6].y) * 0.5f;
 		out.extent.z = std::fabsf(boundry[0].z - boundry[6].z) * 0.5f;
 		return out;
+	}
+
+	bool operator==(Model const& rh)
+	{
+		return name == rh.name;
 	}
 
 	inline void SetName(std::string modelName) {
@@ -763,6 +768,7 @@ public:
 		GW::AUDIO::GAudio _audioEngine,
 		GW::CORE::GEventGenerator eventPusher)
 	{
+		struct Models { Model mod; };
 		flecs::system playerSystem;
 
 
@@ -799,82 +805,127 @@ public:
 				});
 
 		flecs::system playerShootSystem = game->system<ESG::Player, ESG::World>("Player Shoot System")
-			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*, ESG::World* p)
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*, ESG::World* w)
+			{
+				float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
+
+				GW::INPUT::GInput t = immediateInput;
+				t.GetState(G_KEY_UP, input); shootUp += input;
+				t.GetState(G_KEY_DOWN, input); shootDown += input;
+				t.GetState(G_KEY_LEFT, input); shootLeft += input;
+				t.GetState(G_KEY_RIGHT, input); shootRight += input;
+
+				int shootState = 0;
+
+				if (shootUp > 0)
+					shootState = 1;
+				if (shootLeft > 0)
+					shootState = 2;
+				if (shootRight > 0)
+					shootState = 3;
+				if (shootDown > 0)
+					shootState = 4;
+
+				int index = 0;
+				Model modelToDupe;
+				for each (Model m in level->allObjectsInLevel)
 				{
-					float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
-
-					GW::INPUT::GInput t = immediateInput;
-					t.GetState(G_KEY_UP, input); shootUp += input;
-					t.GetState(G_KEY_DOWN, input); shootDown += input;
-					t.GetState(G_KEY_LEFT, input); shootLeft += input;
-					t.GetState(G_KEY_RIGHT, input); shootRight += input;
-
-					int shootState = 0;
-
-					if (shootUp > 0)
-						shootState = 1;
-					if (shootLeft > 0)
-						shootState = 2;
-					if (shootRight > 0)
-						shootState = 3;
-					if (shootDown > 0)
-						shootState = 4;
-
-					int index = 0;
-					Model modelToDupe;
-					for each (Model m in level->allObjectsInLevel)
+					if (m.name == "Torch")
 					{
-						if (m.name == "Chest_Gold")
-						{
-							modelToDupe = m;
-							break;
-						}
-						index++;
-					}
-
-
-					switch (shootState)
-					{
-					case 1:
-					{
-						level->allObjectsInLevel.push_back(modelToDupe);
-						auto e = game->entity(modelToDupe.name.c_str());
-						e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-						e.add<ESG::Bullet>();
-
+						modelToDupe = m;
 						break;
 					}
+					index++;
+				}
+				
+				int count = 0;
+				auto f = game->filter<ESG::Bullet>();
+				count = f.count();
+				/*std::cout << count << std::endl;*/
+				switch (shootState)
+				{
+				case 1:
+				{
+					modelToDupe.world = w->value;
+					modelToDupe.name += std::to_string(count);
+					level->allObjectsInLevel.push_back(modelToDupe);
+					auto e = game->entity(modelToDupe.name.c_str());
+					e.set<Models>({ modelToDupe });
+					e.set<ESG::World>({ w->value });
+					e.set<ESG::Name>({ modelToDupe.name });
+					e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
+					e.add<ESG::Bullet>();
 
-					case 2:
+					break;
+				}
+
+				case 2:
+				{
+					modelToDupe.world = w->value;
+					modelToDupe.name += std::to_string(count);
+					level->allObjectsInLevel.push_back(modelToDupe);
+					auto e = game->entity(modelToDupe.name.c_str());
+					e.set<Models>({ modelToDupe });
+					e.set<ESG::World>({ w->value });
+					e.set<ESG::Name>({ modelToDupe.name });
+					e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{-bullSpeed, 0, 0 } });
+					e.add<ESG::Bullet>();
+					break;
+				}
+
+				case 3:
+				{
+					modelToDupe.world = w->value;
+					modelToDupe.name += std::to_string(count);
+					level->allObjectsInLevel.push_back(modelToDupe);
+					auto e = game->entity(modelToDupe.name.c_str());
+					e.set<Models>({ modelToDupe });
+					e.set<ESG::World>({ w->value });
+					e.set<ESG::Name>({ modelToDupe.name });
+					e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+					e.add<ESG::Bullet>();
+					break;
+				}
+
+				case 4:
+				{
+					modelToDupe.world = w->value;
+					modelToDupe.name += std::to_string(count);
+					level->allObjectsInLevel.push_back(modelToDupe);
+					auto e = game->entity(modelToDupe.name.c_str());
+					e.set<Models>({ modelToDupe });
+					e.set<ESG::World>({ w->value });
+					e.set<ESG::Name>({ modelToDupe.name });
+					e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, -bullSpeed } });
+					e.add<ESG::Bullet>();
+					break;
+				}
+
+				case 0:
+					break;
+				}
+			});
+
+
+		flecs::system bulletMove = game->system<ESG::BulletVel, ESG::World,ESG::Name, Models>("Bullet Move System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::BulletVel* v, ESG::World* w, ESG::Name* n, Models* m)
+			{
+				for (auto i : it)
+				{	
+					auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m[i].mod);
+
+					if (found != level->allObjectsInLevel.end())
 					{
-						level->allObjectsInLevel.push_back(modelToDupe);
-						auto e = game->entity(modelToDupe.name.c_str());
-						e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-						e.add<ESG::Bullet>();
-						break;
-					}
+						size_t index = found - level->allObjectsInLevel.begin();
 
-					case 3:
-					{
-						level->allObjectsInLevel.push_back(modelToDupe);
-						auto e = game->entity(modelToDupe.name.c_str());
-						e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-						e.add<ESG::Bullet>();
-						break;
-					}
+						GW::MATH::GVECTORF moveVec = { v[i].value.x * it.delta_time() * bullSpeed, 0, v[i].value.z * it.delta_time() * bullSpeed };
+						auto e = game->lookup(n[i].name.c_str());
+						ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+						GW::MATH::GMatrix::TranslateLocalF(edit->value, moveVec, edit->value);
 
-					case 4:
-					{
-						level->allObjectsInLevel.push_back(modelToDupe);
-						auto e = game->entity(modelToDupe.name.c_str());
-						e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-						e.add<ESG::Bullet>();
-						break;
+						level->allObjectsInLevel[index].world = edit->value;
 					}
-
-					case 0:
-						break;
-					}
+				}
 			});
 	}
 };

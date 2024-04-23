@@ -49,7 +49,8 @@ MessageCallback(GLenum source, GLenum type, GLuint id,
 #endif
 
 // class Model contains everyhting needed to draw a single 3D model
-class Model {
+class Model 
+{
 public:
 
 	// Name of the Model in the GameLevel (useful for debugging)
@@ -60,7 +61,6 @@ public:
 
 	// Shader variables needed by this model.
 	GW::MATH::GMATRIXF world;
-	GW::MATH::GOBBF gob;
 
 	//cube stuff
 	std::string skyBox = "";
@@ -75,7 +75,17 @@ public:
 	GLuint fragmentShader;
 	GLuint shaderExecutable;
 
-	GW::MATH2D::GVECTOR3F boundry[8];
+	std::string modelFile; // path to .h2b file
+
+	// *NEW* object aligned bounding box data: // LBN, LTN, LTF, LBF, RBN, RTN, RTF, RBF
+	GW::MATH2D::GVECTOR3F boundary[8];
+	mutable std::vector<std::string> blenderNames; // *NEW* names from blender
+	mutable std::vector<GW::MATH::GMATRIXF> instances; // where to draw
+	GW::MATH::GOBBF obb;
+	bool operator<(const Model& other) const 
+	{
+		return this->modelFile < other.modelFile;
+	}
 
 	// *NEW* converts the vec3 boundries to an OBB
 	GW::MATH::GOBBF ComputeOBB() const 
@@ -86,23 +96,26 @@ public:
 			GW::MATH::GIdentityVectorF,
 			GW::MATH::GIdentityQuaternionF // initally unrotated (local space)
 		};
-		out.center.x = (boundry[0].x + boundry[6].x) * 0.5f;
-		out.center.y = (boundry[0].y + boundry[6].y) * 0.5f;
-		out.center.z = (boundry[0].z + boundry[6].z) * 0.5f;
-		out.extent.x = std::fabsf(boundry[0].x - boundry[6].x) * 0.5f;
-		out.extent.y = std::fabsf(boundry[0].y - boundry[6].y) * 0.5f;
-		out.extent.z = std::fabsf(boundry[0].z - boundry[6].z) * 0.5f;
+
+		out.center.x = (boundary[0].x + boundary[6].x) * 0.5f;
+		out.center.y = (boundary[0].y + boundary[6].y) * 0.5f;
+		out.center.z = (boundary[0].z + boundary[6].z) * 0.5f;
+		out.extent.x = std::fabsf(boundary[0].x - boundary[6].x) * 0.5f;
+		out.extent.y = std::fabsf(boundary[0].y - boundary[6].y) * 0.5f;
+		out.extent.z = std::fabsf(boundary[0].z - boundary[6].z) * 0.5f;
 		return out;
 	}
 
 	inline void SetName(std::string modelName) {
 		name = modelName;
 	}
+
 	inline void SetWorldMatrix(GW::MATH::GMATRIXF worldMatrix) {
 		world = worldMatrix;
 	}
 
-	bool LoadModelDataFromDisk(const char* h2bPath) {
+	bool LoadModelDataFromDisk(const char* h2bPath) 
+	{
 		// if this succeeds "cpuModel" should now contain all the model's info
 		return cpuModel.Parse(h2bPath);
 	}
@@ -111,11 +124,22 @@ public:
 		// TODO: Use chosen API to upload this model's graphics data to GPU
 		lbo = updateLights(_lights);
 		ubo = updateUboInstance(cpuModel.materials[0], _camera, _view, _projection, _sLight);
-
+		ComputeOBB();
 		InitializeGraphics();
 
 		if (name == "skyBox")
 			createCubeMap(skyBox);  //credits to learnOpenGL for the skybox image https://learnopengl.com/Advanced-OpenGL/Cubemaps
+
+		if (obb.extent.x != GW::MATH::GIdentityVectorF.x ||
+			obb.extent.y != GW::MATH::GIdentityVectorF.y ||
+			obb.extent.z != GW::MATH::GIdentityVectorF.z) 
+		{
+			std::cout << "Bounding box added successfully for model: " << name << std::endl;
+		}
+		else {
+			std::cerr << "Failed to add bounding box for model: " << name << std::endl;
+		}
+
 
 		return true;
 	}
@@ -343,6 +367,7 @@ public:
 		glBindBuffer(GL_UNIFORM_BUFFER, lightBufferObject);
 		glBufferData(GL_UNIFORM_BUFFER, sizeInBytes, data, GL_DYNAMIC_DRAW);
 	}
+
 	void updateLightBufferObject(const std::vector <LIGHT_DATA>& _lights) {
 		glBindBuffer(GL_UNIFORM_BUFFER, lightBufferObject);
 		lbo = _lights;
@@ -432,6 +457,11 @@ public:
 	}
 };
 
+//struct TransformedComponent
+//{
+//	GW::MATH::GVECTORF position; //pos of the entity
+//};
+
 // class Level_Objects is simply a list of all the Models currently used by the level
 class Level_Objects
 {
@@ -494,6 +524,7 @@ public:
 			{
 				Model newModel;
 				//Model add = { linebuffer };
+				//std::string blendName = linebuffer; //ADDED *NEW*
 				file.ReadLine(linebuffer, 1024, '\n');
 				log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
 				// create the model file name from this (strip the .001)
@@ -525,42 +556,62 @@ public:
 					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
 				log.LogCategorized("INFO", loc.c_str());
 
-				// *NEW* finally read in the boundry data for this model
-				//for (int i = 0; i < 8; ++i) 
-				//{
-				//	file.ReadLine(linebuffer, 1024, '\n');
-				//	// read floats
-				//	std::sscanf(linebuffer + 9, "%f, %f, %f",
-				//		&add.boundry[i].x, &add.boundry[i].y, &add.boundry[i].z);
-				//}
-				//std::string bounds = "Boundry: Left ";
-				//bounds += std::to_string(add.boundry[0].x) +
-				//	" Right " + std::to_string(add.boundry[6].x) +
-				//	" Bottom " + std::to_string(add.boundry[0].y) +
-				//	" Top " + std::to_string(add.boundry[6].y) +
-				//	" Near " + std::to_string(add.boundry[0].z) +
-				//	" Far " + std::to_string(add.boundry[6].z);
-				//log.LogCategorized("INFO", bounds.c_str());
+				for (int i = 0; i < 8; ++i) 
+				{
+					file.ReadLine(linebuffer, 1024, '\n');
+					// read floats
+					std::sscanf(linebuffer + 9, "%f, %f, %f",
+						&newModel.boundary[i].x, &newModel.boundary[i].y, &newModel.boundary[i].z);
+				}
+				std::string bounds = "Boundary: Left ";
+				bounds += std::to_string(newModel.boundary[0].x) +
+					" Right " + std::to_string(newModel.boundary[6].x) +
+					" Bottom " + std::to_string(newModel.boundary[0].y) +
+					" Top " + std::to_string(newModel.boundary[6].y) +
+					" Near " + std::to_string(newModel.boundary[0].z) +
+					" Far " + std::to_string(newModel.boundary[6].z);
+				log.LogCategorized("INFO", bounds.c_str());
 
 				// Add new model to list of all Models
 				log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
 				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
 				newModel.SetWorldMatrix(transform);
 
-				// If we find and load it - add it to the level
-				if (newModel.LoadModelDataFromDisk(modelFile.c_str()))
-				{
+				// If we find and load it add it to the level
+				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
 					allObjectsInLevel.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
-				else
-				{
+				else {
 					// notify user that a model file is missing but continue loading
 					log.LogCategorized("ERROR",
 						(std::string("H2B Not Found: ") + modelFile).c_str());
 					log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
 				}
+
+				// If we find and load it - add it to the level
+				//if (newModel.LoadModelDataFromDisk(modelFile.c_str()))
+				//{
+				//	// Check if the model already exists in allObjectsInLevel
+				//	auto found = std::find_if(allObjectsInLevel.begin(), allObjectsInLevel.end(), [&](const Model& model)
+				//	{
+				//			return !(model < newModel) && !(newModel < model); // Equivalent to model == newModel
+				//	});
+				//	if (found == allObjectsInLevel.end()) // Model doesn't exist
+				//	{
+				//		// Add the blenderName to newModel
+				//		newModel.blenderNames.push_back(std::move(modelFile));
+				//		// Add newModel to allObjectsInLevel
+				//		allObjectsInLevel.push_back(std::move(newModel));
+				//		log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
+				//	}
+				//	else
+				//	{
+				//		// Model already exists, so just update its blenderNames
+				//		found->blenderNames.push_back(std::move(modelFile));
+				//	}
+				//}
 				log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
 			}
 
@@ -587,7 +638,6 @@ public:
 
 				else if (std::strcmp(linebuffer, "SPOT") == 0) {
 					light.SetType("SPOT");
-
 				}
 
 				log.LogCategorized("INFO", (std::string("LIGHT TYPE: ") + linebuffer).c_str());
@@ -682,7 +732,6 @@ public:
 		}
 
 		//Now we copy the data we can send to the shader to a seperate vector (for lights)
-
 		if (lights.size() > 16)
 		{
 			log.LogCategorized("ERROR", "You have more lights in the level than are currently supported. Only the first 16 will be supported");
@@ -737,6 +786,61 @@ public:
 		allObjectsInLevel.clear();
 	}
 
+	//std::vector<TransformedComponent> entityPos;
+
+	// Define the CheckCollision function
+	static bool CheckCollision(const GW::MATH::GOBBF& obb1, const GW::MATH::GOBBF& obb2)
+	{
+		// SAT: Check for overlap along each axis of the OBBs
+		for (int i = 0; i < 3; ++i) {
+			// Calculate the axis of separation for the first OBB
+			GW::MATH::GVECTORF axis1 = obb1.data[i];
+
+			// Calculate the projection of both OBBs onto the axis
+			float proj1 = fabsf(axis1.x * obb1.extent.x + axis1.y * obb1.extent.y + axis1.z * obb1.extent.z);
+			float proj2 = fabsf(axis1.x * obb2.extent.x + axis1.y * obb2.extent.y + axis1.z * obb2.extent.z);
+
+			// Calculate the overlap on this axis
+			float overlap = fabsf(axis1.x * (obb1.center.x - obb2.center.x) +
+				axis1.y * (obb1.center.y - obb2.center.y) +
+				axis1.z * (obb1.center.z - obb2.center.z));
+			float total = proj1 + proj2;
+
+			// If the overlap is greater than the total projected length, there's a separation
+			if (overlap >= total)
+			{
+				//std::cout << "No collision detected on Axis " << i << std::endl;
+				return false;
+			}
+		}
+
+		// If no separation on any axis, then the OBBs are colliding
+		std::cout << "Collision detected!" << std::endl;
+		return true;
+	}
+
+	// Define the HandleCollision function
+	//void HandleCollisions(std::shared_ptr<Level_Objects> level)
+	//{
+	//	// Iterate over each entity
+	//	for (const auto& entity1 : level->allObjectsInLevel)
+	//	{
+	//		// Get the OBB of the first entity
+	//		const GW::MATH::GOBBF& obb1 = entity1.ComputeOBB();
+	//		// Iterate over all other entities
+	//		for (const auto& entity2 : level->allObjectsInLevel)
+	//		{
+	//			// Skip self-collision and already handled pairs
+	//			if (&entity1 == &entity2)
+	//			{
+	//				continue;
+	//			}
+	//			// Get the OBB of the second entity
+	//			const GW::MATH::GOBBF& obb2 = entity2.ComputeOBB();
+	//		}
+	//	}
+	//}
+
 	void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::world> game)
 	{
 		for each (Model i in Level->allObjectsInLevel)
@@ -744,13 +848,33 @@ public:
 			auto e = game->entity(i.name.c_str());
 			e.set<ESG::Name>({ i.name });
 			e.set<ESG::World>({ i.world });
-			//e.set<ESG::BoundingBox>({ i.gob });
+			e.set<ESG::Collidable>({ i.obb });
+
+			// Add debug output to verify OBBs are being added
+			std::cout << "OBB added for entity: " << i.name << std::endl;
 
 			if (i.name == "Chest_Gold")
 			{
 				e.add<ESG::Player>();
 			}
 
+			if (i.name == "Floor Modular")
+			{
+				e.add<ESG::Floor>();
+				std::cout << "Floor entity tagged " << i.name << std::endl;
+			}
+
+			if (i.name == "Wall Modular" || i.name == "Arch")
+			{
+				e.add<ESG::Wall>();
+				std::cout << "Wall entity tagged " << i.name << std::endl;
+			}
+
+			if (i.name == "Torch" || i.name == "Arch Door")
+			{
+				e.add<ESG::Stationary>();
+				std::cout << "Stationary entity tagged " << i.name << std::endl;
+			}
 		}
 	}
 
@@ -765,7 +889,6 @@ public:
 	{
 		flecs::system playerSystem;
 
-
 		std::shared_ptr<const GameConfig> readCfg = gameConfig.lock();
 		float speed = (*readCfg).at("Player1").at("speed").as<float>();
 		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
@@ -774,28 +897,69 @@ public:
 			.iter([immediateInput, game, level, speed](flecs::iter it, ESG::Player*, ESG::World* p)
 				{
 					float xaxis = 0, input = 0, zaxis = 0;
-		GW::INPUT::GInput t = immediateInput;
-		t.GetState(G_KEY_A, input); xaxis -= input;
-		t.GetState(G_KEY_D, input); xaxis += input;
-		t.GetState(G_KEY_S, input); zaxis -= input;
-		t.GetState(G_KEY_W, input); zaxis += input;
+					GW::INPUT::GInput t = immediateInput;
+					t.GetState(G_KEY_A, input); xaxis -= input;
+					t.GetState(G_KEY_D, input); xaxis += input;
+					t.GetState(G_KEY_S, input); zaxis -= input;
+					t.GetState(G_KEY_W, input); zaxis += input;
 
+					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
 
-		GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
+					auto e = game->lookup("Chest_Gold");
+					ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+					int index = 0;
+					for each (Model m in level->allObjectsInLevel)
+					{
+						if (m.name == "Chest_Gold")
+						{
+							level->allObjectsInLevel[index].world = edit->value;
+							break;
+						}
+						index++;
+					}
+				});
 
-		auto e = game->lookup("Chest_Gold");
-		ESG::World* edit = game->entity(e).get_mut<ESG::World>();
-		GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
-		int index = 0;
-		for each (Model m in level->allObjectsInLevel)
-		{
-			if (m.name == "Chest_Gold")
-			{
-				level->allObjectsInLevel[index].world = edit->value;
-				break;
-			}
-			index++;
-		}
+		flecs::system CollisionSystem;
+
+		// Create the collision detection system
+		CollisionSystem = game->system<ESG::Collidable>("Collision Detection System")
+			.each([level](flecs::entity e, ESG::Collidable& box1)
+				{
+					// Iterate over all other entities
+					//for (auto& entity2 : level->allObjectsInLevel)
+					//{
+					//	// Get the OBB of the other entity
+					//	const GW::MATH::GOBBF& obb2 = entity2.ComputeOBB();
+
+					//	// Check for collision using the static member function CheckCollision
+					//	if (Level_Objects::CheckCollision(box1.obb, obb2))
+					//	{
+					//		// Collision detected, handle it here
+					//		// For example:
+					//		std::cout << "Collision detected between box1 and " << entity2.name << std::endl;
+					//	}
+					//}
+
+					// Iterate over all objects in the level
+					for (size_t index = 0; index < level->allObjectsInLevel.size(); ++index)
+					{
+						auto& entity2 = level->allObjectsInLevel[index];
+
+						// Check if entity2 is the player entity
+						if (entity2.name == "Chest_Gold")
+						{
+							// Get the OBB of the player entity
+							const GW::MATH::GOBBF& obb2 = entity2.ComputeOBB();
+
+							// Check for collision between box1 and the player entity
+							if (Level_Objects::CheckCollision(box1.obb, obb2))
+							{
+								// Collision detected, handle it here
+								std::cout << "Collision detected between box1 and the player" << std::endl;
+							}
+						}
+					}
 				});
 
 		flecs::system playerShootSystem = game->system<ESG::Player, ESG::World>("Player Shoot System")
@@ -831,7 +995,6 @@ public:
 						}
 						index++;
 					}
-
 
 					switch (shootState)
 					{
@@ -875,12 +1038,11 @@ public:
 					case 0:
 						break;
 					}
-			});
+				});
 	}
 };
 
-
-	// *THIS APPROACH COMBINES DATA & LOGIC*
-	// *WITH THIS APPROACH THE CURRENT RENDERER SHOULD BE JUST AN API MANAGER CLASS*
-	// *ALL ACTUAL GPU LOADING AND RENDERING SHOULD BE HANDLED BY THE MODEL CLASS*
-	// For example: anything that is not a global API object should be encapsulated.
+// *THIS APPROACH COMBINES DATA & LOGIC*
+// *WITH THIS APPROACH THE CURRENT RENDERER SHOULD BE JUST AN API MANAGER CLASS*
+// *ALL ACTUAL GPU LOADING AND RENDERING SHOULD BE HANDLED BY THE MODEL CLASS*
+// For example: anything that is not a global API object should be encapsulated.

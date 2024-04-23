@@ -84,7 +84,7 @@ bool Application::Run()
 	log.Create("output.txt");
 	auto lvl = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	lvl->LoadMeshes("../MainMenuTestwBox.txt", "../Models/MainMenuModels", log.Relinquish());
 	lvl->AddEntities(lvl, game);
 	lvl->AddSystems(lvl, game, gameConfig, immediateInput, bufferedInput, gamePads, audioEngine, eventPusher);
 

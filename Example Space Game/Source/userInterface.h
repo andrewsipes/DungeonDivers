@@ -863,7 +863,7 @@ class playerUi : public uiPanel {
 
 public:
 	uiModel* levelText, * startText, * pauseText, * levelCompleteText, *enemyText, *treasureText;
-	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, enemyDigit, treasureDigit;
+	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, enemyDigit1, enemyDigit2, treasureDigit;
 
 	userButton* button;
 
@@ -945,21 +945,39 @@ public:
 	//updates enemy UI
 	void updateEnemies(int currEnemies, int updateEnemies) {
 
+		int digit;
 		int enemies = currEnemies + updateEnemies;
+		int num = enemies;
+		int iter = 1;
+		int displayEnemies[2] = { 0,0};
 
 		//prevents count from going too high
-		if (enemies > 0){
-			enemies = 9;
+		if (enemies > 99){
+			enemies = 99;
 		}
 
 		//toggle all digits off
-		for (uiModel* digit : enemyDigit) {
+		for (uiModel* digit : enemyDigit1) {
+			digit->render = false;
+		}
+
+		//toggle all digits off
+		for (uiModel* digit : enemyDigit2) {
 			digit->render = false;
 		}
 	
-		//Used the extracted values to update enemy text
-		enemyDigit[enemies]->toggleRender();
 
+		//Loop that takes the int that was passed in and seperates by digit
+		while (num > 0) {
+			digit = num % 10;				//get the digit by using mod
+			displayEnemies[iter] = digit;		//update an array so we have the right values
+			num /= 10;						//remove the last digit
+
+			iter--;
+		}
+
+		enemyDigit1[displayEnemies[0]]->toggleRender();
+		enemyDigit2[displayEnemies[1]]->toggleRender();
 	}
 
 	//updates treasure UI
@@ -1032,8 +1050,14 @@ public:
 
 		//assign enemy text numbers
 		for (int i = 0; i < 10; i++) {
-			enemyDigit.push_back(&allUiObjects[i + 64]);
+			enemyDigit1.push_back(&allUiObjects[i + 64]);
 		}
+
+		//assign enemy text numbers
+		for (int i = 0; i < 10; i++) {
+			enemyDigit2.push_back(&allUiObjects[i + 84]);
+		}
+
 
 		//assign treasure text numbers
 		for (int i = 0; i < 10; i++) {
@@ -1076,7 +1100,10 @@ public:
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : enemyDigit) {
+		for (uiModel* digit : enemyDigit1) {
+			digit->loadDefaults();
+		}
+		for (uiModel* digit : enemyDigit2) {
 			digit->loadDefaults();
 		}
 
@@ -1095,10 +1122,9 @@ public:
 		levelDigit[0]->toggleRender();
 		enemyText->toggleRender();
 		treasureText->toggleRender();
-		enemyDigit[0]->toggleRender();
 		treasureDigit[0]->toggleRender();
 
-		updateEnemies(9, -1);
+		updateEnemies(15, -1);
 		updateTreasure(3, -2);
 
 	}

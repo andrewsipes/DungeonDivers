@@ -1,7 +1,6 @@
 #include "./h2bParser.h"
 #include "./userInterface.h"
 
-
 //LAMBDA FUNCTIONS
 //Place all Ui Related button calls here for now
 
@@ -46,6 +45,7 @@ public:
 	mainMenuUi* mainMenuHUD;
 	pauseMenuUi* pauseMenu;
 	treasureMenuUi* treasureMenu;
+	controlsMenuUi* controlsMenu;
 	std::vector <uiPanel*> panels;
 	
 	bool freecam;
@@ -84,21 +84,13 @@ public:
 		//load ui Panels - this doesn't turn them on but simply lay out each UI for rendering later on.
 		initializePanels(log);
 
-		//Toggle which level you want to load
-		{
-			/////LEVELS/////
-			//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
-			//bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-
-			////PANELS/////
-			//pauseMenu->toggleRender();
-			//mainMenuHUD->toggleRender();
-			playerHUD->toggleRender();
-			//treasureMenu->toggleRender();
-		}
-		
-
-
+		////PANELS/////
+		//pauseMenu->toggleRender();
+		//mainMenuHUD->toggleRender();
+		//playerHUD->toggleRender();
+		//treasureMenu->toggleRender();
+		controlsMenu->toggleRender();
+	
 		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 		//create inputs
@@ -134,18 +126,22 @@ public:
 		treasureMenuUi* treasure = new treasureMenuUi(*gameConfig);
 		treasureMenu = treasure;
 
+		controlsMenuUi* controls = new controlsMenuUi(*gameConfig);
+		controlsMenu = controls;
+
 		//Load All meshes in the level at start
 		bool playerHUDSuccess = playerHUD->LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
 		bool mainMenuHUDSuccess = mainMenuHUD->LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
 		bool pauseMenuSuccess = pauseMenu->LoadMeshes("../PauseMenu.txt", "../Models/PauseMenuModels", log.Relinquish());
 		bool treasureMenuSuccess = treasureMenu->LoadMeshes("../treasureMenu.txt", "../Models/treasureMenuModels", log.Relinquish());
-
+		bool controlsMenuSuccess = controlsMenu->LoadMeshes("../controlsMenu.txt", "../Models/controlsMenuModels", log.Relinquish());
 
 		//add to vector of panels
 		panels.push_back(playerHUD);
 		panels.push_back(mainMenuHUD);
 		panels.push_back(pauseMenu);
 		panels.push_back(treasureMenu);
+		panels.push_back(controlsMenu);
 
 		for (uiPanel* panel : panels) {
 			initializePanel(panel);
@@ -394,7 +390,7 @@ public:
 
 		{	//TOGGLE PAUSE MENU
 			if (!tab && (GetAsyncKeyState(VK_TAB) & 0x8000)) {
-				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render) {
+				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu) {
 					pauseMenu->render = true;
 
 				}
@@ -413,7 +409,7 @@ public:
 
 		{	//TOGGLE PAUSE MENU
 			if (!t &&(GetAsyncKeyState(0x54) & 0x8000)) {
-				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render) {
+				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu) {
 					treasureMenu->render = true;
 					
 				}

@@ -1,4 +1,3 @@
-#pragma once
 #include <map>
 #include <string>
 #include "./load_object_oriented.h"
@@ -1318,6 +1317,70 @@ public:
 		}
 	}
 
+};
+
+//panel for controls
+class controlsMenuUi : public uiPanel {
+
+	uiModel* controlsOverlay;
+	userButton* controlsMenuText, * controlsText, * exitControlsMenuButton;
+public:
+	controlsMenuUi() {
+		render = false;
+	}
+
+	controlsMenuUi(GameConfig& _gameConfig) {
+		gameConfig = &_gameConfig;
+		render = false;
+	}
+
+	void assign() override {
+		controlsOverlay = &allUiObjects[0];
+		controlsMenuText = &allUiButtonObjects[0];
+		controlsText = &allUiButtonObjects[1];
+		exitControlsMenuButton = &allUiButtonObjects[2];
+
+	}
+
+	void arrange() override {
+		controlsOverlay->loadDefaults();
+
+		for (userButton& _button : allUiButtonObjects) {
+			for (buttonText& _text : allUiButtonTextObjects) {
+				if (_text.name.find(_button.name) != std::string::npos) {
+					_button.text = &_text;
+					_button.loadDefaults();
+				}
+			}
+		}
+	}
+
+	void start() override {
+		controlsOverlay->toggleRender();
+		controlsMenuText->toggleRender();
+		controlsText->toggleRender();
+		exitControlsMenuButton->toggleRender();
+
+	}
+
+	// Draws all objects in the level
+	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
+
+		// iterate over each model and tell it to draw itself
+		if (render) {
+			for (auto& e : allUiObjects) {
+				if (e.render)
+					e.DrawModel(_camera, _view, _proj, e.alpha);
+			}
+
+			for (auto& f : allUiButtonObjects) {
+				if (f.render) {
+					f.DrawModel(_camera, _view, _proj, f.alpha);
+					f.text->DrawModel(_camera, _view, _proj, f.text->alpha);
+				}
+			}
+		}
+	}
 };
 
 //Stops Rendering specific Model 

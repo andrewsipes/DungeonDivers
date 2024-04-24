@@ -6,7 +6,7 @@
 #include "../Components/Gameplay.h"
 #include "../h2bParser.h"
 
-bool ESG::EnemyData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::AUDIO::GAudio _audioEngine)
+bool DD::EnemyData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::AUDIO::GAudio _audioEngine)
 {
 	// Grab init settings for players
 	std::shared_ptr<const GameConfig> readCfg = _gameConfig.lock();
@@ -41,7 +41,7 @@ bool ESG::EnemyData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<con
 		.override<Enemy>() // Tag this prefab as an enemy (for queries/systems)
 		.override<Collidable>(); // can be collided with
 
-		//.add<ESG::BoundingBox>(); // Add BoundingBox component
+		//.add<DD::BoundingBox>(); // Add BoundingBox component
 
 	// register this prefab by name so other systems can use it
 	RegisterPrefab("Bee", enemyPrefab);
@@ -49,7 +49,7 @@ bool ESG::EnemyData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<con
 	return true;
 }
 
-bool ESG::EnemyData::Unload(std::shared_ptr<flecs::world> _game)
+bool DD::EnemyData::Unload(std::shared_ptr<flecs::world> _game)
 {
 	// remove all bullets and their prefabs
 	_game->defer_begin(); // required when removing while iterating!

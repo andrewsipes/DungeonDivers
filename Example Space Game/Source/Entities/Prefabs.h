@@ -4,8 +4,8 @@
 
 #include "../Precompiled.h"
 
-// example space game (avoid name collisions)
-namespace ESG
+// Dungeon Divers (avoid name collisions)
+namespace DD
 {
 	bool RegisterPrefab(const char* prefabName, const flecs::entity inPrefab);
 	bool RetreivePrefab(const char* prefabName, flecs::entity &outPrefab);

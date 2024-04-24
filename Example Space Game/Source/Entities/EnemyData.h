@@ -6,8 +6,8 @@
 #include "../GameConfig.h"
 #include "../Precompiled.h"
 
-// example space game (avoid name collisions)
-namespace ESG
+// Dungeon Divers (avoid name collisions)
+namespace DD
 {
 	class EnemyData
 	{

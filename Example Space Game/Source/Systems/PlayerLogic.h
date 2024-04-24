@@ -6,8 +6,8 @@
 #include "../GameConfig.h"
 #include "../Components/Physics.h"
 
-// example space game (avoid name collisions)
-namespace ESG 
+// Dungeon Divers (avoid name collisions)
+namespace DD 
 {
 	class PlayerLogic 
 	{
@@ -55,7 +55,7 @@ namespace ESG
 
 		// helper routines
 		bool ProcessInputEvents(flecs::world& stage);
-		bool FireLasers(flecs::world& stage, ESG::Position origin);
+		bool FireLasers(flecs::world& stage, DD::Position origin);
 	};
 };
 

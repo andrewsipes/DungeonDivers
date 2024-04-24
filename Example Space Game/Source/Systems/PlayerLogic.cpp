@@ -8,12 +8,12 @@
 #include "../../gateware-main/Gateware.h"
 #include "../../flecs-3.1.4/flecs.h"
 
-using namespace ESG; // Example Space Game
+using namespace DD; // Dungeon Divers
 using namespace GW::INPUT; // input libs
 using namespace GW::AUDIO; // audio libs
 
 // Connects logic to traverse any players and allow a controller to manipulate them
-bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::INPUT::GInput _immediateInput, 
+bool DD::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::INPUT::GInput _immediateInput, 
 	GW::INPUT::GBufferedInput _bufferedInput, GW::INPUT::GController _controllerInput, GW::AUDIO::GAudio _audioEngine, GW::CORE::GEventGenerator _eventPusher)
 {
 	// save a handle to the ECS & game settings
@@ -92,7 +92,7 @@ bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 	// create the on explode handler
 	onExplode.Create([this](const GW::GEvent& e) 
 	{
-		ESG::PLAY_EVENT event; ESG::PLAY_EVENT_DATA eventData;
+		DD::PLAY_EVENT event; DD::PLAY_EVENT_DATA eventData;
 		if (+e.Read(event, eventData)) 
 		{
 			// only in here if event matches
@@ -105,7 +105,7 @@ bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 }
 
 // Free any resources used to run this system
-bool ESG::PlayerLogic::Shutdown()
+bool DD::PlayerLogic::Shutdown()
 {
 	playerSystem.destruct();
 	game.reset();
@@ -115,7 +115,7 @@ bool ESG::PlayerLogic::Shutdown()
 }
 
 // Toggle if a system's Logic is actively running
-bool ESG::PlayerLogic::Activate(bool runSystem)
+bool DD::PlayerLogic::Activate(bool runSystem)
 {
 	if (playerSystem.is_alive()) 
 	{
@@ -127,7 +127,7 @@ bool ESG::PlayerLogic::Activate(bool runSystem)
 	return false;
 }
 
-bool ESG::PlayerLogic::ProcessInputEvents(flecs::world& stage)
+bool DD::PlayerLogic::ProcessInputEvents(flecs::world& stage)
 {
 	// pull any waiting events from the event cache and process them
 	GW::GEvent event;
@@ -180,7 +180,7 @@ bool ESG::PlayerLogic::ProcessInputEvents(flecs::world& stage)
 }
 
 // play sound and launch two laser rounds
-bool ESG::PlayerLogic::FireLasers(flecs::world& stage, Position origin)
+bool DD::PlayerLogic::FireLasers(flecs::world& stage, Position origin)
 {
 	// Grab the prefab for a laser round
 	flecs::entity bullet;

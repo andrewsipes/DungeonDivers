@@ -84,6 +84,7 @@ bool Application::Run() {
 	auto lvl = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	//lvl->LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish());
 
 	Level_Objects& Level = *lvl;
 	//AddEntities(*lvl);
@@ -92,13 +93,13 @@ bool Application::Run() {
 		{
 
 			auto e = game->entity( i.name.c_str() );
-			e.set<ESG::Name>({ i.name });
+			e.set<DD::Name>({ i.name });
 		}
 		int count = 0;
 
-		auto f = game->filter<ESG::Name>();
+		auto f = game->filter<DD::Name>();
 
-		f.each([&count](ESG::Name& n)
+		f.each([&count](DD::Name& n)
 			{
 				count++;
 			}
@@ -354,14 +355,14 @@ bool Application::InitEntities()
 	//	for (auto& i : lvl.allObjectsInLevel)
 	//	{
 	//		auto e = game->entity(i.name);
-	//		e.set<ESG::Name>({ i.name });
+	//		e.set<DD::Name>({ i.name });
 	//
 	//
 	//	}
 	//	int count = 0;
-	//	auto f = game->filter<ESG::Name>();
+	//	auto f = game->filter<DD::Name>();
 	//
-	//	f.each([&count](ESG::Name& n)
+	//	f.each([&count](DD::Name& n)
 	//		{
 	//			count++;
 	//		}

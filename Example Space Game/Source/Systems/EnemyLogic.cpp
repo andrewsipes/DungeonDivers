@@ -5,10 +5,10 @@
 #include "../Components/Gameplay.h"
 #include "../Events/Playevents.h"
 
-using namespace ESG; // Example Space Game
+using namespace DD; // Dungeon Divers
 
 // Connects logic to traverse any players and allow a controller to manipulate them
-bool ESG::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::CORE::GEventGenerator _eventPusher)
+bool DD::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::CORE::GEventGenerator _eventPusher)
 {
 	// save a handle to the ECS & game settings
 	game = _game;
@@ -24,9 +24,9 @@ bool ESG::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 			{
 				// play explode sound
 				e.destruct();
-				ESG::PLAY_EVENT_DATA x;
+				DD::PLAY_EVENT_DATA x;
 				GW::GEvent explode;
-				explode.Write(ESG::PLAY_EVENT::ENEMY_DESTROYED, x);
+				explode.Write(DD::PLAY_EVENT::ENEMY_DESTROYED, x);
  				eventPusher.Push(explode);
 			} 		
 	});
@@ -35,7 +35,7 @@ bool ESG::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 }
 
 // Free any resources used to run this system
-bool ESG::EnemyLogic::Shutdown()
+bool DD::EnemyLogic::Shutdown()
 {
 	game->entity("Enemy System").destruct();
 	// invalidate the shared pointers
@@ -45,7 +45,7 @@ bool ESG::EnemyLogic::Shutdown()
 }
 
 // Toggle if a system's Logic is actively running
-bool ESG::EnemyLogic::Activate(bool runSystem)
+bool DD::EnemyLogic::Activate(bool runSystem)
 {
 	if (runSystem) 
 	{

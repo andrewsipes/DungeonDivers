@@ -2,8 +2,8 @@
 #ifndef PHYSICS_H
 #define PHYSICS_H
 
-// example space game (avoid name collisions)
-namespace ESG 
+// Dungeon Divers (avoid name collisions)
+namespace DD 
 {
 	// ECS component types should be *strongly* typed for proper queries
 	// typedef is tempting but it does not help templates/functions resolve type

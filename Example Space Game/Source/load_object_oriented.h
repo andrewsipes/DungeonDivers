@@ -1,5 +1,3 @@
-
-
 #include "./FileIntoString.h"
 #include "./stb_image.h"
 #include "./OpenGLExtensions.h"

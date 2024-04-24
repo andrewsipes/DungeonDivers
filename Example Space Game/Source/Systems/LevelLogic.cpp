@@ -6,10 +6,10 @@
 #include "../Utils/Macros.h"
 #include "LevelLogic.h"
 
-using namespace ESG; // Example Space Game
+using namespace DD; // Dungeon Divers
 
 // Connects logic to traverse any players and allow a controller to manipulate them
-bool ESG::LevelLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::AUDIO::GAudio _audioEngine)
+bool DD::LevelLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig, GW::AUDIO::GAudio _audioEngine)
 {
 	// save a handle to the ECS & game settings
 	game = _game;
@@ -81,7 +81,7 @@ bool ESG::LevelLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 }
 
 // Free any resources used to run this system
-bool ESG::LevelLogic::Shutdown()
+bool DD::LevelLogic::Shutdown()
 {
 	timedEvents = nullptr; // stop adding enemies
 	gameAsync.merge(); // get rid of any remaining commands
@@ -94,7 +94,7 @@ bool ESG::LevelLogic::Shutdown()
 }
 
 // Toggle if a system's Logic is actively running
-bool ESG::LevelLogic::Activate(bool runSystem)
+bool DD::LevelLogic::Activate(bool runSystem)
 {
 	if (runSystem) 
 	{
@@ -108,7 +108,7 @@ bool ESG::LevelLogic::Activate(bool runSystem)
 }
 
 // Implementation of Init() function
-//bool ESG::LevelLogic::Init(std::shared_ptr<flecs::world> _game,
+//bool DD::LevelLogic::Init(std::shared_ptr<flecs::world> _game,
 //	std::weak_ptr<const GameConfig> _gameConfig,
 //	GW::AUDIO::GAudio _audioEngine) 
 //{

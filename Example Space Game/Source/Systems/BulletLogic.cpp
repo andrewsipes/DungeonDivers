@@ -4,10 +4,10 @@
 #include "../Components/Physics.h"
 #include "../Components/Gameplay.h"
 
-using namespace ESG; // Example Space Game
+using namespace DD; // Dungeon Divers
 
 // Connects logic to traverse any players and allow a controller to manipulate them
-bool ESG::BulletLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig)
+bool DD::BulletLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig)
 {
 	// save a handle to the ECS & game settings
 	game = _game;
@@ -59,7 +59,7 @@ bool ESG::BulletLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 }
 
 // Free any resources used to run this system
-bool ESG::BulletLogic::Shutdown()
+bool DD::BulletLogic::Shutdown()
 {
 	game->entity("Bullet System").destruct();
 
@@ -70,7 +70,7 @@ bool ESG::BulletLogic::Shutdown()
 }
 
 // Toggle if a system's Logic is actively running
-bool ESG::BulletLogic::Activate(bool runSystem)
+bool DD::BulletLogic::Activate(bool runSystem)
 {
 	if (runSystem) 
 	{

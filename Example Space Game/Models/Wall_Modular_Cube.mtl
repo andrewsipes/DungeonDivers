@@ -1,7 +1,7 @@
-# Blender 4.0.2 MTL File: 'Level.blend'
+# Blender 4.0.2 MTL File: 'RAVLevel1stRev.blend'
 # www.blender.org
 
-newmtl Wall_Dark.005
+newmtl Wall_Dark
 Ns 96.078453
 Ka 1.000000 1.000000 1.000000
 Kd 0.156788 0.117427 0.076413
@@ -11,7 +11,7 @@ Ni 1.000000
 d 1.000000
 illum 2
 
-newmtl Wall_Highlights.005
+newmtl Wall_Highlights
 Ns 96.078453
 Ka 1.000000 1.000000 1.000000
 Kd 0.224805 0.176409 0.124174
@@ -21,7 +21,7 @@ Ni 1.000000
 d 1.000000
 illum 2
 
-newmtl Wall_Medium.004
+newmtl Wall_Medium
 Ns 96.078453
 Ka 1.000000 1.000000 1.000000
 Kd 0.147573 0.100062 0.061665

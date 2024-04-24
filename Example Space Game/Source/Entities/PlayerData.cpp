@@ -4,7 +4,7 @@
 #include "../Components/Physics.h"
 #include "Prefabs.h"
 
-bool ESG::PlayerData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig)
+bool DD::PlayerData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig)
 {
 	// Grab init settings for players
 	std::shared_ptr<const GameConfig> readCfg = _gameConfig.lock();
@@ -30,12 +30,12 @@ bool ESG::PlayerData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 		.add<Player>() // Tag this entity as a Player
 			.add<Collidable>(); // Add Collidable component for collision detection
 
-		//.add<ESG::BoundingBox>(); // Add BoundingBox component
+		//.add<DD::BoundingBox>(); // Add BoundingBox component
 
 	return true;
 }
 
-bool ESG::PlayerData::Unload(std::shared_ptr<flecs::world> _game)
+bool DD::PlayerData::Unload(std::shared_ptr<flecs::world> _game)
 {
 	// remove all players
 	_game->defer_begin(); // required when removing while iterating!

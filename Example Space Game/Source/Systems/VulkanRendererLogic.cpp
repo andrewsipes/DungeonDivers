@@ -3,9 +3,9 @@
 //#include "../Components/Visuals.h"
 //#include "../Components/Physics.h"
 //
-//using namespace ESG; // Example Space Game
+//using namespace DD; // Dungeon Divers
 //
-//bool ESG::VulkanRendererLogic::Init(	std::shared_ptr<flecs::world> _game, 
+//bool DD::VulkanRendererLogic::Init(	std::shared_ptr<flecs::world> _game, 
 //								std::weak_ptr<const GameConfig> _gameConfig,
 //								GW::GRAPHICS::GVulkanSurface _vulkan,
 //								GW::SYSTEM::GWindow _window)
@@ -36,7 +36,7 @@
 //	return true;
 //}
 //
-//bool ESG::VulkanRendererLogic::Activate(bool runSystem)
+//bool DD::VulkanRendererLogic::Activate(bool runSystem)
 //{
 //	if (startDraw.is_alive() &&
 //		updateDraw.is_alive() &&
@@ -56,7 +56,7 @@
 //	return false;
 //}
 //
-//bool ESG::VulkanRendererLogic::Shutdown()
+//bool DD::VulkanRendererLogic::Shutdown()
 //{
 //	startDraw.destruct();
 //	updateDraw.destruct();
@@ -64,7 +64,7 @@
 //	return true; // vulkan resource shutdown handled via GEvent in Init()
 //}
 //
-//std::string ESG::VulkanRendererLogic::ShaderAsString(const char* shaderFilePath)
+//std::string DD::VulkanRendererLogic::ShaderAsString(const char* shaderFilePath)
 //{
 //	std::string output;
 //	unsigned int stringLength = 0;
@@ -79,7 +79,7 @@
 //	return output;
 //}
 //
-//bool ESG::VulkanRendererLogic::LoadShaders()
+//bool DD::VulkanRendererLogic::LoadShaders()
 //{
 //	std::shared_ptr<const GameConfig> readCfg = gameConfig.lock();
 //	std::string vertexShaderSource = (*readCfg).at("Shaders").at("vertex").as<std::string>();
@@ -127,7 +127,7 @@
 //	return true;
 //}
 //
-//bool ESG::VulkanRendererLogic::LoadUniforms()
+//bool DD::VulkanRendererLogic::LoadUniforms()
 //{
 //	VkDevice device = nullptr;
 //	VkPhysicalDevice physicalDevice = nullptr;
@@ -155,7 +155,7 @@
 //	return true;
 //}
 //
-//bool ESG::VulkanRendererLogic::LoadGeometry()
+//bool DD::VulkanRendererLogic::LoadGeometry()
 //{
 //	VkDevice device = nullptr;
 //	VkPhysicalDevice physicalDevice = nullptr;
@@ -179,7 +179,7 @@
 //	return false;
 //}
 //
-//bool ESG::VulkanRendererLogic::SetupPipeline()
+//bool DD::VulkanRendererLogic::SetupPipeline()
 //{
 //	VkDevice device = nullptr;
 //	vulkan.GetDevice((void**)&device);
@@ -372,7 +372,7 @@
 //	return true;
 //}
 //
-//bool ESG::VulkanRendererLogic::SetupDrawcalls() // I SCREWED THIS UP MAKES SO MUCH SENSE NOW
+//bool DD::VulkanRendererLogic::SetupDrawcalls() // I SCREWED THIS UP MAKES SO MUCH SENSE NOW
 //{
 //	// create a unique entity for the renderer (just a Tag)
 //	// this only exists to ensure we can create systems that will run only once per frame. 
@@ -460,7 +460,7 @@
 //	return true;
 //}
 //
-//bool ESG::VulkanRendererLogic::FreeVulkanResources()
+//bool DD::VulkanRendererLogic::FreeVulkanResources()
 //{
 //	VkDevice device = nullptr;
 //	vulkan.GetDevice((void**)&device);

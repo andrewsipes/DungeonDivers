@@ -1,7 +1,7 @@
-# Blender 4.0.2 MTL File: 'Level.blend'
+# Blender 4.0.2 MTL File: 'RAVLevel1stRev.blend'
 # www.blender.org
 
-newmtl Grey_Floor.002
+newmtl Grey_Floor
 Ns 96.078453
 Ka 1.000000 1.000000 1.000000
 Kd 0.059253 0.057173 0.081973

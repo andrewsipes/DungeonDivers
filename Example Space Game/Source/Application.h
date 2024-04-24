@@ -41,16 +41,16 @@ class Application
 	std::shared_ptr<GameConfig> gameConfig; // .ini file game settings
 
 	// ECS Entities and Prefabs that need to be loaded
-	ESG::BulletData weapons;
-	ESG::PlayerData players;
-	ESG::EnemyData enemies;
+	DD::BulletData weapons;
+	DD::PlayerData players;
+	DD::EnemyData enemies;
 	// specific ECS systems used to run the game
-	ESG::PlayerLogic playerSystem;
-	//ESG::VulkanRendererLogic vkRenderingSystem;
-	ESG::LevelLogic levelSystem;
-	ESG::PhysicsLogic physicsSystem;
-	ESG::BulletLogic bulletSystem;
-	ESG::EnemyLogic enemySystem;
+	DD::PlayerLogic playerSystem;
+	//DD::VulkanRendererLogic vkRenderingSystem;
+	DD::LevelLogic levelSystem;
+	DD::PhysicsLogic physicsSystem;
+	DD::BulletLogic bulletSystem;
+	DD::EnemyLogic enemySystem;
 	// EventGenerator for Game Events
 	GW::CORE::GEventGenerator eventPusher;
 

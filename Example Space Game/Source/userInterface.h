@@ -236,14 +236,14 @@ class userButton : public uiModel {
 
 public:
 	float xPos, yPos, width, height; //button location and dimensions
-	buttonText *text;
+	buttonText* text;
 
 	//default constructor - don't use
 	userButton() {
 		render = false;
 	}
 
-	void scale(float scale) override{
+	void scale(float scale) override {
 
 		//Retrived height and width of the window to scale properly
 		float screenWidth = gameConfig->at("Window").at("width").as<int>();
@@ -254,10 +254,10 @@ public:
 			cpuModel.vertices[i].pos.x *= scale;
 			cpuModel.vertices[i].pos.y *= scale * screenWidth / screenHeight;  // we must multiply here to ensure scaling is correct
 		}
-		
+
 	}
 
-	void scale(float scaleX, float scaleY) override{
+	void scale(float scaleX, float scaleY) override {
 
 		//Retrived height and width of the window to scale properly
 		float screenWidth = gameConfig->at("Window").at("width").as<int>();
@@ -271,7 +271,7 @@ public:
 
 	}
 
-	bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj, float alpha) override{
+	bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj, float alpha) override {
 
 		//Get Block Index, and Bind the Buffer
 		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
@@ -300,7 +300,7 @@ public:
 	}
 
 	//Uses the world matrix and adjusts it for placing each UI object properly
-	void loadDefaults() override{
+	void loadDefaults() override {
 
 		//load alpha if it exists
 		try {
@@ -308,19 +308,19 @@ public:
 		}
 		catch (const std::out_of_range& e) {
 
-		
+
 		}
 
-		scale(-world.row1.x, world.row2.y); 
+		scale(-world.row1.x, world.row2.y);
 		translate({ world.row4.x, world.row4.y });
-		
+
 		//Here we find the min and max X/Y values so we can draw the eventbox
 		float minX = cpuModel.vertices[0].pos.x;
 		float maxX = cpuModel.vertices[0].pos.x;
 		float minY = cpuModel.vertices[0].pos.y;
 		float maxY = cpuModel.vertices[0].pos.y;
 
-		for (H2B::VERTEX vertex: cpuModel.vertices) {
+		for (H2B::VERTEX vertex : cpuModel.vertices) {
 
 			if (vertex.pos.x < minX) {
 				minX = vertex.pos.x;
@@ -336,7 +336,7 @@ public:
 			}
 		}
 
-		xPos= minX;
+		xPos = minX;
 		yPos = minY;
 		width = maxX - minX;
 		height = maxY - minY;
@@ -346,9 +346,9 @@ public:
 	}
 
 	//loads button text defaults
-	void loadTextDefaults() {	
-		text->scale(-1*text->world.row1.x);
-		text->translate({-1*text->world.row4.x, text->world.row4.y});
+	void loadTextDefaults() {
+		text->scale(-1 * text->world.row1.x);
+		text->translate({ -1 * text->world.row4.x, text->world.row4.y });
 		text->rotateYAxis(180.0f);
 	}
 
@@ -381,7 +381,7 @@ public:
 
 #endif
 
-		if (render)		{
+		if (render) {
 			//check if mouse position is within button bounds
 			if (mouseX >= xPos && mouseX <= xPos + width &&
 				mouseY >= yPos && mouseY <= yPos + height) {
@@ -392,6 +392,7 @@ public:
 				//check if clicked
 				if (state > 0) {
 
+					state = 0;
 					onPress();
 				}
 			}
@@ -412,17 +413,17 @@ public:
 		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
 
 
-		#ifndef NDEBUG
+#ifndef NDEBUG
 
 		/*	std::cout << "mouseX:" << mouseX << std::endl;
 			std::cout << "mouseY:" << mouseY << std::endl;
 			std::cout << "xPos:" << xPos << std::endl;
 			std::cout << "yPos:" << yPos << std::endl;*/
-		
 
-		#endif
 
-		
+#endif
+
+
 
 		if (render)
 		{
@@ -435,7 +436,7 @@ public:
 				gInput.GetState(keyPress, state);
 
 				//check if clicked
-				if (state > 0) 
+				if (state > 0)
 				{
 					if (soundEffects && soundEffects->count("UIAccept") > 0) {
 						soundEffects->at("UIAccept").Play();
@@ -447,7 +448,7 @@ public:
 
 
 		}
-		
+
 
 	}
 
@@ -511,7 +512,6 @@ public:
 		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
 		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
 
-
 #ifndef NDEBUG
 
 		/*	std::cout << "mouseX:" << mouseX << std::endl;
@@ -519,10 +519,7 @@ public:
 			std::cout << "xPos:" << xPos << std::endl;
 			std::cout << "yPos:" << yPos << std::endl;*/
 
-
 #endif
-
-
 
 		if (render)
 		{
@@ -537,18 +534,18 @@ public:
 				//check if clicked
 				if (state > 0) {
 
+					state = 0;
 					onPress(panel);
+
 				}
 			}
 
-
 		}
-
 
 	}
 
-	//specific handle for checking if the button press and returns a bool
-	bool HandleInputBool(int keyPress, GW::INPUT::GInput gInput) {
+	//Special method for tracking Left Button Press, Only for Controls Menu logic at the moment
+	bool HandleControlsMenuButton(GW::INPUT::GInput gInput) {
 
 		float mouseX, mouseY;
 		float screenWidth = gameConfig->at("Window").at("width").as<int>();
@@ -559,35 +556,33 @@ public:
 		mouseX = 2.0f * mouseX / screenWidth - 1.0f;
 		mouseY = 1.0f - 2.0f * mouseY / screenHeight;
 
-
 #ifndef NDEBUG
 
-		//std::cout << "mouseX:" << mouseX << std::endl;
-		//std::cout << "mouseY:" << mouseY << std::endl;
-		//std::cout << "xPos:" << xPos << std::endl;
-		//std::cout << "yPos:" << yPos << std::endl;
+		/*	std::cout << "mouseX:" << mouseX << std::endl;
+			std::cout << "mouseY:" << mouseY << std::endl;
+			std::cout << "xPos:" << xPos << std::endl;
+			std::cout << "yPos:" << yPos << std::endl;*/
+
 
 #endif
 
-		if (render) {
+		if (render)
+		{
 			//check if mouse position is within button bounds
 			if (mouseX >= xPos && mouseX <= xPos + width &&
 				mouseY >= yPos && mouseY <= yPos + height) {
 
-				float state;
-				gInput.GetState(keyPress, state);
-
 				//check if clicked
-				if (state > 0) {
+				if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) {
 
 					return true;
-				}
 
-				else
-					return false;
+				}
 			}
+
 		}
 
+		return false;
 	}
 };
 
@@ -1322,9 +1317,9 @@ public:
 //panel for controls
 class controlsMenuUi : public uiPanel {
 
+public:
 	uiModel* controlsOverlay;
 	userButton* controlsMenuText, * controlsText, * exitControlsMenuButton;
-public:
 	controlsMenuUi() {
 		render = false;
 	}
@@ -1391,6 +1386,11 @@ auto turnOffRender = [](uiModel* model) {
 //Stops Rendering specific Panel
 auto turnOffPanel = [](uiPanel* panel) {
 	panel->render = false;
+	};
+
+auto turnOnPanel = [](uiPanel* panel, uiPanel* currPanel) {
+	currPanel->render = false;
+	panel->render = true;
 	};
 
 //exits the application

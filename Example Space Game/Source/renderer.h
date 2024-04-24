@@ -1,5 +1,6 @@
 #include "./h2bParser.h"
 #include "./userInterface.h"
+#include <chrono>
 
 //LAMBDA FUNCTIONS
 //Place all Ui Related button calls here for now
@@ -16,10 +17,10 @@ class RendererManager
 	GW::INPUT::GController gController;
 
 	//for camera
+	bool reset = false;
 	GW::MATH::GMATRIXF viewMatrix;
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
-	bool reset = false;
 	GW::MATH::GVECTORF mainMenuCamPos;
 	GW::MATH::GVECTORF mainMenuLookAtPos;
 
@@ -35,8 +36,13 @@ class RendererManager
 	Level_Objects* lvl;
 
 	//Global variables for key inputs
-	bool tab = false;
-	bool t = false;
+	bool tab;
+	bool t;
+	bool leftMouse;
+
+	//gloals to track is mainmenu or pause hud was enabled
+	bool isMainMenuRendered;
+	bool isPauseMenuRendered;
 
 public:
 
@@ -52,6 +58,7 @@ public:
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, Level_Objects& Level)
 	{
+		
 		//passed arguments for initializing
 		gameConfig = &_gameConfig;
 		win = _win;
@@ -62,6 +69,10 @@ public:
 		//sets default state for menu keybinds
 		tab = false;
 		t = false;
+		leftMouse = false;
+
+		isMainMenuRendered = false;
+		isPauseMenuRendered = false;
 
 		mainMenuCamPos = {
 		gameConfig->at("MainMenuCameraPos").at("posx").as<float>(),
@@ -87,9 +98,9 @@ public:
 		////PANELS/////
 		//pauseMenu->toggleRender();
 		//mainMenuHUD->toggleRender();
-		//playerHUD->toggleRender();
+		playerHUD->toggleRender();
 		//treasureMenu->toggleRender();
-		controlsMenu->toggleRender();
+		//controlsMenu->toggleRender();
 	
 		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
@@ -355,31 +366,72 @@ public:
 
 	//Event Handling for all buttons - manually place each button here and tag the lamda expression it should execute
 	void eventHandling() {
+
+		//Return Left Mouse state for re-use
+		if ((leftMouse) && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
+			leftMouse = false;
+		}
+
 		//MAINMENU
 		if (mainMenuHUD->render) {
+
+			if (!leftMouse && mainMenuHUD->controlsButton->HandleControlsMenuButton(gInput)) {
+				leftMouse = true;
+				isMainMenuRendered = true;
+				controlsMenu->render = true;
+				mainMenuHUD->render = false;
+
+			}
+	
 			mainMenuHUD->startButton->HandleInput(mainMenuHUD->startButton, G_BUTTON_LEFT, gInput, turnOffRender);
-			mainMenuHUD->controlsButton->HandleInput(mainMenuHUD->controlsButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			mainMenuHUD->exitButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 		}
 
 		//PAUSEMENU
 		else if (pauseMenu->render){
 
-			pauseMenu->controlsPauseMenuButton->HandleInput(pauseMenu->controlsPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			if (!leftMouse && pauseMenu->controlsPauseMenuButton->HandleControlsMenuButton(gInput)) {
+				
+				isPauseMenuRendered = true;
+				controlsMenu->render = true;
+				pauseMenu->render = false;
+
+			}
+
 			pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			pauseMenu->exitPauseMenuButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 			pauseMenu->resumePauseMenuButton->HandleInput(dynamic_cast<uiPanel*>(pauseMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
 
 		}
 
-		//TREASURE MENU
-		else if (treasureMenu->render)
-		{
-			treasureMenu->exitTreasureMenuButton->HandleInput(dynamic_cast<uiPanel*>(treasureMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
+		//CONTROLSMENU
+		else if (controlsMenu->render){
+
+			if (!leftMouse && controlsMenu->exitControlsMenuButton->HandleControlsMenuButton(gInput)) {
+
+				leftMouse = true;
+				controlsMenu->render = false;
+
+				if (isMainMenuRendered) {
+					mainMenuHUD->render = true;
+					isMainMenuRendered = false;
+				}
+
+				else if (isPauseMenuRendered) {
+					pauseMenu->render = true;
+					isPauseMenuRendered = false;
+				}
+			}
+
+
 		}
 
-		
-
+	
+		//TREASURE MENU
+		else if (treasureMenu->render){
+			treasureMenu->exitTreasureMenuButton->HandleInput(dynamic_cast<uiPanel*>(treasureMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
+		}
+	
 		//KEYBINDS: Everything here should be checking if there was a key pressed and performing some action after
 		//CONTROLS:
 		//			TAB: toggles pause menu
@@ -390,7 +442,7 @@ public:
 
 		{	//TOGGLE PAUSE MENU
 			if (!tab && (GetAsyncKeyState(VK_TAB) & 0x8000)) {
-				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu) {
+				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
 					pauseMenu->render = true;
 
 				}
@@ -409,7 +461,7 @@ public:
 
 		{	//TOGGLE PAUSE MENU
 			if (!t &&(GetAsyncKeyState(0x54) & 0x8000)) {
-				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu) {
+				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
 					treasureMenu->render = true;
 					
 				}

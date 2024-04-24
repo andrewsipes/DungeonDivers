@@ -85,8 +85,8 @@ bool Application::Run() {
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	//lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 	bool levelSuccess = lvl->LoadMeshes("../Level2.txt", "../Models/Level2Models", log.Relinquish());
-
 	Level_Objects& Level = *lvl;
+
 	PlayerStats player(*gameConfig); //track player data
 
 	//AddEntities(*lvl);
@@ -148,8 +148,6 @@ bool Application::Run() {
 	return 0;
 }
 
-
-
 bool Application::Shutdown()
 {
 	// disconnect systems from global ECS
@@ -195,7 +193,6 @@ bool Application::InitInput()
 		return false;
 	return true;
 }
-
 
 //bool Application::InitAudio()
 //{
@@ -305,7 +302,6 @@ bool Application::LoadAudioResources()
 	std::cout << "All music and sfx loaded!" << std::endl;
 	return true;
 }
-
 
 //bool Application::InitGraphics()
 //{

@@ -78,7 +78,6 @@ struct Vertex
 //vector of lights - this will be sent to the uniform 
 std::vector<LIGHT_DATA> lbo;
 
-//holds the textureID for the skybox
-unsigned int CubeMapTexture;
+
 
 

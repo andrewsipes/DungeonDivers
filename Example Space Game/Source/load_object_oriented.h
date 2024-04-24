@@ -76,6 +76,9 @@ public:
 	GLuint fragmentShader;
 	GLuint shaderExecutable;
 
+	//holds the textureID for the skybox
+	unsigned int CubeMapTexture;
+
 	inline void SetName(std::string modelName) {
 		name = modelName;
 	}

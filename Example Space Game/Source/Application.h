@@ -31,7 +31,7 @@ class Application
 	GW::SYSTEM::GWindow win; // gateware multi-platform window
 	GW::GRAPHICS::GOpenGLSurface ogl; // gateware openGL API wrapper
 	GW::INPUT::GController gamePads; // controller support
-	GW::INPUT::GInput immediateInput; // twitch keybaord/mouse
+	GW::INPUT::GInput gInput; // twitch keybaord/mouse
 	GW::INPUT::GBufferedInput bufferedInput; // event keyboard/mouse
 	GW::AUDIO::GAudio audioEngine; // can create music & sound effects
 	std::map<std::string, GW::AUDIO::GMusic> musicTracks;
@@ -56,7 +56,7 @@ class Application
 	// EventGenerator for Game Events
 	GW::CORE::GEventGenerator eventPusher;
 
-	//bool leftMouse;
+	bool leftMouse;
 
 public:
 	bool running;

@@ -296,43 +296,52 @@ public:
 			float cameraPositionZ = -totalZChange * perFrameSpeed;
 			float cameraPositionX = totalXChange * perFrameSpeed;
 
-		//GW::MATH::GMatrix::IdentityF(rotationMatrix);
-		GW::MATH::GMatrix::InverseF(viewMatrix, rotationMatrix);
+			//GW::MATH::GMatrix::IdentityF(rotationMatrix);
+			GW::MATH::GMatrix::InverseF(viewMatrix, rotationMatrix);
 
-		//check if mouse value is redundant - if so do nothing
-		if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
-		{
-			// do nothing
+			//check if mouse value is redundant - if so do nothing
+			if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
+			{
+				// do nothing
 
-			//gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
+				//gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
 
-			gMatrixProxy.RotateXLocalF(rotationMatrix, -pitch, rotationMatrix);
-			gMatrixProxy.RotateYGlobalF(rotationMatrix, -yaw, rotationMatrix);
-		}
+				gMatrixProxy.RotateXLocalF(rotationMatrix, -pitch, rotationMatrix);
+				gMatrixProxy.RotateYGlobalF(rotationMatrix, -yaw, rotationMatrix);
+			}
 
-		//if value is redundant, set mouseX and mouseY to zero to prevent drift
-		else
-		{
-			mouseX = 0;
-			mouseY = 0;
-		}
+			//if value is redundant, set mouseX and mouseY to zero to prevent drift
+			else
+			{
+				mouseX = 0;
+				mouseY = 0;
+			}
 
-		//Translation vector
-		GW::MATH::GVECTORF cameraTranslationVector = { cameraPositionX, cameraPositionY, cameraPositionZ, 1.0f };
+			//Translation vector
+			GW::MATH::GVECTORF cameraTranslationVector = { cameraPositionX, cameraPositionY, cameraPositionZ, 1.0f };
 
-		//apply translation to the camera
-		gMatrixProxy.TranslateLocalF(rotationMatrix, cameraTranslationVector, rotationMatrix);
+			//apply translation to the camera
+			gMatrixProxy.TranslateLocalF(rotationMatrix, cameraTranslationVector, rotationMatrix);
 
 			//apply rotation 
 			//gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
 	
 		}
-		else 
+		else // not freecam
 		{
-			gMatrixProxy.InverseF(cameraMatrix, cameraMatrix);
-			gMatrixProxy.IdentityF(cameraMatrix);
-			auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ 1.826, 13.327, 1.267, 1 }, GW::MATH::GVECTORF{ 1.826, 12.327, 1.2671, 1 }, GW::MATH::GVECTORF{ 0, 1, 0, 0 }, cameraMatrix);
-			gMatrixProxy.InverseF(cameraMatrix, cameraMatrix);
+
+			for each (Model m in lvl->allObjectsInLevel)
+			{
+				if (m.name == "Bee")
+				{
+					gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
+					gMatrixProxy.IdentityF(rotationMatrix);
+					auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y + 10, m.world.row4.z, 1 }, 
+													GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y, m.world.row4.z + .0001f, 1 },
+													GW::MATH::GVECTORF{ 0, 1, 0, 0 }, rotationMatrix);
+					gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
+				}
+			}
 		}
 		//get view matrix
 		gMatrixProxy.InverseF(rotationMatrix, viewMatrix);

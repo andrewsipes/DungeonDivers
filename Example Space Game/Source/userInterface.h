@@ -856,8 +856,8 @@ public:
 class playerUi : public uiPanel {
 
 public:
-	uiModel* levelText, * startText, * pauseText, * levelCompleteText, *enemyText, *treasureText;
-	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, enemyDigit1, enemyDigit2, treasureDigit;
+	uiModel* levelText, * startText,* levelCompleteText, *enemyText, *treasureText, *scoreText, *highScoreText;
+	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, highScoreDigit1, highScoreDigit2, highScoreDigit3, highScoreDigit4, enemyDigit1, enemyDigit2, treasureDigit;
 
 	userButton* button;
 
@@ -868,6 +868,52 @@ public:
 	playerUi(GameConfig& _gameConfig) {
 		gameConfig = &_gameConfig;
 		render = false;
+	}
+
+	//updates Score UI
+	void updateHUDHighScore(int highscore) {
+
+		//prevents score from going too high
+		if (highscore > 9999)
+		{
+			highscore = 9999;
+		}
+
+		int num = highscore;
+		int digit;
+		int displayScore[4] = { 0,0,0,0 }; //zero until filled
+		int iter = 3;
+
+		//toggle all digits off
+		for (uiModel* digit : highScoreDigit1) {
+			digit->render = false;
+		}
+		for (uiModel* digit : highScoreDigit2) {
+			digit->render = false;
+		}
+		for (uiModel* digit : highScoreDigit3) {
+			digit->render = false;
+		}
+		for (uiModel* digit : highScoreDigit4) {
+			digit->render = false;
+		}
+
+
+		//Loop that takes the int that was passed in and seperates by digit
+		while (num > 0) {
+			digit = num % 10;				//get the digit by using mod
+			displayScore[iter] = digit;		//update an array so we have the right values
+			num /= 10;						//remove the last digit
+
+			iter--;
+		}
+
+		//Used the extracted values to update score
+		highScoreDigit4[displayScore[3]]->toggleRender();
+		highScoreDigit3[displayScore[2]]->toggleRender();
+		highScoreDigit2[displayScore[1]]->toggleRender();
+		highScoreDigit1[displayScore[0]]->toggleRender();
+
 	}
 
 	//updates Score UI
@@ -1004,12 +1050,13 @@ public:
 	void assign() override {
 
 		//text
+		scoreText = &allUiObjects[91];
+		highScoreText = &allUiObjects[132];
 		levelText = &allUiObjects[8];
-		pauseText = &allUiObjects[9];
-		startText = &allUiObjects[10];
-		levelCompleteText = &allUiObjects[11];
-		enemyText = &allUiObjects[62];
-		treasureText = &allUiObjects[63];
+		startText = &allUiObjects[9];
+		levelCompleteText = &allUiObjects[10];
+		enemyText = &allUiObjects[133];
+		treasureText = &allUiObjects[134];
 
 
 		//assign hearts
@@ -1019,56 +1066,72 @@ public:
 
 		//assign level digit numbers
 		for (int i = 0; i < 10; i++) {
-			levelDigit.push_back(&allUiObjects[i + 12]);
+			levelDigit.push_back(&allUiObjects[i + 11]);
 		}
 
 		//assign score digit numbers
 		for (int i = 0; i < 10; i++) {
-			scoreDigit1.push_back(&allUiObjects[i + 22]);
+			scoreDigit1.push_back(&allUiObjects[i + 21]);
 		}
 
 		//assign score digit numbers
 		for (int i = 0; i < 10; i++) {
-			scoreDigit2.push_back(&allUiObjects[i + 32]);
+			scoreDigit2.push_back(&allUiObjects[i + 31]);
 		}
 
 		//assign score digit numbers
 		for (int i = 0; i < 10; i++) {
-			scoreDigit3.push_back(&allUiObjects[i + 42]);
+			scoreDigit3.push_back(&allUiObjects[i + 41]);
 		}
 
 		//assign score digit numbers
 		for (int i = 0; i < 10; i++) {
-			scoreDigit4.push_back(&allUiObjects[i + 52]);
+			scoreDigit4.push_back(&allUiObjects[i + 51]);
 		}
 
 		//assign enemy text numbers
 		for (int i = 0; i < 10; i++) {
-			enemyDigit1.push_back(&allUiObjects[i + 64]);
+			enemyDigit1.push_back(&allUiObjects[i + 61]);
 		}
 
 		//assign enemy text numbers
 		for (int i = 0; i < 10; i++) {
-			enemyDigit2.push_back(&allUiObjects[i + 84]);
+			enemyDigit2.push_back(&allUiObjects[i + 81]);
 		}
 
 
 		//assign treasure text numbers
 		for (int i = 0; i < 10; i++) {
-			treasureDigit.push_back(&allUiObjects[i + 74]);
+			treasureDigit.push_back(&allUiObjects[i + 71]);
 		}
 
+		for (int i = 0; i < 10; i++) {
+			highScoreDigit1.push_back(&allUiObjects[i + 92]);
+		}
+
+		for (int i = 0; i < 10; i++) {
+			highScoreDigit2.push_back(&allUiObjects[i + 102]);
+		}
+
+		for (int i = 0; i < 10; i++) {
+			highScoreDigit3.push_back(&allUiObjects[i + 112]);
+		}
+
+		for (int i = 0; i < 10; i++) {
+			highScoreDigit4.push_back(&allUiObjects[i + 122]);
+		}
 	}
 
 	//updates the vertices for the player HUD to be in their correct positions
 	void arrange() override {
 
 		levelText->loadDefaults();
-		pauseText->loadDefaults();
 		startText->loadDefaults();
 		levelCompleteText->loadDefaults();
 		enemyText->loadDefaults();
 		treasureText->loadDefaults();
+		scoreText->loadDefaults();
+		highScoreText->loadDefaults();
 
 		for (uiModel* heart : hearts) {
 			heart->loadDefaults();
@@ -1104,6 +1167,24 @@ public:
 		for (uiModel* digit : treasureDigit) {
 			digit->loadDefaults();
 		}
+
+
+		for (uiModel* digit : highScoreDigit1) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : highScoreDigit2) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : highScoreDigit3) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : highScoreDigit4) {
+			digit->loadDefaults();
+		}
+
 	}
 
 	//turns default playerHUD on
@@ -1112,15 +1193,17 @@ public:
 		//Set Default values
 		updateHUDHearts(gameConfig->at("Player1").at("hearts").as<int>());
 		updateHUDScore(gameConfig->at("Player1").at("score").as<int>());
+		updateHUDHighScore(gameConfig->at("Player1").at("highscore").as<int>());;
 		levelText->toggleRender();
 		levelDigit[0]->toggleRender();
 		enemyText->toggleRender();
 		treasureText->toggleRender();
 		treasureDigit[0]->toggleRender();
+		highScoreText->toggleRender();
+		scoreText->toggleRender();
 
 		updateEnemies(15, -1);
 		updateTreasure(3, -2);
-
 	}
 };
 

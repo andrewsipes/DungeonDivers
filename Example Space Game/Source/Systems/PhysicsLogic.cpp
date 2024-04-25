@@ -60,13 +60,13 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 				};
 				GW::MATH::GVECTORF boundary[8]; <<---- equivalent to the above*/
 
-				constexpr GW::MATH::GVECTORF square[boxSize] =
-				{
-					{ -1.0f, -1.0f, -1.0f }, // Bottom-back-left corner
-					{ 1.0f, -1.0f, -1.0f },  // Bottom-back-right corner
-					{ 1.0f, 1.0f, -1.0f },   // Top-back-right corner
-					{ -1.0f, 1.0f, -1.0f }   // Top-back-left corner
-				};
+				//constexpr GW::MATH::GVECTORF square[boxSize] =
+				//{
+				//	{ -1.0f, -1.0f, -1.0f }, // Bottom-back-left corner
+				//	{ 1.0f, -1.0f, -1.0f },  // Bottom-back-right corner
+				//	{ 1.0f, 1.0f, -1.0f },   // Top-back-right corner
+				//	{ -1.0f, 1.0f, -1.0f }   // Top-back-left corner
+				//};
 
 				std::cout << queryCache.count() << std::endl;
 
@@ -105,7 +105,7 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 							polygon.poly[i].y = v.y;
 						}*/
 
-						for (int i = 0; i < boxSize; ++i)
+						/*for (int i = 0; i < boxSize; ++i)
 						{
 							GW::MATH::GVECTORF v = { square[i].x, square[i].y, 1 };
 							std::cout << "Original Point " << i << ": (" << v.x << ", " << v.y << ", " << v.z << ")" << std::endl;
@@ -115,7 +115,7 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 
 							box.boundingBox[i].x = v.x;
 							box.boundingBox[i].y = v.y;
-						}
+						}*/
 
 						/*for (int i = 0; i < 8; i++)
 						{

@@ -42,7 +42,7 @@ bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 
 
 				GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
-				auto e = game->lookup("Bee");
+				auto e = game->lookup("Floor_Modular_Cube.058");
 				ESG::World* edit = game->entity(e).get_mut<ESG::World>();
 				GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
 				//std::cout << "X: " << e.get<ESG::World>()->value.row4.x << "Y: " << e.get<ESG::World>()->value.row4.z << std::endl;

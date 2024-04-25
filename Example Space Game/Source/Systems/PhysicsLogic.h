@@ -28,6 +28,7 @@ namespace ESG
 		{
 			GW::MATH::GOBBF obby;
 			flecs::entity owner;
+			std::string name;
 			// Modify the polygon array to store 3D points
 			GW::MATH::GVECTORF boundingBox[boxSize];
 		};

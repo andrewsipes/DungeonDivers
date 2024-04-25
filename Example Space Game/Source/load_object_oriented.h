@@ -96,6 +96,7 @@ public:
 		out.extent.x = std::fabsf(boundary[0].x - boundary[6].x) * 0.5f;
 		out.extent.y = std::fabsf(boundary[0].y - boundary[6].y) * 0.5f;
 		out.extent.z = std::fabsf(boundary[0].z - boundary[6].z) * 0.5f;
+		GW::MATH::GMatrix::GetRotationF(world, out.rotation);
 		return out;
 	}
 
@@ -807,7 +808,7 @@ public:
 			// Add debug output to verify OBBs are being added
 			std::cout << "OBB added for entity: " << i.name << std::endl;
 
-			if (i.name == "Bee")
+			if (i.name == "Floor_Modular_Cube.058")
 			{
 				e.add<ESG::Player>();
 			}

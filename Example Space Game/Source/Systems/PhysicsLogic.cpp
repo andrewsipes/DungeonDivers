@@ -94,6 +94,8 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 						GW::MATH2D::GCollision2D::GCollisionCheck2D result;
 						GW::MATH2D::GCollision2D::TestPolygonToPolygon2F(testCache[i].poly, polysize, testCache[j].poly, polysize, result);
 
+
+
 						if (result == GW::MATH2D::GCollision2D::GCollisionCheck2D::COLLISION)
 						{
 							// Create an ECS relationship between the colliders

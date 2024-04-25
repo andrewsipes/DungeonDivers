@@ -30,57 +30,24 @@ bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 	float speed = (*readCfg).at("Player1").at("speed").as<float>();
 	chargeTime = (*readCfg).at("Player1").at("chargeTime").as<float>();
 
-	// add logic for updating players
-	playerSystem = game->system<Player, Position, ControllerID>("Player System")
-		.iter([this, speed](flecs::iter it, Player*, Position* p, ControllerID* c) 
-	{
-		for (auto i : it) 
+	playerSystem = game->system<ESG::Player>("Player Move System")
+		.iter([this, speed](flecs::iter it, ESG::Player*)
 		{
-			// left-right movement
-			float xaxis = 0, input = 0, zaxis = 0;
-			// Use the controller/keyboard to move the player around the screen			
-			if (c[i].index == 0) { // enable keyboard controls for player 1
-				immediateInput.GetState(G_KEY_A, input); xaxis -= input;
-				immediateInput.GetState(G_KEY_D, input); xaxis += input;
-				immediateInput.GetState(G_KEY_S, input); zaxis -= input;
-				immediateInput.GetState(G_KEY_W, input); zaxis += input;
-			}
+				float xaxis = 0, input = 0, zaxis = 0;
+				GW::INPUT::GInput t = immediateInput;
+				t.GetState(G_KEY_A, input); xaxis -= input;
+				t.GetState(G_KEY_D, input); xaxis += input;
+				t.GetState(G_KEY_S, input); zaxis -= input;
+				t.GetState(G_KEY_W, input); zaxis += input;
 
-			// grab left-thumb stick
-			controllerInput.GetState(c[i].index, G_LX_AXIS, input); xaxis += input;
-			controllerInput.GetState(c[i].index, G_LY_AXIS, input); zaxis += input;
-			controllerInput.GetState(c[i].index, G_DPAD_LEFT_BTN, input); xaxis -= input;
-			controllerInput.GetState(c[i].index, G_DPAD_RIGHT_BTN, input); xaxis += input;
-			controllerInput.GetState(c[i].index, G_DPAD_DOWN_BTN, input); zaxis -= input;
-			controllerInput.GetState(c[i].index, G_DPAD_UP_BTN, input); zaxis += input;
 
-			xaxis = G_LARGER(xaxis, -1);// cap right motion
-			xaxis = G_SMALLER(xaxis, 1);// cap left motion
-			zaxis = G_LARGER(zaxis, -1);
-			zaxis = G_SMALLER(zaxis, 1);
+				GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
+				auto e = game->lookup("Bee");
+				ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+				GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+				//std::cout << "X: " << e.get<ESG::World>()->value.row4.x << "Y: " << e.get<ESG::World>()->value.row4.z << std::endl;
+		});
 
-			// apply movement
-			p[i].value.x += xaxis * it.delta_time() * speed;
-			p[i].value.y += zaxis * it.delta_time() * speed;
-
-			// limit the player to stay within -1 to +1 NDC
-			p[i].value.x = G_LARGER(p[i].value.x, -0.8f);
-			p[i].value.x = G_SMALLER(p[i].value.x, +0.8f);
-			p[i].value.y = G_LARGER(p[i].value.y, -0.8f);
-			p[i].value.y = G_SMALLER(p[i].value.y, 0.8f);
-
-			// fire weapon if they are in a firing state
-			if (it.entity(i).has<Firing>()) 
-			{
-				Position offset = p[i];
-				offset.value.y += 0.05f;
-				FireLasers(it.world(), offset);
-				it.entity(i).remove<Firing>();
-			}
-		}
-		// process any cached button events after the loop (happens multiple times per frame)
-		ProcessInputEvents(it.world());
-	});
 
 	// Create an event cache for when the spacebar/'A' button is pressed
 	pressEvents.Create(Max_Frame_Events); // even 32 is probably overkill for one frame

@@ -29,8 +29,8 @@ bool Application::Init()
 	//	return false;
 	if (InitEntities() == false)
 		return false;
-	//if (InitSystems() == false)
-	//	return false;
+	if (InitSystems() == false)
+		return false;
 	return true;
 }
 
@@ -84,7 +84,7 @@ bool Application::Run()
 	log.Create("output.txt");
 	auto lvl = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	lvl->LoadMeshes("../GameLevel3.txt", "../Models/ModelsLevel3", log.Relinquish());
 	lvl->AddEntities(lvl, game);
 	lvl->AddSystems(lvl, game, gameConfig, immediateInput, bufferedInput, gamePads, audioEngine, eventPusher);
 
@@ -104,7 +104,7 @@ bool Application::Run()
 
 		while (+win.ProcessWindowEvents() && running == true)
 		{
-			//rendererManager.UpdateLevel(*lvl);
+			lvl->Update(game, lvl);
 			GameLoop();
 			glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
@@ -308,46 +308,25 @@ bool Application::InitEntities()
 	return true;
 }
 
-//bool Application::InitSystems()
-//{
-//	// connect systems to global ECS
-//	if (playerSystem.Init(	game, gameConfig, immediateInput, bufferedInput,
-//							gamePads, audioEngine, eventPusher) == false)
-//		return false;
-//	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
-//		return false;
-//	if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
-//		return false;
-//	if (physicsSystem.Init(game, gameConfig) == false)
-//		return false;
-//	if (bulletSystem.Init(game, gameConfig) == false)
-//		return false;
-//	if (enemySystem.Init(game, gameConfig, eventPusher) == false)
-//		return false;
-//
-//	return true;
-//}
+bool Application::InitSystems()
+{
+	// connect systems to global ECS
+	if (playerSystem.Init(	game, gameConfig, immediateInput, bufferedInput,
+							gamePads, audioEngine, eventPusher) == false)
+		return false;
+	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
+		return false;
+	/*if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
+		return false;*/
+	if (physicsSystem.Init(game, gameConfig) == false)
+		return false;
+	if (bulletSystem.Init(game, gameConfig) == false)
+		return false;
+	/*if (enemySystem.Init(game, gameConfig, eventPusher) == false)
+		return false;*/
 
-	//void Application::AddEntities(Level_Objects& lvl)
-	//{
-	//	for (auto& i : lvl.allObjectsInLevel)
-	//	{
-	//		auto e = game->entity(i.name);
-	//		e.set<ESG::Name>({ i.name });
-	//
-	//
-	//	}
-	//	int count = 0;
-	//	auto f = game->filter<ESG::Name>();
-	//
-	//	f.each([&count](ESG::Name& n)
-	//		{
-	//			count++;
-	//		}
-	//	);
-	//
-	//	std::cout << count << std::endl;
-	//}
+	return true;
+}
 
 bool Application::GameLoop()
 {

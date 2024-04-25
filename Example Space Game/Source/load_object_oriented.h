@@ -551,7 +551,6 @@ public:
 				log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
 				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
 				newModel.SetWorldMatrix(transform);
-
 				// If we find and load it - add it to the level
 				if (newModel.LoadModelDataFromDisk(modelFile.c_str()))
 				{
@@ -741,7 +740,20 @@ public:
 	void UnloadLevel() {
 		allObjectsInLevel.clear();
 	}
+	void Update(std::shared_ptr<flecs::world> game, std::shared_ptr<Level_Objects> level)
+	{
+		for each (Model m in level->allObjectsInLevel)
+		{
+			auto entity = game->lookup(m.name.c_str());
+			auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
+			if (found != level->allObjectsInLevel.end())
+			{
+				size_t index = found - level->allObjectsInLevel.begin();
+				level->allObjectsInLevel[index].world = entity.get<ESG::World>()->value;
+			}
+		}
+	}
 	void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::world> game)
 	{
 		for each (Model i in Level->allObjectsInLevel)
@@ -751,11 +763,10 @@ public:
 			e.set<ESG::World>({ i.world });
 			//e.set<ESG::BoundingBox>({ i.gob });
 
-			if (i.name == "Chest_Gold")
+			if (i.name == "Bee")
 			{
 				e.add<ESG::Player>();
 			}
-
 		}
 	}
 
@@ -776,134 +787,152 @@ public:
 		float speed = (*readCfg).at("Player1").at("speed").as<float>();
 		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
 
-		playerSystem = game->system<ESG::Player, ESG::World>("Player Move System")
-			.iter([immediateInput, game, level, speed](flecs::iter it, ESG::Player*, ESG::World* p)
-				{
-					float xaxis = 0, input = 0, zaxis = 0;
-		GW::INPUT::GInput t = immediateInput;
-		t.GetState(G_KEY_A, input); xaxis -= input;
-		t.GetState(G_KEY_D, input); xaxis += input;
-		t.GetState(G_KEY_S, input); zaxis -= input;
-		t.GetState(G_KEY_W, input); zaxis += input;
+		//playerSystem = game->system<ESG::Player>("Player Move System")
+		//	.iter([immediateInput, game, level, speed](flecs::iter it, ESG::Player*)
+		//		{
+		//			float xaxis = 0, input = 0, zaxis = 0;
+		//			GW::INPUT::GInput t = immediateInput;
+		//			t.GetState(G_KEY_A, input); xaxis -= input;
+		//			t.GetState(G_KEY_D, input); xaxis += input;
+		//			t.GetState(G_KEY_S, input); zaxis -= input;
+		//			t.GetState(G_KEY_W, input); zaxis += input;
 
 
-		GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
+		//			GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
 
-		auto e = game->lookup("Chest_Gold");
-		ESG::World* edit = game->entity(e).get_mut<ESG::World>();
-		GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
-		int index = 0;
-		for each (Model m in level->allObjectsInLevel)
-		{
-			if (m.name == "Chest_Gold")
+		//			auto e = game->lookup("Bee");
+		//			ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+		//			GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+		//			std::cout << "X: " << e.get<ESG::World>()->value.row4.x << "Y: " << e.get<ESG::World>()->value.row4.z << std::endl;
+		//			/*int index = 0;
+		//			for each (Model m in level->allObjectsInLevel)
+		//			{
+		//				if (m.name == "Bee")
+		//				{
+		//					level->allObjectsInLevel[index].world = edit->value;
+		//					break;
+		//				}
+		//				index++;
+		//			}*/
+		//	});
+
+		flecs::system playerShootSystem = game->system<ESG::Player>("Player Shoot System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*)
 			{
-				level->allObjectsInLevel[index].world = edit->value;
-				break;
-			}
-			index++;
-		}
-				});
-
-		flecs::system playerShootSystem = game->system<ESG::Player, ESG::World>("Player Shoot System")
-			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*, ESG::World* w)
-			{
-				float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
-
-				GW::INPUT::GInput t = immediateInput;
-				t.GetState(G_KEY_UP, input); shootUp += input;
-				t.GetState(G_KEY_DOWN, input); shootDown += input;
-				t.GetState(G_KEY_LEFT, input); shootLeft += input;
-				t.GetState(G_KEY_RIGHT, input); shootRight += input;
-
-				int shootState = 0;
-
-				if (shootUp > 0)
-					shootState = 1;
-				if (shootLeft > 0)
-					shootState = 2;
-				if (shootRight > 0)
-					shootState = 3;
-				if (shootDown > 0)
-					shootState = 4;
-
-				int index = 0;
-				Model modelToDupe;
-				for each (Model m in level->allObjectsInLevel)
-				{
-					if (m.name == "Torch")
+					for (auto i : it)
 					{
-						modelToDupe = m;
-						break;
+						float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
+
+						GW::INPUT::GInput t = immediateInput;
+						t.GetState(G_KEY_UP, input); shootUp += input;
+						t.GetState(G_KEY_DOWN, input); shootDown += input;
+						t.GetState(G_KEY_LEFT, input); shootLeft += input;
+						t.GetState(G_KEY_RIGHT, input); shootRight += input;
+
+						int shootState = 0;
+
+						if (shootUp > 0)
+							shootState = 1;
+						if (shootLeft > 0)
+							shootState = 2;
+						if (shootRight > 0)
+							shootState = 3;
+						if (shootDown > 0)
+							shootState = 4;
+
+						int index = 0;
+						Model modelToDupe;
+						GW::MATH::GMATRIXF world{};
+						for each (Model m in level->allObjectsInLevel)
+						{
+							if (m.name == "Bee")
+							{
+								modelToDupe = m;
+								world = m.world;
+								break;
+							}
+							index++;
+						}
+
+						std::string count;
+						auto f = game->filter<ESG::CountBullet>();
+						count = std::to_string(f.count());
+						/*std::cout << count << std::endl;*/
+						switch (shootState)
+						{
+						case 1:
+						{	
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<ESG::CountBullet>();
+
+							modelToDupe.world = world;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<ESG::World>({ world });
+							e.set<ESG::Name>({ modelToDupe.name });
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
+							e.add<ESG::Bullet>();
+
+							break;
+						}
+
+						case 2:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<ESG::CountBullet>();
+
+							modelToDupe.world = world;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<ESG::World>({ world });
+							e.set<ESG::Name>({ modelToDupe.name });
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{-bullSpeed, 0, 0 } });
+							e.add<ESG::Bullet>();
+							break;
+						}
+
+						case 3:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<ESG::CountBullet>();
+
+							modelToDupe.world = world;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<ESG::World>({ world });
+							e.set<ESG::Name>({ modelToDupe.name });
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+							e.add<ESG::Bullet>();
+							break;
+						}
+
+						case 4:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<ESG::CountBullet>();
+
+							modelToDupe.world = world;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<ESG::World>({ world });
+							e.set<ESG::Name>({ modelToDupe.name });
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, -bullSpeed } });
+							e.add<ESG::Bullet>();
+							break;
+						}
+
+						case 0:
+							break;
+						}
 					}
-					index++;
-				}
-				
-				int count = 0;
-				auto f = game->filter<ESG::Bullet>();
-				count = f.count();
-				/*std::cout << count << std::endl;*/
-				switch (shootState)
-				{
-				case 1:
-				{
-					modelToDupe.world = w->value;
-					modelToDupe.name += std::to_string(count);
-					level->allObjectsInLevel.push_back(modelToDupe);
-					auto e = game->entity(modelToDupe.name.c_str());
-					e.set<Models>({ modelToDupe });
-					e.set<ESG::World>({ w->value });
-					e.set<ESG::Name>({ modelToDupe.name });
-					e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
-					e.add<ESG::Bullet>();
-
-					break;
-				}
-
-				case 2:
-				{
-					modelToDupe.world = w->value;
-					modelToDupe.name += std::to_string(count);
-					level->allObjectsInLevel.push_back(modelToDupe);
-					auto e = game->entity(modelToDupe.name.c_str());
-					e.set<Models>({ modelToDupe });
-					e.set<ESG::World>({ w->value });
-					e.set<ESG::Name>({ modelToDupe.name });
-					e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{-bullSpeed, 0, 0 } });
-					e.add<ESG::Bullet>();
-					break;
-				}
-
-				case 3:
-				{
-					modelToDupe.world = w->value;
-					modelToDupe.name += std::to_string(count);
-					level->allObjectsInLevel.push_back(modelToDupe);
-					auto e = game->entity(modelToDupe.name.c_str());
-					e.set<Models>({ modelToDupe });
-					e.set<ESG::World>({ w->value });
-					e.set<ESG::Name>({ modelToDupe.name });
-					e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-					e.add<ESG::Bullet>();
-					break;
-				}
-
-				case 4:
-				{
-					modelToDupe.world = w->value;
-					modelToDupe.name += std::to_string(count);
-					level->allObjectsInLevel.push_back(modelToDupe);
-					auto e = game->entity(modelToDupe.name.c_str());
-					e.set<Models>({ modelToDupe });
-					e.set<ESG::World>({ w->value });
-					e.set<ESG::Name>({ modelToDupe.name });
-					e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, -bullSpeed } });
-					e.add<ESG::Bullet>();
-					break;
-				}
-
-				case 0:
-					break;
-				}
 			});
 
 

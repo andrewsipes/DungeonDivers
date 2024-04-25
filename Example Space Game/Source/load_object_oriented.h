@@ -2,7 +2,7 @@
 #include "./stb_image.h"
 #include "./OpenGLExtensions.h"
 #include "./defines.h"
-#include "../Source/Components/Identification.h"
+//#include "../Source/Systems/PhysicsLogic.h"
 
 //Depth of UI rendering
 #define userButtonTextDepth 0.0f
@@ -49,7 +49,7 @@ MessageCallback(GLenum source, GLenum type, GLuint id,
 #endif
 
 // class Model contains everyhting needed to draw a single 3D model
-class Model 
+class Model
 {
 public:
 
@@ -78,25 +78,18 @@ public:
 	std::string modelFile; // path to .h2b file
 
 	// *NEW* object aligned bounding box data: // LBN, LTN, LTF, LBF, RBN, RTN, RTF, RBF
-	GW::MATH2D::GVECTOR3F boundary[8];
-	mutable std::vector<std::string> blenderNames; // *NEW* names from blender
-	mutable std::vector<GW::MATH::GMATRIXF> instances; // where to draw
+	GW::MATH::GVECTORF boundary[8];
 	GW::MATH::GOBBF obb;
-	bool operator<(const Model& other) const 
-	{
-		return this->modelFile < other.modelFile;
-	}
 
 	// *NEW* converts the vec3 boundries to an OBB
-	GW::MATH::GOBBF ComputeOBB() const 
+	GW::MATH::GOBBF ComputeOBB() const
 	{
-		GW::MATH::GOBBF out = 
+		GW::MATH::GOBBF out =
 		{
 			GW::MATH::GIdentityVectorF,
 			GW::MATH::GIdentityVectorF,
 			GW::MATH::GIdentityQuaternionF // initally unrotated (local space)
 		};
-
 		out.center.x = (boundary[0].x + boundary[6].x) * 0.5f;
 		out.center.y = (boundary[0].y + boundary[6].y) * 0.5f;
 		out.center.z = (boundary[0].z + boundary[6].z) * 0.5f;
@@ -114,7 +107,7 @@ public:
 		world = worldMatrix;
 	}
 
-	bool LoadModelDataFromDisk(const char* h2bPath) 
+	bool LoadModelDataFromDisk(const char* h2bPath)
 	{
 		// if this succeeds "cpuModel" should now contain all the model's info
 		return cpuModel.Parse(h2bPath);
@@ -124,7 +117,6 @@ public:
 		// TODO: Use chosen API to upload this model's graphics data to GPU
 		lbo = updateLights(_lights);
 		ubo = updateUboInstance(cpuModel.materials[0], _camera, _view, _projection, _sLight);
-		ComputeOBB();
 		InitializeGraphics();
 
 		if (name == "skyBox")
@@ -132,14 +124,13 @@ public:
 
 		if (obb.extent.x != GW::MATH::GIdentityVectorF.x ||
 			obb.extent.y != GW::MATH::GIdentityVectorF.y ||
-			obb.extent.z != GW::MATH::GIdentityVectorF.z) 
+			obb.extent.z != GW::MATH::GIdentityVectorF.z)
 		{
 			std::cout << "Bounding box added successfully for model: " << name << std::endl;
 		}
 		else {
 			std::cerr << "Failed to add bounding box for model: " << name << std::endl;
 		}
-
 
 		return true;
 	}
@@ -457,11 +448,6 @@ public:
 	}
 };
 
-//struct TransformedComponent
-//{
-//	GW::MATH::GVECTORF position; //pos of the entity
-//};
-
 // class Level_Objects is simply a list of all the Models currently used by the level
 class Level_Objects
 {
@@ -556,7 +542,7 @@ public:
 					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
 				log.LogCategorized("INFO", loc.c_str());
 
-				for (int i = 0; i < 8; ++i) 
+				for (int i = 0; i < 8; ++i)
 				{
 					file.ReadLine(linebuffer, 1024, '\n');
 					// read floats
@@ -577,13 +563,17 @@ public:
 				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
 				newModel.SetWorldMatrix(transform);
 
+				newModel.obb = newModel.ComputeOBB();
+
 				// If we find and load it add it to the level
-				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
+				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) 
+				{
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
 					allObjectsInLevel.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
-				else {
+				else 
+				{
 					// notify user that a model file is missing but continue loading
 					log.LogCategorized("ERROR",
 						(std::string("H2B Not Found: ") + modelFile).c_str());
@@ -786,59 +776,32 @@ public:
 		allObjectsInLevel.clear();
 	}
 
-	//std::vector<TransformedComponent> entityPos;
-
 	// Define the CheckCollision function
-	static bool CheckCollision(const GW::MATH::GOBBF& obb1, const GW::MATH::GOBBF& obb2)
-	{
-		// SAT: Check for overlap along each axis of the OBBs
-		for (int i = 0; i < 3; ++i) {
-			// Calculate the axis of separation for the first OBB
-			GW::MATH::GVECTORF axis1 = obb1.data[i];
-
-			// Calculate the projection of both OBBs onto the axis
-			float proj1 = fabsf(axis1.x * obb1.extent.x + axis1.y * obb1.extent.y + axis1.z * obb1.extent.z);
-			float proj2 = fabsf(axis1.x * obb2.extent.x + axis1.y * obb2.extent.y + axis1.z * obb2.extent.z);
-
-			// Calculate the overlap on this axis
-			float overlap = fabsf(axis1.x * (obb1.center.x - obb2.center.x) +
-				axis1.y * (obb1.center.y - obb2.center.y) +
-				axis1.z * (obb1.center.z - obb2.center.z));
-			float total = proj1 + proj2;
-
-			// If the overlap is greater than the total projected length, there's a separation
-			if (overlap >= total)
-			{
-				//std::cout << "No collision detected on Axis " << i << std::endl;
-				return false;
-			}
-		}
-
-		// If no separation on any axis, then the OBBs are colliding
-		std::cout << "Collision detected!" << std::endl;
-		return true;
-	}
-
-	// Define the HandleCollision function
-	//void HandleCollisions(std::shared_ptr<Level_Objects> level)
+	//static bool CheckCollision(const GW::MATH::GOBBF& obb1, const GW::MATH::GOBBF& obb2)
 	//{
-	//	// Iterate over each entity
-	//	for (const auto& entity1 : level->allObjectsInLevel)
+	//	// SAT: Check for overlap along each axis of the OBBs
+	//	for (int i = 0; i < 3; ++i)
 	//	{
-	//		// Get the OBB of the first entity
-	//		const GW::MATH::GOBBF& obb1 = entity1.ComputeOBB();
-	//		// Iterate over all other entities
-	//		for (const auto& entity2 : level->allObjectsInLevel)
+	//		// Calculate the axis of separation for the first OBB
+	//		GW::MATH::GVECTORF axis1 = obb1.data[i];
+	//		// Calculate the projection of both OBBs onto the axis
+	//		float proj1 = fabsf(axis1.x * obb1.extent.x + axis1.y * obb1.extent.y + axis1.z * obb1.extent.z);
+	//		float proj2 = fabsf(axis1.x * obb2.extent.x + axis1.y * obb2.extent.y + axis1.z * obb2.extent.z);
+	//		// Calculate the overlap on this axis
+	//		float overlap = fabsf(axis1.x * (obb1.center.x - obb2.center.x) +
+	//			axis1.y * (obb1.center.y - obb2.center.y) +
+	//			axis1.z * (obb1.center.z - obb2.center.z));
+	//		float total = proj1 + proj2;
+	//		// If the overlap is greater than the total projected length, there's a separation
+	//		if (overlap >= total)
 	//		{
-	//			// Skip self-collision and already handled pairs
-	//			if (&entity1 == &entity2)
-	//			{
-	//				continue;
-	//			}
-	//			// Get the OBB of the second entity
-	//			const GW::MATH::GOBBF& obb2 = entity2.ComputeOBB();
+	//			//std::cout << "No collision detected on Axis " << i << std::endl;
+	//			return false;
 	//		}
 	//	}
+	//	// If no separation on any axis, then the OBBs are colliding
+	//	std::cout << "Collision detected!" << std::endl;
+	//	return true;
 	//}
 
 	void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::world> game)
@@ -856,24 +819,6 @@ public:
 			if (i.name == "Chest_Gold")
 			{
 				e.add<ESG::Player>();
-			}
-
-			if (i.name == "Floor Modular")
-			{
-				e.add<ESG::Floor>();
-				std::cout << "Floor entity tagged " << i.name << std::endl;
-			}
-
-			if (i.name == "Wall Modular" || i.name == "Arch")
-			{
-				e.add<ESG::Wall>();
-				std::cout << "Wall entity tagged " << i.name << std::endl;
-			}
-
-			if (i.name == "Torch" || i.name == "Arch Door")
-			{
-				e.add<ESG::Stationary>();
-				std::cout << "Stationary entity tagged " << i.name << std::endl;
 			}
 		}
 	}
@@ -920,47 +865,25 @@ public:
 					}
 				});
 
-		flecs::system CollisionSystem;
+		//flecs::system CollisionSystem;
 
-		// Create the collision detection system
-		CollisionSystem = game->system<ESG::Collidable>("Collision Detection System")
-			.each([level](flecs::entity e, ESG::Collidable& box1)
-				{
-					// Iterate over all other entities
-					//for (auto& entity2 : level->allObjectsInLevel)
-					//{
-					//	// Get the OBB of the other entity
-					//	const GW::MATH::GOBBF& obb2 = entity2.ComputeOBB();
-
-					//	// Check for collision using the static member function CheckCollision
-					//	if (Level_Objects::CheckCollision(box1.obb, obb2))
-					//	{
-					//		// Collision detected, handle it here
-					//		// For example:
-					//		std::cout << "Collision detected between box1 and " << entity2.name << std::endl;
-					//	}
-					//}
-
-					// Iterate over all objects in the level
-					for (size_t index = 0; index < level->allObjectsInLevel.size(); ++index)
-					{
-						auto& entity2 = level->allObjectsInLevel[index];
-
-						// Check if entity2 is the player entity
-						if (entity2.name == "Chest_Gold")
-						{
-							// Get the OBB of the player entity
-							const GW::MATH::GOBBF& obb2 = entity2.ComputeOBB();
-
-							// Check for collision between box1 and the player entity
-							if (Level_Objects::CheckCollision(box1.obb, obb2))
-							{
-								// Collision detected, handle it here
-								std::cout << "Collision detected between box1 and the player" << std::endl;
-							}
-						}
-					}
-				});
+		//// Create the collision detection system
+		//CollisionSystem = game->system<ESG::Collidable>("Collision Detection System")
+		//	.each([level](flecs::entity e, ESG::Collidable& entity1)
+		//		{
+		//			// Iterate over all other entities
+		//			for (auto& entity2 : level->allObjectsInLevel)
+		//			{
+		//				// Get the OBB of the other entity
+		//				const GW::MATH::GOBBF& obb2 = entity2.ComputeOBB();
+		//				// Check for collision using the static member function CheckCollision
+		//				if (Level_Objects::CheckCollision(entity1.obb, obb2))
+		//				{
+		//					// Collision detected, handle it here
+		//					std::cout << "Collision detected " << e.get<ESG::Name>()->name << " with " << entity2.name << std::endl;
+		//				}
+		//			}
+		//		});
 
 		flecs::system playerShootSystem = game->system<ESG::Player, ESG::World>("Player Shoot System")
 			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*, ESG::World* p)

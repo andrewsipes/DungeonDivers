@@ -73,9 +73,7 @@ bool ESG::LevelLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 		gameLock.UnlockSyncWrite();
 	});
 
-	// Load and play level one's music
-	currentTrack.Create("../Music/Evil_Lair.wav", audioEngine, 0.15f);
-	currentTrack.Play(false);
+	
 
 	return true;
 }

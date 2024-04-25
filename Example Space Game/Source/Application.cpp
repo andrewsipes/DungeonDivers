@@ -29,8 +29,8 @@ bool Application::Init()
 	//	return false;
 	if (InitEntities() == false)
 		return false;
-	//if (InitSystems() == false)
-	//	return false;
+	if (InitSystems() == false)
+		return false;
 	return true;
 }
 
@@ -84,7 +84,7 @@ bool Application::Run()
 	log.Create("output.txt");
 	auto lvl = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	lvl->LoadMeshes("../MainMenuTestwBox.txt", "../Models/MainMenuModels", log.Relinquish());
+	lvl->LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish());
 	lvl->AddEntities(lvl, game);
 	lvl->AddSystems(lvl, game, gameConfig, immediateInput, bufferedInput, gamePads, audioEngine, eventPusher);
 
@@ -308,25 +308,25 @@ bool Application::InitEntities()
 	return true;
 }
 
-//bool Application::InitSystems()
-//{
-//	// connect systems to global ECS
-//	if (playerSystem.Init(	game, gameConfig, immediateInput, bufferedInput,
-//							gamePads, audioEngine, eventPusher) == false)
-//		return false;
-//	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
-//		return false;
-//	if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
-//		return false;
-//	if (physicsSystem.Init(game, gameConfig) == false)
-//		return false;
-//	if (bulletSystem.Init(game, gameConfig) == false)
-//		return false;
-//	if (enemySystem.Init(game, gameConfig, eventPusher) == false)
-//		return false;
-//
-//	return true;
-//}
+bool Application::InitSystems()
+{
+	// connect systems to global ECS
+	if (playerSystem.Init(	game, gameConfig, immediateInput, bufferedInput,
+							gamePads, audioEngine, eventPusher) == false)
+		return false;
+	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
+		return false;
+	//if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
+		//return false;
+	if (physicsSystem.Init(game, gameConfig) == false)
+		return false;
+	if (bulletSystem.Init(game, gameConfig) == false)
+		return false;
+	//if (enemySystem.Init(game, gameConfig, eventPusher) == false)
+		//return false;
+
+	return true;
+}
 
 	//void Application::AddEntities(Level_Objects& lvl)
 	//{

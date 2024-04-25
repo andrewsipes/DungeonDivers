@@ -18,15 +18,18 @@ namespace ESG
 		std::weak_ptr<const GameConfig> gameConfig;
 
 		// used to cache collision queries
-		flecs::query<Collidable, Position, Orientation> queryCache;
+		//flecs::query<Collidable, World> queryCache;
+		flecs::query<Collidable, World> queryCache;
 
 		// defines what to be tested
-		static constexpr unsigned polysize = 4;
+		static constexpr unsigned boxSize = 4;
 
 		struct SHAPE 
 		{
-			GW::MATH2D::GVECTOR2F poly[polysize];
+			GW::MATH::GOBBF obby;
 			flecs::entity owner;
+			// Modify the polygon array to store 3D points
+			GW::MATH::GVECTORF boundingBox[boxSize];
 		};
 
 		// vector used to save/cache all active collidables

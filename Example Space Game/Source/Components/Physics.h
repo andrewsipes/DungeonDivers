@@ -14,15 +14,10 @@ namespace ESG
 
 	struct World { GW::MATH::GMATRIXF value; };
 	struct BulletVel { GW::MATH::GVECTORF value; };
-	//struct BoundingBox { GW::MATH::GOBBF obb; };
-
-	struct Wall {};
-	struct Floor {};
-	struct Stationary {};
+	struct State { GW::MATH::GVECTORF value; };
 
 	// Individual TAGs
 	struct Collidable { GW::MATH::GOBBF obb; };
-	//struct Collidable {};
 
 	// ECS Relationship tags
 	struct CollidedWith {};

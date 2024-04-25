@@ -56,6 +56,8 @@ class Application
 	// EventGenerator for Game Events
 	GW::CORE::GEventGenerator eventPusher;
 
+	//bool leftMouse;
+
 public:
 	bool running;
 	bool Init();

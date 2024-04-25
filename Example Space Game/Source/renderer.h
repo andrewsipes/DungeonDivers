@@ -2,19 +2,15 @@
 #include "./userInterface.h"
 #include <chrono>
 
-//LAMBDA FUNCTIONS
-//Place all Ui Related button calls here for now
-
-
 // Creation, Rendering & Cleanup
 class RendererManager
 {
 	// proxy handles
 	GW::SYSTEM::GWindow win;
 	GW::GRAPHICS::GOpenGLSurface ogl;
-	GW::MATH::GMatrix gMatrixProxy;
-	GW::INPUT::GInput gInput;
+	GW::MATH::GMatrix gMatrixProxy;	
 	GW::INPUT::GController gController;
+	GW::INPUT::GInput gInput;
 
 	//for camera
 	bool reset = false;
@@ -60,6 +56,7 @@ public:
 	{
 		
 		//passed arguments for initializing
+		//gInput = &_gInput;
 		gameConfig = &_gameConfig;
 		win = _win;
 		ogl = _ogl;
@@ -97,8 +94,8 @@ public:
 
 		////PANELS/////
 		//pauseMenu->toggleRender();
-		//mainMenuHUD->toggleRender();
-		playerHUD->toggleRender();
+		mainMenuHUD->toggleRender();
+		//playerHUD->toggleRender();
 		//treasureMenu->toggleRender();
 		//controlsMenu->toggleRender();
 	
@@ -375,14 +372,14 @@ public:
 		//MAINMENU
 		if (mainMenuHUD->render) {
 
-			if (!leftMouse && mainMenuHUD->controlsButton->HandleControlsMenuButton(gInput)) {
+			if (!leftMouse && mainMenuHUD->controlsButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
 				isMainMenuRendered = true;
 				controlsMenu->render = true;
 				mainMenuHUD->render = false;
 
 			}
-	
+
 			mainMenuHUD->startButton->HandleInput(mainMenuHUD->startButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			mainMenuHUD->exitButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 		}
@@ -390,7 +387,7 @@ public:
 		//PAUSEMENU
 		else if (pauseMenu->render){
 
-			if (!leftMouse && pauseMenu->controlsPauseMenuButton->HandleControlsMenuButton(gInput)) {
+			if (!leftMouse && pauseMenu->controlsPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
 				
 				isPauseMenuRendered = true;
 				controlsMenu->render = true;
@@ -407,7 +404,7 @@ public:
 		//CONTROLSMENU
 		else if (controlsMenu->render){
 
-			if (!leftMouse && controlsMenu->exitControlsMenuButton->HandleControlsMenuButton(gInput)) {
+			if (!leftMouse && controlsMenu->exitControlsMenuButton->HandleInputLeftMouseButton(gInput)) {
 
 				leftMouse = true;
 				controlsMenu->render = false;
@@ -500,6 +497,12 @@ public:
 		}
 
 		eventHandling();
+	}
+
+	//swaps the level in render manager
+	void changeLevel(Level_Objects& level) {
+		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		lvl = &level;
 	}
 
 	~RendererManager() {

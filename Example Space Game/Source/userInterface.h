@@ -545,7 +545,7 @@ public:
 	}
 
 	//Special method for tracking Left Button Press, Only for Controls Menu logic at the moment
-	bool HandleControlsMenuButton(GW::INPUT::GInput gInput) {
+	bool HandleInputLeftMouseButton(GW::INPUT::GInput gInput) {
 
 		float mouseX, mouseY;
 		float screenWidth = gameConfig->at("Window").at("width").as<int>();

@@ -507,14 +507,13 @@ private:
 	GW::MATH::GVECTORF sunLightAmbient;
 	GW::MATH::GVECTORF cameraForward;
 
-	//light Vectors,
+	//light Vectors
 	std::vector<LIGHT_DATA> LIGHTDATA;	//this vector uses the structure for lighting in the lbo, we use this to hold the necessary data until moved
 	std::vector<Light> lights;			//this vector will show all the data pulled from the textfile
 
 public:
-	//std::vector<Model> allObjectsInLevel;
-
 	std::vector<Model> allObjectsInLevel;
+
 	// Imports the default level txt format and creates a Model from each .h2b
 	bool virtual LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log) {
 		//light stuff RGBA

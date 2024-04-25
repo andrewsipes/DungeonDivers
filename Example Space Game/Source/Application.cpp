@@ -82,9 +82,12 @@ bool Application::Run() {
 	GW::SYSTEM::GLog log;
 	log.Create("output.txt");
 	auto lvl = std::make_shared<Level_Objects>();
+	auto lvl2 = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	//lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-	bool levelSuccess = lvl->LoadMeshes("../Level2.txt", "../Models/Level2Models", log.Relinquish());
+
+	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	lvl2->LoadMeshes("../Level2.txt", "../Models/Level2Models", log.Relinquish());
+
 	Level_Objects& Level = *lvl;
 
 	PlayerStats player(*gameConfig); //track player data
@@ -119,6 +122,8 @@ bool Application::Run() {
 		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		{
 			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
+
+			immediateInput.Create(win);
 			RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
 
 			#ifdef NDEBUG
@@ -138,8 +143,55 @@ bool Application::Run() {
 					}
 				#endif
 
-				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());			
 				rendererManager.Render();
+				
+				////event Handling for the mainMenu - starts the game
+				//if (rendererManager.mainMenuHUD->render) {
+
+				//	rendererManager.mainMenuHUD->controlsButton->HandleInputLeftMouseButton(immediateInput);
+				//	leftMouse = true;
+				//	rendererManager.mainMenuHUD->toggleRender();
+				//	rendererManager.changeLevel(*lvl2);
+
+				//}
+
+				////Return Left Mouse state for re-use
+				//else if ((leftMouse) && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
+				//	leftMouse = false;
+				//}
+
+				////LEVEL SWAP: Currently works by using 0 or 1
+				//{
+				//	//use these to determine if flag is read
+				//	bool zero = false, one = false;
+
+				//	//Main Menu
+				//	if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
+				//		zero = true;
+
+				//		rendererManager.changeLevel(*lvl);
+
+				//	}
+
+				//	else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+				//		zero = false;
+				//	}
+
+				//	//Level1
+				//	if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
+				//		one = true;
+
+				//		rendererManager.changeLevel(*lvl2);
+
+				//	}
+
+				//	else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+				//		one = false;
+				//	}
+				//}
+
+
 				ogl.UniversalSwapBuffers();
 
 

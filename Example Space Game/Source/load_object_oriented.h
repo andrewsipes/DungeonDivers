@@ -2,7 +2,7 @@
 #include "./stb_image.h"
 #include "./OpenGLExtensions.h"
 #include "./defines.h"
-#include "../Source/Components/Identification.h"
+//#include "../Source/Systems/PhysicsLogic.h"
 
 //Depth of UI rendering
 #define userButtonTextDepth 0.0f
@@ -49,7 +49,8 @@ MessageCallback(GLenum source, GLenum type, GLuint id,
 #endif
 
 // class Model contains everyhting needed to draw a single 3D model
-class Model {
+class Model
+{
 public:
 	
 	// Name of the Model in the GameLevel (useful for debugging)
@@ -60,7 +61,6 @@ public:
 
 	// Shader variables needed by this model.
 	GW::MATH::GMATRIXF world;
-	GW::MATH::GOBBF gob;
 
 	//cube stuff
 	std::string skyBox = "";
@@ -75,23 +75,27 @@ public:
 	GLuint fragmentShader;
 	GLuint shaderExecutable;
 
-	GW::MATH2D::GVECTOR3F boundry[8];
+	std::string modelFile; // path to .h2b file
+
+	// *NEW* object aligned bounding box data: // LBN, LTN, LTF, LBF, RBN, RTN, RTF, RBF
+	GW::MATH::GVECTORF boundary[8];
+	GW::MATH::GOBBF obb;
 
 	// *NEW* converts the vec3 boundries to an OBB
-	GW::MATH::GOBBF ComputeOBB() const 
+	GW::MATH::GOBBF ComputeOBB() const
 	{
-		GW::MATH::GOBBF out = 
+		GW::MATH::GOBBF out =
 		{
 			GW::MATH::GIdentityVectorF,
 			GW::MATH::GIdentityVectorF,
 			GW::MATH::GIdentityQuaternionF // initally unrotated (local space)
 		};
-		out.center.x = (boundry[0].x + boundry[6].x) * 0.5f;
-		out.center.y = (boundry[0].y + boundry[6].y) * 0.5f;
-		out.center.z = (boundry[0].z + boundry[6].z) * 0.5f;
-		out.extent.x = std::fabsf(boundry[0].x - boundry[6].x) * 0.5f;
-		out.extent.y = std::fabsf(boundry[0].y - boundry[6].y) * 0.5f;
-		out.extent.z = std::fabsf(boundry[0].z - boundry[6].z) * 0.5f;
+		out.center.x = (boundary[0].x + boundary[6].x) * 0.5f;
+		out.center.y = (boundary[0].y + boundary[6].y) * 0.5f;
+		out.center.z = (boundary[0].z + boundary[6].z) * 0.5f;
+		out.extent.x = std::fabsf(boundary[0].x - boundary[6].x) * 0.5f;
+		out.extent.y = std::fabsf(boundary[0].y - boundary[6].y) * 0.5f;
+		out.extent.z = std::fabsf(boundary[0].z - boundary[6].z) * 0.5f;
 		return out;
 	}
 
@@ -103,11 +107,13 @@ public:
 	inline void SetName(std::string modelName) {
 		name = modelName;
 	}
+
 	inline void SetWorldMatrix(GW::MATH::GMATRIXF worldMatrix) {
 		world = worldMatrix;
 	}
 
-	bool LoadModelDataFromDisk(const char* h2bPath) {
+	bool LoadModelDataFromDisk(const char* h2bPath)
+	{
 		// if this succeeds "cpuModel" should now contain all the model's info
 		return cpuModel.Parse(h2bPath);
 	}
@@ -116,11 +122,20 @@ public:
 		// TODO: Use chosen API to upload this model's graphics data to GPU
 		lbo = updateLights(_lights);
 		ubo = updateUboInstance(cpuModel.materials[0], _camera, _view, _projection, _sLight);
-
 		InitializeGraphics();
 
 		if (name == "skyBox")
 			createCubeMap(skyBox);  //credits to learnOpenGL for the skybox image https://learnopengl.com/Advanced-OpenGL/Cubemaps
+
+		if (obb.extent.x != GW::MATH::GIdentityVectorF.x ||
+			obb.extent.y != GW::MATH::GIdentityVectorF.y ||
+			obb.extent.z != GW::MATH::GIdentityVectorF.z)
+		{
+			std::cout << "Bounding box added successfully for model: " << name << std::endl;
+		}
+		else {
+			std::cerr << "Failed to add bounding box for model: " << name << std::endl;
+		}
 
 		return true;
 	}
@@ -348,6 +363,7 @@ public:
 		glBindBuffer(GL_UNIFORM_BUFFER, lightBufferObject);
 		glBufferData(GL_UNIFORM_BUFFER, sizeInBytes, data, GL_DYNAMIC_DRAW);
 	}
+
 	void updateLightBufferObject(const std::vector <LIGHT_DATA>& _lights) {
 		glBindBuffer(GL_UNIFORM_BUFFER, lightBufferObject);
 		lbo = _lights;
@@ -499,6 +515,7 @@ public:
 			{
 				Model newModel;
 				//Model add = { linebuffer };
+				//std::string blendName = linebuffer; //ADDED *NEW*
 				file.ReadLine(linebuffer, 1024, '\n');
 				log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
 				// create the model file name from this (strip the .001)
@@ -530,41 +547,66 @@ public:
 					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
 				log.LogCategorized("INFO", loc.c_str());
 
-				// *NEW* finally read in the boundry data for this model
-				//for (int i = 0; i < 8; ++i) 
-				//{
-				//	file.ReadLine(linebuffer, 1024, '\n');
-				//	// read floats
-				//	std::sscanf(linebuffer + 9, "%f, %f, %f",
-				//		&add.boundry[i].x, &add.boundry[i].y, &add.boundry[i].z);
-				//}
-				//std::string bounds = "Boundry: Left ";
-				//bounds += std::to_string(add.boundry[0].x) +
-				//	" Right " + std::to_string(add.boundry[6].x) +
-				//	" Bottom " + std::to_string(add.boundry[0].y) +
-				//	" Top " + std::to_string(add.boundry[6].y) +
-				//	" Near " + std::to_string(add.boundry[0].z) +
-				//	" Far " + std::to_string(add.boundry[6].z);
-				//log.LogCategorized("INFO", bounds.c_str());
+				for (int i = 0; i < 8; ++i)
+				{
+					file.ReadLine(linebuffer, 1024, '\n');
+					// read floats
+					std::sscanf(linebuffer + 9, "%f, %f, %f",
+						&newModel.boundary[i].x, &newModel.boundary[i].y, &newModel.boundary[i].z);
+				}
+				std::string bounds = "Boundary: Left ";
+				bounds += std::to_string(newModel.boundary[0].x) +
+					" Right " + std::to_string(newModel.boundary[6].x) +
+					" Bottom " + std::to_string(newModel.boundary[0].y) +
+					" Top " + std::to_string(newModel.boundary[6].y) +
+					" Near " + std::to_string(newModel.boundary[0].z) +
+					" Far " + std::to_string(newModel.boundary[6].z);
+				log.LogCategorized("INFO", bounds.c_str());
 
 				// Add new model to list of all Models
 				log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
 				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
 				newModel.SetWorldMatrix(transform);
-				// If we find and load it - add it to the level
-				if (newModel.LoadModelDataFromDisk(modelFile.c_str()))
+
+				newModel.obb = newModel.ComputeOBB();
+
+				// If we find and load it add it to the level
+				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) 
 				{
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
 					allObjectsInLevel.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
-				else
+				else 
 				{
 					// notify user that a model file is missing but continue loading
 					log.LogCategorized("ERROR",
 						(std::string("H2B Not Found: ") + modelFile).c_str());
 					log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
 				}
+
+				// If we find and load it - add it to the level
+				//if (newModel.LoadModelDataFromDisk(modelFile.c_str()))
+				//{
+				//	// Check if the model already exists in allObjectsInLevel
+				//	auto found = std::find_if(allObjectsInLevel.begin(), allObjectsInLevel.end(), [&](const Model& model)
+				//	{
+				//			return !(model < newModel) && !(newModel < model); // Equivalent to model == newModel
+				//	});
+				//	if (found == allObjectsInLevel.end()) // Model doesn't exist
+				//	{
+				//		// Add the blenderName to newModel
+				//		newModel.blenderNames.push_back(std::move(modelFile));
+				//		// Add newModel to allObjectsInLevel
+				//		allObjectsInLevel.push_back(std::move(newModel));
+				//		log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
+				//	}
+				//	else
+				//	{
+				//		// Model already exists, so just update its blenderNames
+				//		found->blenderNames.push_back(std::move(modelFile));
+				//	}
+				//}
 				log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
 			}
 
@@ -591,7 +633,6 @@ public:
 
 				else if (std::strcmp(linebuffer, "SPOT") == 0) {
 					light.SetType("SPOT");
-
 				}
 
 				log.LogCategorized("INFO", (std::string("LIGHT TYPE: ") + linebuffer).c_str());
@@ -686,7 +727,6 @@ public:
 		}
 
 		//Now we copy the data we can send to the shader to a seperate vector (for lights)
-
 		if (lights.size() > 16)
 		{
 			log.LogCategorized("ERROR", "You have more lights in the level than are currently supported. Only the first 16 will be supported");
@@ -754,6 +794,7 @@ public:
 			}
 		}
 	}
+
 	void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::world> game)
 	{
 		for each (Model i in Level->allObjectsInLevel)
@@ -761,7 +802,10 @@ public:
 			auto e = game->entity(i.name.c_str());
 			e.set<ESG::Name>({ i.name });
 			e.set<ESG::World>({ i.world });
-			//e.set<ESG::BoundingBox>({ i.gob });
+			e.set<ESG::Collidable>({ i.obb });
+
+			// Add debug output to verify OBBs are being added
+			std::cout << "OBB added for entity: " << i.name << std::endl;
 
 			if (i.name == "Bee")
 			{
@@ -782,39 +826,9 @@ public:
 		struct Models { Model mod; };
 		flecs::system playerSystem;
 
-
 		std::shared_ptr<const GameConfig> readCfg = gameConfig.lock();
 		float speed = (*readCfg).at("Player1").at("speed").as<float>();
 		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
-
-		//playerSystem = game->system<ESG::Player>("Player Move System")
-		//	.iter([immediateInput, game, level, speed](flecs::iter it, ESG::Player*)
-		//		{
-		//			float xaxis = 0, input = 0, zaxis = 0;
-		//			GW::INPUT::GInput t = immediateInput;
-		//			t.GetState(G_KEY_A, input); xaxis -= input;
-		//			t.GetState(G_KEY_D, input); xaxis += input;
-		//			t.GetState(G_KEY_S, input); zaxis -= input;
-		//			t.GetState(G_KEY_W, input); zaxis += input;
-
-
-		//			GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
-
-		//			auto e = game->lookup("Bee");
-		//			ESG::World* edit = game->entity(e).get_mut<ESG::World>();
-		//			GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
-		//			std::cout << "X: " << e.get<ESG::World>()->value.row4.x << "Y: " << e.get<ESG::World>()->value.row4.z << std::endl;
-		//			/*int index = 0;
-		//			for each (Model m in level->allObjectsInLevel)
-		//			{
-		//				if (m.name == "Bee")
-		//				{
-		//					level->allObjectsInLevel[index].world = edit->value;
-		//					break;
-		//				}
-		//				index++;
-		//			}*/
-		//	});
 
 		flecs::system playerShootSystem = game->system<ESG::Player>("Player Shoot System")
 			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*)
@@ -959,8 +973,7 @@ public:
 	}
 };
 
-
-	// *THIS APPROACH COMBINES DATA & LOGIC*
-	// *WITH THIS APPROACH THE CURRENT RENDERER SHOULD BE JUST AN API MANAGER CLASS*
-	// *ALL ACTUAL GPU LOADING AND RENDERING SHOULD BE HANDLED BY THE MODEL CLASS*
-	// For example: anything that is not a global API object should be encapsulated.
+// *THIS APPROACH COMBINES DATA & LOGIC*
+// *WITH THIS APPROACH THE CURRENT RENDERER SHOULD BE JUST AN API MANAGER CLASS*
+// *ALL ACTUAL GPU LOADING AND RENDERING SHOULD BE HANDLED BY THE MODEL CLASS*
+// For example: anything that is not a global API object should be encapsulated.

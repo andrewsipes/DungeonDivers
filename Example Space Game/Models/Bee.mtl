@@ -1,4 +1,4 @@
-# Blender 4.0.2 MTL File: 'bee.blend'
+# Blender 4.0.2 MTL File: 'Level.blend'
 # www.blender.org
 
 newmtl Eyes
@@ -11,7 +11,7 @@ Ni 1.000000
 d 1.000000
 illum 2
 
-newmtl Main
+newmtl Main.001
 Ns 250.000000
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.578599 0.173389

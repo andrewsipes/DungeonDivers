@@ -328,8 +328,9 @@ bool Application::LoadAudioResources()
 	{
 		return false;
 	}
-
+#ifndef NDEBUG
 	std::cout << "All music and sfx loaded!" << std::endl;
+#endif
 	return true;
 }
 

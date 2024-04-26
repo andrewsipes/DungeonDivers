@@ -213,11 +213,15 @@ public:
 			obb.extent.y != GW::MATH::GIdentityVectorF.y ||
 			obb.extent.z != GW::MATH::GIdentityVectorF.z)
 		{
+#ifndef NDEBUG
 			std::cout << "Bounding box added successfully for model: " << name << std::endl;
+#endif
 		}
+#ifndef NDEBUG
 		else {
 			std::cerr << "Failed to add bounding box for model: " << name << std::endl;
 		}
+#endif
 
 		return true;
 	}

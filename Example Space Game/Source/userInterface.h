@@ -1493,7 +1493,6 @@ public:
 	uiModel* gameOverOverlay;
 	userButton* gameOverText, *youWinText, *highScoreText, *scoreText, * exitGameOverButton, *restartGameOverButton;
 	std::vector<userButton*> scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, highScoreDigit1, highScoreDigit2, highScoreDigit3, highScoreDigit4;
-
 	std::vector <std::vector<userButton*>*> buttonsVector;
 
 	gameOverUi() {
@@ -1565,46 +1564,11 @@ public:
 		gameOverOverlay->loadDefaults();
 
 		for (std::vector<userButton*>* buttonVector : buttonsVector) {
-
-			for (userButton* digit : *buttonVector)
-			{
+			for (userButton* digit : *buttonVector)	{
 				digit->loadDefaults();
 			}
 
 		}
-
-		//for (userButton* digit : scoreDigit1) {
-		//	digit->loadDefaults();
-		//}
-
-		//for (userButton* digit : scoreDigit2) {
-		//	digit->loadDefaults();
-		//}
-
-		//for (userButton* digit : scoreDigit3) {
-		//	digit->loadDefaults();
-		//}
-
-		//for (userButton* digit : scoreDigit4) {
-		//	digit->loadDefaults();
-		//}
-
-
-		//for (userButton* digit : highScoreDigit1) {
-		//	digit->loadDefaults();
-		//}
-
-		//for (userButton* digit : highScoreDigit2) {
-		//	digit->loadDefaults();
-		//}
-
-		//for (userButton* digit : highScoreDigit3) {
-		//	digit->loadDefaults();
-		//}
-
-		//for (userButton* digit : highScoreDigit4) {
-		//	digit->loadDefaults();
-		//}
 
 		for (userButton& _button : allUiButtonObjects) {
 			for (buttonText& _text : allUiButtonTextObjects) {
@@ -1619,6 +1583,7 @@ public:
 	void start() override {
 		
 		gameOverText->toggleRender();
+		//youWinText->toggleRender();
 		gameOverOverlay->toggleRender();
 		highScoreText->toggleRender();
 		scoreText->toggleRender();
@@ -1647,45 +1612,6 @@ public:
 
 				}
 			}
-		/*	for (userButton* digit : scoreDigit1) {
-				if(digit->render)
-					digit->DrawDigitModel(_camera, _view, _proj);
-			}
-
-			for (userButton* digit : scoreDigit2) {
-				if (digit->render)
-					digit->DrawDigitModel(_camera, _view, _proj);
-			}
-
-			for (userButton* digit : scoreDigit3) {
-				if (digit->render)
-					digit->DrawDigitModel(_camera, _view, _proj);
-			}
-
-			for (userButton* digit : scoreDigit4) {
-				if (digit->render)
-					digit->DrawDigitModel(_camera, _view, _proj);
-			}
-
-			for (userButton* digit : highScoreDigit1) {
-				if (digit->render)
-					digit->DrawDigitModel(_camera, _view, _proj);
-			}
-
-			for (userButton* digit : highScoreDigit2) {
-				if (digit->render)
-					digit->DrawDigitModel(_camera, _view, _proj);
-			}
-
-			for (userButton* digit : highScoreDigit3) {
-				if (digit->render)
-					digit->DrawDigitModel(_camera, _view, _proj);
-			}
-
-			for (userButton* digit : highScoreDigit4) {
-				if (digit->render)
-					digit->DrawDigitModel(_camera, _view, _proj);
-			}*/
 
 			for (auto& f : allUiButtonObjects) {
 				if (f.render) {

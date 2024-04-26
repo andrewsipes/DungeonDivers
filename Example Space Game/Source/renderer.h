@@ -503,10 +503,6 @@ public:
 			
 		}
 
-		
-
-	
-
 	}
 
 	//Render Loop for all objects (place Panels and Levels here);

@@ -1222,7 +1222,9 @@ public:
 		//Set Default values
 		updateHUDHearts(gameConfig->at("Player1").at("hearts").as<int>());
 		updateHUDScore(gameConfig->at("Player1").at("score").as<int>());
-		updateHUDHighScore(gameConfig->at("Player1").at("highscore").as<int>());;
+		updateHUDHighScore(gameConfig->at("Player1").at("highscore").as<int>());
+		enemyDigit1[0]->toggleRender();
+		enemyDigit2[0]->toggleRender();
 		levelText->toggleRender();
 		levelDigit[0]->toggleRender();
 		enemyText->toggleRender();

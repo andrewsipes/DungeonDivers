@@ -129,6 +129,7 @@ bool Application::Run() {
 				if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 					leftMouse = true;
 					rendererManager.mainMenuHUD->toggleRender();
+					rendererManager.playerHUD->toggleRender();
 					rendererManager.changeLevel(*lvl2);
 				}
 

@@ -97,11 +97,11 @@ public:
 
 		////PANELS/////
 		//pauseMenu->toggleRender();
-		//mainMenuHUD->toggleRender();
+		mainMenuHUD->toggleRender();
 		//playerHUD->toggleRender();
 		//treasureMenu->toggleRender();
 		//controlsMenu->toggleRender();
-		gameOverMenu->toggleRender();
+		//gameOverMenu->toggleRender();
 	
 		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 

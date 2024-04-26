@@ -1201,9 +1201,6 @@ public:
 		treasureDigit[0]->toggleRender();
 		highScoreText->toggleRender();
 		scoreText->toggleRender();
-
-		updateEnemies(15, -1);
-		updateTreasure(3, -2);
 	}
 };
 
@@ -1459,6 +1456,242 @@ public:
 			}
 		}
 	}
+};
+
+class gameOverUi : public uiPanel {
+
+public:
+	uiModel* gameOverOverlay;
+	userButton* gameOverText, *youWinText, *highScoreText, *scoreText, * exitGameOverButton, *restartGameOverButton;
+	std::vector<uiModel*> scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, highScoreDigit1, highScoreDigit2, highScoreDigit3, highScoreDigit4;
+
+	gameOverUi() {
+		render = false;
+	}
+
+	gameOverUi(GameConfig& _gameConfig) {
+		gameConfig = &_gameConfig;
+		render = false;
+	}
+
+	void assign() override {
+
+		gameOverOverlay = &allUiObjects[0];
+		scoreText = &allUiButtonObjects[5];
+		highScoreText = &allUiButtonObjects[4];
+		youWinText = &allUiButtonObjects[0];
+		restartGameOverButton = &allUiButtonObjects[1];
+		gameOverText = &allUiButtonObjects[2];
+		exitGameOverButton = &allUiButtonObjects[3];
+
+		for (int i = 0; i < 10; i++) {
+			scoreDigit1.push_back(&allUiObjects[i + 1]);
+		}
+
+		for (int i = 0; i < 10; i++) {
+			scoreDigit2.push_back(&allUiObjects[i + 11]);
+		}
+
+
+		for (int i = 0; i < 10; i++) {
+			scoreDigit3.push_back(&allUiObjects[i + 21]);
+		}
+
+		for (int i = 0; i < 10; i++) {
+			scoreDigit4.push_back(&allUiObjects[i + 31]);
+		}
+
+		for (int i = 0; i < 10; i++) {
+			highScoreDigit1.push_back(&allUiObjects[i + 41]);
+		}
+
+		for (int i = 0; i < 10; i++) {
+			highScoreDigit2.push_back(&allUiObjects[i + 51]);
+		}
+
+		for (int i = 0; i < 10; i++) {
+			highScoreDigit3.push_back(&allUiObjects[i + 61]);
+		}
+
+		for (int i = 0; i < 10; i++) {
+			highScoreDigit4.push_back(&allUiObjects[i + 71]);
+		}
+	
+
+	}
+
+	void arrange() override {
+		
+		gameOverOverlay->loadDefaults();
+
+		for (uiModel* digit : scoreDigit1) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : scoreDigit2) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : scoreDigit3) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : scoreDigit4) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : highScoreDigit1) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : highScoreDigit2) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : highScoreDigit3) {
+			digit->loadDefaults();
+		}
+
+		for (uiModel* digit : highScoreDigit4) {
+			digit->loadDefaults();
+		}
+
+		for (userButton& _button : allUiButtonObjects) {
+			for (buttonText& _text : allUiButtonTextObjects) {
+				if (_text.name.find(_button.name) != std::string::npos) {
+					_button.text = &_text;
+					_button.loadDefaults();
+				}
+			}
+		}
+	}
+
+	void start() override {
+		
+		gameOverText->toggleRender();
+		gameOverOverlay->toggleRender();
+		highScoreText->toggleRender();
+		scoreText->toggleRender();
+		restartGameOverButton->toggleRender();
+		exitGameOverButton->toggleRender();
+
+		updateHUDScore(1000);
+		updateHUDHighScore(1000);
+	
+	}
+
+	// Draws all objects in the level
+	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj) {
+
+		// iterate over each model and tell it to draw itself
+		if (render) {
+			for (auto& e : allUiObjects) {
+				if (e.render)
+					e.DrawModel(_camera, _view, _proj, e.alpha);
+			}
+
+			for (auto& f : allUiButtonObjects) {
+				if (f.render) {
+					f.DrawModel(_camera, _view, _proj, f.alpha);
+					f.text->DrawModel(_camera, _view, _proj, f.text->alpha);
+				}
+			}
+		}
+	}
+
+	//updates Score UI
+	void updateHUDHighScore(int highscore) {
+
+		//prevents score from going too high
+		if (highscore > 9999)
+		{
+			highscore = 9999;
+		}
+
+		int num = highscore;
+		int digit;
+		int displayScore[4] = { 0,0,0,0 }; //zero until filled
+		int iter = 3;
+
+		//toggle all digits off
+		for (uiModel* digit : highScoreDigit1) {
+			digit->render = false;
+		}
+		for (uiModel* digit : highScoreDigit2) {
+			digit->render = false;
+		}
+		for (uiModel* digit : highScoreDigit3) {
+			digit->render = false;
+		}
+		for (uiModel* digit : highScoreDigit4) {
+			digit->render = false;
+		}
+
+
+		//Loop that takes the int that was passed in and seperates by digit
+		while (num > 0) {
+			digit = num % 10;				//get the digit by using mod
+			displayScore[iter] = digit;		//update an array so we have the right values
+			num /= 10;						//remove the last digit
+
+			iter--;
+		}
+
+		//Used the extracted values to update score
+		highScoreDigit4[displayScore[3]]->toggleRender();
+		highScoreDigit3[displayScore[2]]->toggleRender();
+		highScoreDigit2[displayScore[1]]->toggleRender();
+		highScoreDigit1[displayScore[0]]->toggleRender();
+
+	}
+
+	//updates Score UI
+	void updateHUDScore(int score) {
+
+		//prevents score from going too high
+		if (score > 9999)
+		{
+			score = 9999;
+		}
+
+		int num = score;
+		int digit;
+		int displayScore[4] = { 0,0,0,0 }; //zero until filled
+		int iter = 3;
+
+		//toggle all digits off
+		for (uiModel* digit : scoreDigit1) {
+			digit->render = false;
+		}
+		for (uiModel* digit : scoreDigit2) {
+			digit->render = false;
+		}
+		for (uiModel* digit : scoreDigit3) {
+			digit->render = false;
+		}
+		for (uiModel* digit : scoreDigit4) {
+			digit->render = false;
+		}
+
+
+		//Loop that takes the int that was passed in and seperates by digit
+		while (num > 0) {
+			digit = num % 10;				//get the digit by using mod
+			displayScore[iter] = digit;		//update an array so we have the right values
+			num /= 10;						//remove the last digit
+
+			iter--;
+		}
+
+		//Used the extracted values to update score
+		scoreDigit4[displayScore[3]]->toggleRender();
+		scoreDigit3[displayScore[2]]->toggleRender();
+		scoreDigit2[displayScore[1]]->toggleRender();
+		scoreDigit1[displayScore[0]]->toggleRender();
+
+	}
+
+
 };
 
 //Stops Rendering specific Model 

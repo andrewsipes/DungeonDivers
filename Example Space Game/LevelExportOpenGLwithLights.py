@@ -37,17 +37,17 @@ def print_heir(ob, levels=10):
             if ob.name == 'skyBox' and ob.get("CubeMap") is not None:
                 file.write(spaces + ob.get("CubeMap") + "\n")
                 
-            # swap from blender space to vulkan/d3d 
-            # { rx, ry, rz, 0 } to { rx, rz, ry, 0 }  
-            # { ux, uy, uz, 0 }    { ux, uz, uy, 0 }
-            # { lx, ly, lz, 0 }    { lx, lz, ly, 0 } 
-            # { px, py, pz, 1 }    { px, pz, py, 1 }  
+             # Swap from Blender space to OpenGL RH
             row_world = ob.matrix_world.transposed()
             converted = mathutils.Matrix.Identity(4)
-            converted[0][0:3] = row_world[0][0], row_world[0][2], row_world[0][1]
-            converted[1][0:3] = row_world[1][0], row_world[1][2], row_world[1][1] 
-            converted[2][0:3] = row_world[2][0], row_world[2][2], row_world[2][1] 
-            converted[3][0:3] = row_world[3][0], row_world[3][2], row_world[3][1]  
+            converted[0][0:3] = row_world[0][0], row_world[0][2], -row_world[0][1]
+            converted[1][0:3] = row_world[1][0], row_world[1][2], -row_world[1][1]
+            converted[2][0:3] = row_world[2][0], row_world[2][2], -row_world[2][1]
+
+
+            converted[3][0] = row_world[3][0]
+            converted[3][1] = row_world[3][2]
+            converted[3][2] = -row_world[3][1] 
             
             # flip the local Z axis for winding and transpose for export
             scaleZ = mathutils.Matrix.Scale(-1.0, 4, (0.0, 0.0, 1.0))
@@ -86,19 +86,19 @@ def print_heir(ob, levels=10):
             file.write(spaces + str(ob.data.energy) + "\n")
             file.write(spaces + str(ob.data.shadow_soft_size) + "\n")
             file.write(spaces + str(ob.data.spot_size) + "\n")
-            file.write(spaces + str(ob.data.spot_blend) + "\n")           
+            file.write(spaces + str(ob.data.spot_blend) + "\n") 
                       
-            # swap from blender space to vulkan/d3d 
-            # { rx, ry, rz, 0 } to { rx, rz, ry, 0 }  
-            # { ux, uy, uz, 0 }    { ux, uz, uy, 0 }
-            # { lx, ly, lz, 0 }    { lx, lz, ly, 0 } 
-            # { px, py, pz, 1 }    { px, pz, py, 1 }  
+            # Swap from Blender space to OpenGL RH
             row_world = ob.matrix_world.transposed()
             converted = mathutils.Matrix.Identity(4)
-            converted[0][0:3] = row_world[0][0], row_world[0][2], row_world[0][1]
-            converted[1][0:3] = row_world[1][0], row_world[1][2], row_world[1][1] 
-            converted[2][0:3] = row_world[2][0], row_world[2][2], row_world[2][1] 
-            converted[3][0:3] = row_world[3][0], row_world[3][2], row_world[3][1]  
+            converted[0][0:3] = row_world[0][0], row_world[0][2], -row_world[0][1]
+            converted[1][0:3] = row_world[1][0], row_world[1][2], -row_world[1][1]
+            converted[2][0:3] = row_world[2][0], row_world[2][2], -row_world[2][1]
+
+
+            converted[3][0] = row_world[3][0]
+            converted[3][1] = row_world[3][2]
+            converted[3][2] = -row_world[3][1]
             
             # flip the local Z axis for winding and transpose for export
             scaleZ = mathutils.Matrix.Scale(-1.0, 4, (0.0, 0.0, 1.0))
@@ -124,17 +124,17 @@ def print_heir(ob, levels=10):
             file.write(spaces + str(ob.data.energy) + "\n")
             file.write(spaces + str(ob.data.shadow_soft_size) + "\n")
                                  
-            # swap from blender space to vulkan/d3d 
-            # { rx, ry, rz, 0 } to { rx, rz, ry, 0 }  
-            # { ux, uy, uz, 0 }    { ux, uz, uy, 0 }
-            # { lx, ly, lz, 0 }    { lx, lz, ly, 0 } 
-            # { px, py, pz, 1 }    { px, pz, py, 1 }  
+            # Swap from Blender space to OpenGL RH
             row_world = ob.matrix_world.transposed()
             converted = mathutils.Matrix.Identity(4)
-            converted[0][0:3] = row_world[0][0], row_world[0][2], row_world[0][1]
-            converted[1][0:3] = row_world[1][0], row_world[1][2], row_world[1][1] 
-            converted[2][0:3] = row_world[2][0], row_world[2][2], row_world[2][1] 
-            converted[3][0:3] = row_world[3][0], row_world[3][2], row_world[3][1]  
+            converted[0][0:3] = row_world[0][0], row_world[0][2], -row_world[0][1]
+            converted[1][0:3] = row_world[1][0], row_world[1][2], -row_world[1][1]
+            converted[2][0:3] = row_world[2][0], row_world[2][2], -row_world[2][1]
+
+
+            converted[3][0] = row_world[3][0]
+            converted[3][1] = row_world[3][2]
+            converted[3][2] = -row_world[3][1]
             
             # flip the local Z axis for winding and transpose for export
             scaleZ = mathutils.Matrix.Scale(-1.0, 4, (0.0, 0.0, 1.0))

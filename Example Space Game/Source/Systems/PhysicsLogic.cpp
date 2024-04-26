@@ -1,6 +1,7 @@
 #include "PhysicsLogic.h"
 #include "../Components/Physics.h"
 #include "../Components/Identification.h"
+#include "../Components/Gameplay.h"
 
 bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<const GameConfig> _gameConfig)
 {
@@ -54,7 +55,7 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 		.each([this](CollisionSystem& s)
 			{
 				//std::cout << queryCache.count() << std::endl;
-
+				
 				// collect any and all collidable objects
 				queryCache.each([&](flecs::entity e, Collidable& c, World& w)
 					{
@@ -63,12 +64,10 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 						SHAPE box; // compute buffer for this objects polygon
 
 						// This is critical, if you want to store an entity handle it must be mutable
-
 						box.owner = e; // allows later changes
 						box.obby = c.obb;
 						box.obby.center = w.value.row4;
 						box.name = e.get<ESG::Name>()->name;
-
 
 						// add to vector
 						testCache.push_back(box);
@@ -89,9 +88,24 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 						{
 							// Create an ECS relationship between the colliders
 							// Each system can decide how to respond to this info independently
-							
-							testCache[j].owner.add<CollidedWith>(testCache[i].owner);
+							/*if (testCache[i].name == "alien")
+							{
+								std::cout << "alien found in testCache i" << std::endl;
+							}
+
+							if (testCache[j].name == "alien")
+							{
+								std::cout << "alien found in testCache j" << std::endl;
+							}*/
+
 							testCache[i].owner.add<CollidedWith>(testCache[j].owner);
+							testCache[j].owner.add<CollidedWith>(testCache[i].owner);
+
+							/*if (testCache[i].name == "alien" && testCache[j].name == "BeeStinger"
+								|| testCache[j].name == "BeeStinger" && testCache[i].name == "BeeStinger")
+							{
+								std::cout << "alien and BeeStinger collided!" << std::endl;
+							}*/
 
 							std::cout << "Collision Detected between:  1: " << testCache[i].owner.get<Name>()->name << "    2. " << testCache[j].owner.get<Name>()->name << std::endl;
 						}

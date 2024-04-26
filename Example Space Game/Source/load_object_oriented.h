@@ -3,6 +3,7 @@
 #include "./OpenGLExtensions.h"
 #include "./defines.h"
 #include "../Source/Components/Identification.h"
+#include "../Source/Components/Gameplay.h"
 
 //Depth of UI rendering
 #define userButtonTextDepth 0.0f
@@ -56,7 +57,6 @@ struct SUNLIGHT_DATA
 
 //the data we can parse from the lights
 class Light {
-
 public:
 	std::string name;
 	std::string type;
@@ -91,7 +91,6 @@ public:
 	inline void SetIntensity(float lightPower) {
 		intensity = lightPower;
 	}
-
 };
 
 //this is what we can send to the shader for lighting
@@ -103,7 +102,6 @@ struct LIGHT_DATA
 	float radius;
 	float size = -1;
 	float blend = -1;
-
 };
 
 //uniform buffer data
@@ -113,7 +111,6 @@ struct UBO_DATA
 	GW::MATH::GMATRIXF _cam, _view, _proj, _world;
 	H2B::ATTRIBUTES material;
 	int numLights;
-
 } ubo;
 
 //vertex struct
@@ -122,15 +119,14 @@ struct Vertex
 	float  x, y, z, w;
 };
 
-//vector of lights - this will be sent to the uniform 
+//vector of lights - this will be sent to the uniform
 std::vector<LIGHT_DATA> lbo;
-
 
 // class Model contains everyhting needed to draw a single 3D model
 class Model
 {
 public:
-	
+
 	// Name of the Model in the GameLevel (useful for debugging)
 	std::string name;
 
@@ -653,13 +649,13 @@ public:
 				newModel.obb = newModel.ComputeOBB();
 
 				// If we find and load it add it to the level
-				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) 
+				if (newModel.LoadModelDataFromDisk(modelFile.c_str()))
 				{
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
 					allObjectsInLevel.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
-				else 
+				else
 				{
 					// notify user that a model file is missing but continue loading
 					log.LogCategorized("ERROR",
@@ -862,6 +858,7 @@ public:
 	void UnloadLevel() {
 		allObjectsInLevel.clear();
 	}
+
 	void Update(std::shared_ptr<flecs::world> game, std::shared_ptr<Level_Objects> level)
 	{
 		for each (Model m in level->allObjectsInLevel)
@@ -891,14 +888,20 @@ public:
 
 			if (i.name.substr(0, 9) != "RealFloor")
 				e.set<ESG::Collidable>({ i.obb });
-			
+
 			// Add debug output to verify OBBs are being added
 			//std::cout << "OBB added for entity: " << i.name << std::endl;
-			
+
 			if (i.name == "MegaBee")
 			{
-				GW::MATH::GMATRIXF thing = e.get<ESG::World>()->value;
 				e.add<ESG::Player>();
+				e.add<ESG::Health>();
+			}
+
+			if (i.name == "alien")
+			{
+				e.add<ESG::Enemy>();
+				e.add<ESG::Health>();
 			}
 		}
 	}
@@ -918,10 +921,9 @@ public:
 		float speed = (*readCfg).at("Player1").at("speed").as<float>();
 		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
 
-
 		flecs::system playerShootSystem = game->system<ESG::Player, ESG::World>("Player Shoot System")
 			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*, ESG::World* world)
-			{
+				{
 					for (auto i : it)
 					{
 						float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
@@ -964,7 +966,7 @@ public:
 						switch (shootState)
 						{
 						case 1:
-						{	
+						{
 							auto tempEnt = game->entity(count.c_str());
 							tempEnt.add<ESG::CountBullet>();
 
@@ -973,7 +975,7 @@ public:
 							level->allObjectsInLevel.push_back(modelToDupe);
 							auto e = game->entity(modelToDupe.name.c_str());
 							e.set<Models>({ modelToDupe });
-							e.set<ESG::Collidable>({modelToDupe.obb});
+							e.set<ESG::Collidable>({ modelToDupe.obb });
 							e.set<ESG::World>({ world->value });
 							e.set<ESG::Name>({ modelToDupe.name });
 							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
@@ -1040,67 +1042,148 @@ public:
 							break;
 						}
 					}
-			});
+				});
 
-		flecs::system bulletMove = game->system<ESG::BulletVel, ESG::World,ESG::Name, Models>("Bullet Move System")
-			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::BulletVel* v, ESG::World* w, ESG::Name* n, Models* m)
-			{
-				for (auto i : it)
-				{	
-					auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m[i].mod);
-
-					if (found != level->allObjectsInLevel.end())
-					{
-						size_t index = found - level->allObjectsInLevel.begin();
-
-						GW::MATH::GVECTORF moveVec = { v[i].value.x * it.delta_time() * bullSpeed, 0, v[i].value.z * it.delta_time() * bullSpeed };
-						auto e = game->lookup(n[i].name.c_str());
-						ESG::World* edit = game->entity(e).get_mut<ESG::World>();
-						GW::MATH::GMatrix::TranslateLocalF(edit->value, moveVec, edit->value);
-
-						level->allObjectsInLevel[index].world = edit->value;
-					}
-				}
-			});
-		
 		flecs::system bulletSystem = game->system<ESG::Bullet>("Bullet System")
-			.each([level](flecs::entity arrow, ESG::Bullet)
-				{
-					// damage anything we come into contact with
-					arrow.each<ESG::CollidedWith>([&arrow, level](flecs::entity hit)
-						{
-							if (!(hit.has<ESG::Player>() || hit.has<ESG::Bullet>()))
+				.each([level](flecs::entity arrow, ESG::Bullet)
+					{
+						// damage anything we come into contact with
+						arrow.each<ESG::CollidedWith>([&arrow, level](flecs::entity hit)
 							{
-								Model m = arrow.get<Models>()->mod;
-								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
-
-								if (found != level->allObjectsInLevel.end())
+								if (!(hit.has<ESG::Player>() || hit.has<ESG::Bullet>()))
 								{
-									level->allObjectsInLevel.erase(found);
+									//Model m = arrow.get<Models>()->mod;
+									//auto found = std::find(this->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+			
+									/*if (found != level->allObjectsInLevel.end())
+									{
+										level->allObjectsInLevel.erase(found);
+									}*/
+									arrow.destruct();
 								}
-								arrow.destruct();
-								
-							}
-						});
-				});
-
-		flecs::system playerCollisionSystem = game->system<ESG::Player>("Player Collision System")
-			.each([level](flecs::entity pl, ESG::Player)
-				{
-					pl.each<ESG::CollidedWith>([&pl, level](flecs::entity hit)
-						{
-							
-							if (!(hit.has<ESG::Bullet>() || hit.has<ESG::Enemy>()))
+							});
+					});
+			
+			flecs::system playerCollisionSystem = game->system<ESG::Player>("Player Collision System")
+				.each([level](flecs::entity pl, ESG::Player)
+					{
+						pl.each<ESG::CollidedWith>([&pl, level](flecs::entity hit)
 							{
-								//std::cout << hit.get<ESG::Name>()->name << std::endl;
+			
+								if (!(hit.has<ESG::Bullet>() || hit.has<ESG::Enemy>()))
+								{
+									//std::cout << hit.get<ESG::Name>()->name << std::endl;
+			
+									//pl.set<ESG::World>({pl.get<ESG::LastWorld>()->value});
+									hit.remove<ESG::CollidedWith>();
+								}
+								//pl.remove<ESG::CollidedWith>();
+							});
+			
+					});
 
-								//pl.set<ESG::World>({pl.get<ESG::LastWorld>()->value});
-								hit.remove<ESG::CollidedWith>();
-							}
-							//pl.remove<ESG::CollidedWith>();
-						});
+			flecs::system enemyCollisionSystem = game->system<ESG::Enemy>("Enemy Collision System")
+				.each([level](flecs::entity pl, ESG::Enemy)
+					{
+						pl.each<ESG::CollidedWith>([&pl, level](flecs::entity hit)
+							{
+								if (!(hit.has<ESG::Bullet>()))
+								{
+									hit.remove<ESG::CollidedWith>();
+									
+								}
+								pl.destruct();
+							});
 
+					});
+
+		flecs::system bulletMove = game->system<ESG::BulletVel, ESG::World, ESG::Name, Models>("Bullet Move System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::BulletVel* v, ESG::World* w, ESG::Name* n, Models* m)
+				{
+					for (auto i : it)
+					{
+						auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m[i].mod);
+
+						if (found != level->allObjectsInLevel.end())
+						{
+							size_t index = found - level->allObjectsInLevel.begin();
+
+							GW::MATH::GVECTORF moveVec = { v[i].value.x * it.delta_time() * bullSpeed, 0, v[i].value.z * it.delta_time() * bullSpeed };
+							auto e = game->lookup(n[i].name.c_str());
+							ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+							GW::MATH::GMatrix::TranslateLocalF(edit->value, moveVec, edit->value);
+
+							level->allObjectsInLevel[index].world = edit->value;
+						}
+					}
 				});
+	
+
+		//filter and find entities
+				//std::vector<flecs::entity> enemies;
+				//std::vector<flecs::entity> bullets;
+				//std::vector<flecs::entity> players;
+				//
+				//for (const auto& shape : testCache)
+				//{
+				//	if (shape.owner.has<Enemy>())
+				//	{
+				//		enemies.push_back(shape.owner);
+				//	}
+				//	else if (shape.owner.has<Bullet>()) 
+				//	{
+				//		bullets.push_back(shape.owner);
+				//	}
+				//	else if (shape.owner.has<Player>()) 
+				//	{
+				//		players.push_back(shape.owner);
+				//	}
+				//}
+				//
+				////specific collision checks
+				////bullets and enemies
+				//// Check collisions between bullets and enemies
+				//for (const auto& bullet : bullets) 
+				//{
+				//	for (const auto& enemy : enemies) 
+				//	{
+				//		if (bullet.has<CollidedWith>(enemy)) 
+				//		{
+				//			// Bullet collided with enemy
+				//			// if you have no health left be destroyed
+				//			if (enemy.get<Health>()->value <= 0)
+				//			{
+				//				// play explode sound
+				//				enemy.destruct();
+				//			}
+				//		}
+				//	}
+				//}
+				//
+				// Check collisions between bullets and players
+				//for (const auto& bullet : bullets) 
+				//{
+				//	for (const auto& player : players) 
+				//	{
+				//		// Handle collision between bullet and player
+				//		if (player.get<Health>()->value <= 0)
+				//		{
+				//			// play explode sound
+				//			player.destruct();
+				//		}
+				//	}
+				//}
+				//
+				//// Check collisions between enemies and players
+				//for (const auto& enemy : enemies) 
+				//{
+				//	for (const auto& player : players) 
+				//	{
+				//		// Handle collision between enemy and player
+				//		// Example: player.get<Health>()->value -= enemyDamage;
+				//	}
+				//}
+
 	}
 };
 

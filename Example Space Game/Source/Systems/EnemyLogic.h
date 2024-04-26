@@ -19,7 +19,6 @@ namespace ESG
 
 		// handle to our running ECS system
 		flecs::system enemySystem;
-		//flecs::system collisionSystem;
 
 		// permanent handle to audio system
 		GW::AUDIO::GAudio audioEngine;

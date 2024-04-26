@@ -4,6 +4,7 @@
 #include "../Components/Physics.h"
 #include "../Components/Gameplay.h"
 #include "../Events/Playevents.h"
+//#include "../Systems/PhysicsLogic.h"
 
 using namespace ESG; // Example Space Game
 using namespace GW::INPUT; // input libs
@@ -23,36 +24,39 @@ bool ESG::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 	int width = (*readCfg).at("Window").at("width").as<int>();
 	float speed = (*readCfg).at("Enemy1").at("speed").as<float>();
 
-	/*collisionSystem = game->system<Position, Collidable>("Collision System")
-		.iter([&](flecs::entity e, ESG::Position& pos, ESG::Collidable& collided)
-			{
-				auto beeEntity = game->entity("Bee");
-				if (beeEntity.is_alive()) 
-				{
-					beeEntity.set<Collidable>({ GW::MATH2D::GRECTANGLE2D{ });
-					std::cout << "Collision box added to enemy" << std::endl;
-				}
-				else 
-				{
-					std::cout << "Unable to find enemy entity named Bee" << std::endl;
-				}
-			});*/
+	//flecs::system enemySystem = game->system<ESG::Enemy, ESG::World>("Enemy Movement System")
+	//		.iter([this, speed](flecs::iter it, ESG::Enemy*, ESG::World* w)
+	//			{
+	//				for (auto i : it)
+	//				{
+	//					// get player position
+	//					float xaxis = 1, zaxis = 0;
+	//
+	//					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
+	//					auto ene = game->lookup("alien");
+	//					ene.set<ESG::LastWorld>({ ene.get<ESG::World>()->value });
+	//					ESG::World* edit = game->entity(ene).get_mut<ESG::World>();
+	//
+	//					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+	//
+	//				}
+	//			});
 
 	// destroy any bullets that have the CollidedWith relationship
 	game->system<Enemy, Health>("Enemy System")
 		.each([this, speed](flecs::entity e, Enemy, Health& h)
-	{
-			// if you have no health left be destroyed
-			if (e.get<Health>()->value <= 0) 
 			{
-				// play explode sound
-				e.destruct();
-				ESG::PLAY_EVENT_DATA x;
-				GW::GEvent explode;
-				explode.Write(ESG::PLAY_EVENT::ENEMY_DESTROYED, x);
- 				eventPusher.Push(explode);
-			} 		
-	});
+				// if you have no health left be destroyed
+				if (e.get<Health>()->value <= 0)
+				{
+					// play explode sound
+					e.destruct();
+					ESG::PLAY_EVENT_DATA x;
+					GW::GEvent explode;
+					explode.Write(ESG::PLAY_EVENT::ENEMY_DESTROYED, x);
+					eventPusher.Push(explode);
+				}
+			});
 
 	return true;
 }
@@ -73,11 +77,11 @@ bool ESG::EnemyLogic::Shutdown()
 // Toggle if a system's Logic is actively running
 bool ESG::EnemyLogic::Activate(bool runSystem)
 {
-	if (runSystem) 
+	if (runSystem)
 	{
 		game->entity("Enemy System").enable();
 	}
-	else 
+	else
 	{
 		game->entity("Enemy System").disable();
 	}

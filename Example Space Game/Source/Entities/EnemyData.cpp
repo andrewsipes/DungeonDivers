@@ -29,7 +29,7 @@ bool ESG::EnemyData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<con
 	GW::MATH2D::GMatrix2D::Scale2F(world, GW::MATH2D::GVECTOR2F{ xscale, yscale }, world);
 
 	// add prefab to ECS
-	auto enemyPrefab = _game->prefab("Bee")
+	auto enemyPrefab = _game->prefab("alien")
 		// .set<> in a prefab means components are shared (instanced)
 		//.set<Material>({ red, green, blue })
 		.set<Orientation>({ world })
@@ -42,7 +42,7 @@ bool ESG::EnemyData::Load(std::shared_ptr<flecs::world> _game, std::weak_ptr<con
 		.override<Collidable>(); // can be collided with
 
 	// register this prefab by name so other systems can use it
-	RegisterPrefab("Bee", enemyPrefab);
+	RegisterPrefab("alien", enemyPrefab);
 
 	return true;
 }

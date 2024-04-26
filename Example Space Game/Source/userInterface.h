@@ -1471,11 +1471,6 @@ auto turnOffPanel = [](uiPanel* panel) {
 	panel->render = false;
 	};
 
-auto turnOnPanel = [](uiPanel* panel, uiPanel* currPanel) {
-	currPanel->render = false;
-	panel->render = true;
-	};
-
 //exits the application
 auto shutdown = [](Application* application) {
 	application->Shutdown();

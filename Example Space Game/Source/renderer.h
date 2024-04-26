@@ -36,11 +36,12 @@ class RendererManager
 	bool t;
 	bool leftMouse;
 
-	//gloals to track is mainmenu or pause hud was enabled
-	bool isMainMenuRendered;
-	bool isPauseMenuRendered;
 
 public:
+
+	//globals to track is mainmenu or pause hud was enabled
+	bool isMainMenuRendered;
+	bool isPauseMenuRendered;
 
 	bool freecam = false;
 	//ui panels

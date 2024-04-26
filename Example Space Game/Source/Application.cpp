@@ -107,7 +107,10 @@ bool Application::Run() {
 		while (+win.ProcessWindowEvents() && running == true)
 		{
 			lvl2->Update(game, lvl2);
-			GameLoop();
+			
+			if(!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
+				GameLoop();
+
 			glClearColor(clr[0], clr[1], clr[2], clr[3]);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -128,8 +131,7 @@ bool Application::Run() {
 					rendererManager.mainMenuHUD->toggleRender();
 					rendererManager.changeLevel(*lvl2);
 				}
-					
-		
+						
 			}
 
 			//Return Left Mouse state for re-use

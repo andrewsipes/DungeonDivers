@@ -53,7 +53,7 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 	game->system<CollisionSystem>()
 		.each([this](CollisionSystem& s)
 			{
-				std::cout << queryCache.count() << std::endl;
+				//std::cout << queryCache.count() << std::endl;
 
 				// collect any and all collidable objects
 				queryCache.each([&](flecs::entity e, Collidable& c, World& w)
@@ -89,9 +89,11 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 						{
 							// Create an ECS relationship between the colliders
 							// Each system can decide how to respond to this info independently
+							
 							testCache[j].owner.add<CollidedWith>(testCache[i].owner);
 							testCache[i].owner.add<CollidedWith>(testCache[j].owner);
-							std::cout << "Collision Detected between:  1: " << testCache[i].owner.get<Name>()->name << "    2. " << testCache[j].owner.get<Name>()->name << std::endl;
+
+							//std::cout << "Collision Detected between:  1: " << testCache[i].owner.get<Name>()->name << "    2. " << testCache[j].owner.get<Name>()->name << std::endl;
 						}
 					}
 				}

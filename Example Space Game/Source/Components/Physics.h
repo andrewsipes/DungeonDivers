@@ -13,6 +13,7 @@ namespace ESG
 	struct Acceleration { GW::MATH2D::GVECTOR2F value; };
 
 	struct World { GW::MATH::GMATRIXF value; };
+	struct LastWorld { GW::MATH::GMATRIXF value; };
 	struct BulletVel { GW::MATH::GVECTORF value; };
 	struct State { GW::MATH::GVECTORF value; };
 

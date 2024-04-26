@@ -332,12 +332,12 @@ public:
 
 			for each (Model m in lvl->allObjectsInLevel)
 			{
-				if (m.name == "Bee")
+				if (m.name == "MegaBee")
 				{
 					gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
 					gMatrixProxy.IdentityF(rotationMatrix);
 					auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y + 10, m.world.row4.z, 1 }, 
-													GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y, m.world.row4.z + .0001f, 1 },
+													GW::MATH::GVECTORF{ m.world.row4.x -.0001f, m.world.row4.y, m.world.row4.z, 1 },
 													GW::MATH::GVECTORF{ 0, 1, 0, 0 }, rotationMatrix);
 					gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
 				}

@@ -33,18 +33,23 @@ bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 	playerSystem = game->system<ESG::Player>("Player Move System")
 		.iter([this, speed](flecs::iter it, ESG::Player*)
 		{
-				float xaxis = 0, input = 0, zaxis = 0;
-				GW::INPUT::GInput t = immediateInput;
-				t.GetState(G_KEY_A, input); xaxis -= input;
-				t.GetState(G_KEY_D, input); xaxis += input;
-				t.GetState(G_KEY_S, input); zaxis -= input;
-				t.GetState(G_KEY_W, input); zaxis += input;
+				for (auto i : it)
+				{
+					float xaxis = 0, input = 0, zaxis = 0;
+					GW::INPUT::GInput t = immediateInput;
+					t.GetState(G_KEY_A, input); xaxis += input;
+					t.GetState(G_KEY_D, input); xaxis -= input;
+					t.GetState(G_KEY_S, input); zaxis -= input;
+					t.GetState(G_KEY_W, input); zaxis += input;
 
 
-				GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
-				auto e = game->lookup("Floor_Modular_Cube.058");
-				ESG::World* edit = game->entity(e).get_mut<ESG::World>();
-				GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed};
+					auto e = game->lookup("MegaBee");
+					e.set<ESG::LastWorld>({ e.get<ESG::World>()->value });
+					ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+
+					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+				}
 				//std::cout << "X: " << e.get<ESG::World>()->value.row4.x << "Y: " << e.get<ESG::World>()->value.row4.z << std::endl;
 		});
 

@@ -86,9 +86,9 @@ bool Application::Run() {
 	auto lvl2 = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-	//lvl->AddEntities(lvl, game);
-	//lvl->AddSystems(lvl, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher);
-	lvl2->LoadMeshes("../Level2.txt", "../Models/Level2Models", log.Relinquish());
+	lvl2->LoadMeshes("../Models/TestWorld/GameLevel.txt", "../Models/TestWorld/Models", log.Relinquish());
+	lvl2->AddEntities(lvl2, game);
+	lvl2->AddSystems(lvl2, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher);
 	
 	msgs.Create([&](const GW::GEvent& e) {
 		GW::SYSTEM::GWindow::Events q;
@@ -106,8 +106,8 @@ bool Application::Run() {
 
 		while (+win.ProcessWindowEvents() && running == true)
 		{
-			//lvl->Update(game, lvl);
-			//GameLoop();
+			lvl2->Update(game, lvl2);
+			GameLoop();
 			glClearColor(clr[0], clr[1], clr[2], clr[3]);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

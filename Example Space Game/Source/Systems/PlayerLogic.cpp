@@ -30,15 +30,15 @@ bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 	float speed = (*readCfg).at("Player1").at("speed").as<float>();
 	chargeTime = (*readCfg).at("Player1").at("chargeTime").as<float>();
 
-	playerSystem = game->system<ESG::Player>("Player Move System")
-		.iter([this, speed](flecs::iter it, ESG::Player*)
+	playerSystem = game->system<ESG::Player, ESG::World>("Player Move System")
+		.iter([this, speed](flecs::iter it, ESG::Player*, ESG::World*)
 		{
 				for (auto i : it)
 				{
 					float xaxis = 0, input = 0, zaxis = 0;
 					GW::INPUT::GInput t = immediateInput;
-					t.GetState(G_KEY_A, input); xaxis += input;
-					t.GetState(G_KEY_D, input); xaxis -= input;
+					t.GetState(G_KEY_A, input); xaxis -= input;
+					t.GetState(G_KEY_D, input); xaxis += input;
 					t.GetState(G_KEY_S, input); zaxis -= input;
 					t.GetState(G_KEY_W, input); zaxis += input;
 

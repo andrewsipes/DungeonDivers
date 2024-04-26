@@ -86,10 +86,10 @@ bool Application::Run() {
 	auto lvl2 = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-	lvl2->LoadMeshes("../Level2.txt", "../Models/Level2Models", log.Relinquish());
+	lvl2->LoadMeshes("../Models/TestWorld/Level2/GameLevel.txt", "../Models/TestWorld/Level2/Models", log.Relinquish());
 	lvl2->AddEntities(lvl2, game);
 	lvl2->AddSystems(lvl2, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher);
-	
+
 	msgs.Create([&](const GW::GEvent& e) {
 		GW::SYSTEM::GWindow::Events q;
 		if (+e.Read(q) && q == GWindow::Events::RESIZE)
@@ -107,7 +107,7 @@ bool Application::Run() {
 		while (+win.ProcessWindowEvents() && running == true)
 		{
 			lvl2->Update(game, lvl2);
-			
+
 			if(!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
 				GameLoop();
 
@@ -120,9 +120,9 @@ bool Application::Run() {
 				}
 			#endif
 
-			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());			
+			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
 			rendererManager.Render();
-			
+
 			//event Handling for the mainMenu - starts the game
 			if (rendererManager.mainMenuHUD->render) {
 
@@ -131,7 +131,7 @@ bool Application::Run() {
 					rendererManager.mainMenuHUD->toggleRender();
 					rendererManager.changeLevel(*lvl2);
 				}
-						
+
 			}
 
 			//Return Left Mouse state for re-use

@@ -357,17 +357,22 @@ public:
 		
 		else // not freecam
 		{
-			for each (Model m in lvl->allObjectsInLevel)
+			Model m;
+			m.name = "MegaBee";
+
+			auto found = std::find(lvl->allObjectsInLevel.begin(), lvl->allObjectsInLevel.end(), m);
+
+			if (found != lvl->allObjectsInLevel.end())
 			{
-				if (m.name == "MegaBee")
-				{
-					gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
-					gMatrixProxy.IdentityF(rotationMatrix);
-					auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y + 10, m.world.row4.z, 1 }, 
-													GW::MATH::GVECTORF{ m.world.row4.x -.0001f, m.world.row4.y, m.world.row4.z, 1 },
-													GW::MATH::GVECTORF{ 0, 1, 0, 0 }, rotationMatrix);
-					gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
-				}
+				size_t index = found - lvl->allObjectsInLevel.begin();
+				m.world = lvl->allObjectsInLevel[index].world;
+
+				gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
+				gMatrixProxy.IdentityF(rotationMatrix);
+				auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y + 10, m.world.row4.z, 1 }, 
+												GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y, m.world.row4.z + .0001f, 1 },
+												GW::MATH::GVECTORF{ 0, 1, 0, 0 }, rotationMatrix);
+				gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
 			}
 		}
 

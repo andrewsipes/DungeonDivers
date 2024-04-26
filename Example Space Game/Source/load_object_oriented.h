@@ -887,12 +887,14 @@ public:
 			e.set<ESG::Name>({ i.name });
 			e.set<ESG::World>({ i.world });
 			//e.add<ESG::World>();
-			e.set<ESG::Collidable>({ i.obb });
 			e.set<Models>({ i });
 
+			if (i.name.substr(0, 9) != "RealFloor")
+				e.set<ESG::Collidable>({ i.obb });
+			
 			// Add debug output to verify OBBs are being added
-			std::cout << "OBB added for entity: " << i.name << std::endl;
-
+			//std::cout << "OBB added for entity: " << i.name << std::endl;
+			
 			if (i.name == "MegaBee")
 			{
 				GW::MATH::GMATRIXF thing = e.get<ESG::World>()->value;
@@ -927,8 +929,8 @@ public:
 						GW::INPUT::GInput t = immediateInput;
 						t.GetState(G_KEY_UP, input); shootUp += input;
 						t.GetState(G_KEY_DOWN, input); shootDown += input;
-						t.GetState(G_KEY_LEFT, input); shootRight += input;
-						t.GetState(G_KEY_RIGHT, input); shootLeft += input;
+						t.GetState(G_KEY_LEFT, input); shootLeft += input;
+						t.GetState(G_KEY_RIGHT, input); shootRight += input;
 
 						int shootState = 0;
 
@@ -1090,7 +1092,7 @@ public:
 							
 							if (!(hit.has<ESG::Bullet>() || hit.has<ESG::Enemy>()))
 							{
-								std::cout << hit.get<ESG::Name>()->name << std::endl;
+								//std::cout << hit.get<ESG::Name>()->name << std::endl;
 
 								//pl.set<ESG::World>({pl.get<ESG::LastWorld>()->value});
 								hit.remove<ESG::CollidedWith>();

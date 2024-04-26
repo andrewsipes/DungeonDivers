@@ -1494,6 +1494,8 @@ public:
 	userButton* gameOverText, *youWinText, *highScoreText, *scoreText, * exitGameOverButton, *restartGameOverButton;
 	std::vector<userButton*> scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, highScoreDigit1, highScoreDigit2, highScoreDigit3, highScoreDigit4;
 
+	std::vector <std::vector<userButton*>*> buttonsVector;
+
 	gameOverUi() {
 		render = false;
 	}
@@ -1501,6 +1503,15 @@ public:
 	gameOverUi(GameConfig& _gameConfig) {
 		gameConfig = &_gameConfig;
 		render = false;
+
+		buttonsVector.push_back(&scoreDigit1);
+		buttonsVector.push_back(&scoreDigit2);
+		buttonsVector.push_back(&scoreDigit3);
+		buttonsVector.push_back(&scoreDigit4);
+		buttonsVector.push_back(&highScoreDigit1);
+		buttonsVector.push_back(&highScoreDigit2);
+		buttonsVector.push_back(&highScoreDigit3);
+		buttonsVector.push_back(&highScoreDigit4);
 	}
 
 	void assign() override {
@@ -1553,38 +1564,47 @@ public:
 		
 		gameOverOverlay->loadDefaults();
 
-		for (userButton* digit : scoreDigit1) {
-			digit->loadDefaults();
+		for (std::vector<userButton*>* buttonVector : buttonsVector) {
+
+			for (userButton* digit : *buttonVector)
+			{
+				digit->loadDefaults();
+			}
+
 		}
 
-		for (userButton* digit : scoreDigit2) {
-			digit->loadDefaults();
-		}
+		//for (userButton* digit : scoreDigit1) {
+		//	digit->loadDefaults();
+		//}
 
-		for (userButton* digit : scoreDigit3) {
-			digit->loadDefaults();
-		}
+		//for (userButton* digit : scoreDigit2) {
+		//	digit->loadDefaults();
+		//}
 
-		for (userButton* digit : scoreDigit4) {
-			digit->loadDefaults();
-		}
+		//for (userButton* digit : scoreDigit3) {
+		//	digit->loadDefaults();
+		//}
+
+		//for (userButton* digit : scoreDigit4) {
+		//	digit->loadDefaults();
+		//}
 
 
-		for (userButton* digit : highScoreDigit1) {
-			digit->loadDefaults();
-		}
+		//for (userButton* digit : highScoreDigit1) {
+		//	digit->loadDefaults();
+		//}
 
-		for (userButton* digit : highScoreDigit2) {
-			digit->loadDefaults();
-		}
+		//for (userButton* digit : highScoreDigit2) {
+		//	digit->loadDefaults();
+		//}
 
-		for (userButton* digit : highScoreDigit3) {
-			digit->loadDefaults();
-		}
+		//for (userButton* digit : highScoreDigit3) {
+		//	digit->loadDefaults();
+		//}
 
-		for (userButton* digit : highScoreDigit4) {
-			digit->loadDefaults();
-		}
+		//for (userButton* digit : highScoreDigit4) {
+		//	digit->loadDefaults();
+		//}
 
 		for (userButton& _button : allUiButtonObjects) {
 			for (buttonText& _text : allUiButtonTextObjects) {
@@ -1605,8 +1625,8 @@ public:
 		restartGameOverButton->toggleRender();
 		exitGameOverButton->toggleRender();
 
-		updateHUDScore(1000);
-		updateHUDHighScore(1000);
+		updateHUDScore(9876);
+		updateHUDHighScore(1234);
 	
 	}
 
@@ -1615,14 +1635,19 @@ public:
 
 		// iterate over each model and tell it to draw itself
 		if (render) {
-			/*for (auto& e : allUiObjects) {
-				if (e.render)
-					e.DrawModel(_camera, _view, _proj, e.alpha);
-			}*/
 
 			gameOverOverlay->DrawModel(_camera, _view, _proj, gameOverOverlay->alpha);
 
-			for (userButton* digit : scoreDigit1) {
+
+			for (std::vector<userButton*>* buttonVector : buttonsVector) {
+				for (userButton* digit : *buttonVector) {
+
+					if(digit->render)
+						digit->DrawDigitModel(_camera, _view, _proj);
+
+				}
+			}
+		/*	for (userButton* digit : scoreDigit1) {
 				if(digit->render)
 					digit->DrawDigitModel(_camera, _view, _proj);
 			}
@@ -1660,7 +1685,7 @@ public:
 			for (userButton* digit : highScoreDigit4) {
 				if (digit->render)
 					digit->DrawDigitModel(_camera, _view, _proj);
-			}
+			}*/
 
 			for (auto& f : allUiButtonObjects) {
 				if (f.render) {

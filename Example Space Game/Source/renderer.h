@@ -97,11 +97,11 @@ public:
 
 		////PANELS/////
 		//pauseMenu->toggleRender();
-		mainMenuHUD->toggleRender();
+		//mainMenuHUD->toggleRender();
 		//playerHUD->toggleRender();
 		//treasureMenu->toggleRender();
 		//controlsMenu->toggleRender();
-		//gameOverMenu->toggleRender();
+		gameOverMenu->toggleRender();
 	
 		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
@@ -449,6 +449,10 @@ public:
 			}
 
 
+		}
+
+		else if (gameOverMenu->render) {
+			gameOverMenu->exitGameOverButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 		}
 
 	

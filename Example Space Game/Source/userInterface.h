@@ -1592,8 +1592,8 @@ public:
 		restartGameOverButton->toggleRender();
 		exitGameOverButton->toggleRender();
 
-		updateHUDScore(9876);
-		updateHUDHighScore(1234);
+		updateHUDScore(9999);
+		updateHUDHighScore(gameConfig->at("Player1").at("highscore").as<int>());
 	
 	}
 

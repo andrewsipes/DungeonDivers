@@ -17,7 +17,6 @@ class RendererManager
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
 	bool reset = false;
-	bool freecam = false;
 	GW::MATH::GVECTORF mainMenuCamPos;
 	GW::MATH::GVECTORF mainMenuLookAtPos;
 
@@ -43,6 +42,7 @@ class RendererManager
 
 public:
 
+	bool freecam = false;
 	//ui panels
 	playerUi* playerHUD;
 	mainMenuUi* mainMenuHUD;

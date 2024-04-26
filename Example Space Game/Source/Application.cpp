@@ -85,7 +85,7 @@ bool Application::Run() {
 	auto lvl = std::make_shared<Level_Objects>();
 	auto lvl2 = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenu/Models", log.Relinquish());
+	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 	//lvl->AddEntities(lvl, game);
 	//lvl->AddSystems(lvl, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher);
 	lvl2->LoadMeshes("../Level2.txt", "../Models/Level2Models", log.Relinquish());
@@ -109,6 +109,7 @@ bool Application::Run() {
 			//lvl->Update(game, lvl);
 			//GameLoop();
 			glClearColor(clr[0], clr[1], clr[2], clr[3]);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			#ifdef NDEBUG
 				if (rendererManager.mainMenuHUD->render){

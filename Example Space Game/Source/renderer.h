@@ -13,7 +13,6 @@ class RendererManager
 	GW::INPUT::GInput gInput;
 
 	//for camera
-	bool reset = false;
 	GW::MATH::GMATRIXF viewMatrix;
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
@@ -52,7 +51,6 @@ public:
 	controlsMenuUi* controlsMenu;
 	std::vector <uiPanel*> panels;
 	
-	bool freecam;
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, Level_Objects& Level)
 	{

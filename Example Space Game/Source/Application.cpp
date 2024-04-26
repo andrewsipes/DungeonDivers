@@ -76,18 +76,20 @@ bool Application::Init()
 //	return true;
 //}
 
-bool Application::Run()
-{
+bool Application::Run() {
+	leftMouse = false;
 	running = true;
 	GEventResponder msgs;
 	GW::SYSTEM::GLog log;
 	log.Create("output.txt");
 	auto lvl = std::make_shared<Level_Objects>();
+	auto lvl2 = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	lvl->LoadMeshes("../Models/TestWorld/GameLevel.txt", "../Models/TestWorld/Models", log.Relinquish());
 	lvl->AddEntities(lvl, game);
 	lvl->AddSystems(lvl, game, gameConfig, immediateInput, bufferedInput, gamePads, audioEngine, eventPusher);
-
+	lvl2->LoadMeshes("../Level2.txt", "../Models/Level2Models", log.Relinquish());
+	
 	msgs.Create([&](const GW::GEvent& e) {
 		GW::SYSTEM::GWindow::Events q;
 		if (+e.Read(q) && q == GWindow::Events::RESIZE)
@@ -108,12 +110,65 @@ bool Application::Run()
 			GameLoop();
 			glClearColor(clr[0], clr[1], clr[2], clr[3]);
 
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+			#ifdef NDEBUG
+				if (rendererManager.mainMenuHUD->render){
+					rendererManager.freecam = false;
+				}
+			#endif
 
-			//Update camera then render
-			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());			
 			rendererManager.Render();
+			
+			//event Handling for the mainMenu - starts the game
+			if (rendererManager.mainMenuHUD->render) {
+
+				if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
+					leftMouse = true;
+					rendererManager.mainMenuHUD->toggleRender();
+					rendererManager.changeLevel(*lvl2);
+				}
+					
+		
+			}
+
+			//Return Left Mouse state for re-use
+			else if ((leftMouse) && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
+				leftMouse = false;
+			}
+
+			//LEVEL SWAP: Currently works by using 0 or 1
+			{
+				//use these to determine if flag is read
+				bool zero = false, one = false;
+
+				//Main Menu
+				if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
+					zero = true;
+
+					rendererManager.changeLevel(*lvl);
+
+				}
+
+				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+					zero = false;
+				}
+
+				//Level1
+				if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
+					one = true;
+
+					rendererManager.changeLevel(*lvl2);
+
+				}
+
+				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+					one = false;
+				}
+			}
+
+
 			ogl.UniversalSwapBuffers();
+
 		}
 	}
 	return 0;
@@ -159,7 +214,7 @@ bool Application::InitInput()
 {
 	if (-gamePads.Create())
 		return false;
-	if (-immediateInput.Create(win))
+	if (-gInput.Create(win))
 		return false;
 	if (-bufferedInput.Create(win))
 		return false;

@@ -2,7 +2,7 @@
 #include "./stb_image.h"
 #include "./OpenGLExtensions.h"
 #include "./defines.h"
-//#include "../Source/Systems/PhysicsLogic.h"
+#include "../Source/Components/Identification.h"
 
 //Depth of UI rendering
 #define userButtonTextDepth 0.0f
@@ -47,6 +47,84 @@ MessageCallback(GLenum source, GLenum type, GLuint id,
 	PrintLabeledDebugString("GL CALLBACK: ", errMessage.c_str());
 }
 #endif
+
+//holds the sunlightdata
+struct SUNLIGHT_DATA
+{
+	GW::MATH::GVECTORF color, direction, ambient;
+};
+
+//the data we can parse from the lights
+class Light {
+
+public:
+	std::string name;
+	std::string type;
+	GW::MATH::GVECTORF position;
+	GW::MATH::GVECTORF color;
+	float intensity;
+	float radius;
+	float size;
+	float blend;
+
+	inline void SetName(std::string lightName) {
+		name = lightName;
+	}
+
+	inline void SetType(std::string lightType) {
+		type = lightType;
+	}
+
+	inline void setPosition(GW::MATH::GVECTORF lightPosition) {
+		position = lightPosition;
+	}
+
+	inline void SetColor(GW::MATH::GVECTORF lightColor) {
+		color = lightColor;
+	}
+
+	inline void SetPos(GW::MATH::GVECTORF lightPos) {
+		position = lightPos;
+	}
+
+	//takes in light power, and converts it to intensity
+	inline void SetIntensity(float lightPower) {
+		intensity = lightPower;
+	}
+
+};
+
+//this is what we can send to the shader for lighting
+struct LIGHT_DATA
+{
+	GW::MATH::GVECTORF position;
+	GW::MATH::GVECTORF color;
+	int intensity;
+	float radius;
+	float size = -1;
+	float blend = -1;
+
+};
+
+//uniform buffer data
+struct UBO_DATA
+{
+	GW::MATH::GVECTORF sunColor, sunDirection, sunAmbient;
+	GW::MATH::GMATRIXF _cam, _view, _proj, _world;
+	H2B::ATTRIBUTES material;
+	int numLights;
+
+} ubo;
+
+//vertex struct
+struct Vertex
+{
+	float  x, y, z, w;
+};
+
+//vector of lights - this will be sent to the uniform 
+std::vector<LIGHT_DATA> lbo;
+
 
 // class Model contains everyhting needed to draw a single 3D model
 class Model
@@ -104,6 +182,8 @@ public:
 	{
 		return name == rh.name;
 	}
+	//holds the textureID for the skybox
+	unsigned int CubeMapTexture;
 
 	inline void SetName(std::string modelName) {
 		name = modelName;
@@ -125,8 +205,9 @@ public:
 		ubo = updateUboInstance(cpuModel.materials[0], _camera, _view, _projection, _sLight);
 		InitializeGraphics();
 
-		if (name == "skyBox")
+		if (name == "skyBox") {
 			createCubeMap(skyBox);  //credits to learnOpenGL for the skybox image https://learnopengl.com/Advanced-OpenGL/Cubemaps
+		}
 
 		if (obb.extent.x != GW::MATH::GIdentityVectorF.x ||
 			obb.extent.y != GW::MATH::GIdentityVectorF.y ||
@@ -467,7 +548,7 @@ private:
 	GW::MATH::GVECTORF sunLightAmbient;
 	GW::MATH::GVECTORF cameraForward;
 
-	//light Vectors,
+	//light Vectors
 	std::vector<LIGHT_DATA> LIGHTDATA;	//this vector uses the structure for lighting in the lbo, we use this to hold the necessary data until moved
 	std::vector<Light> lights;			//this vector will show all the data pulled from the textfile
 

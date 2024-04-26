@@ -5,6 +5,7 @@
 // Contains our global game settings
 #include "../GameConfig.h"
 #include "../Components/Physics.h"
+//#include "../load_object_oriented.h"
 
 // example space game (avoid name collisions)
 namespace ESG 

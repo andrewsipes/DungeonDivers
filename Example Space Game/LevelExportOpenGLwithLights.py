@@ -61,8 +61,8 @@ def print_heir(ob, levels=10):
                 bbox_corners = [mathutils.Vector(corner) for corner in ob.bound_box]
             for corner in bbox_corners:
                # convert corners to vulkan/d3d coordinates
-               # corner[1], corner[2] = corner[2], corner[1]
-               # print(spaces, corner) # debug only
+                corner[1], corner[2] = corner[2], corner[1]
+                print(spaces, corner) # debug only
                 file.write(spaces + str(corner) + "\n") # write to file
             
              

@@ -19,8 +19,10 @@
 #include "Systems/PhysicsLogic.h"
 #include "Systems/BulletLogic.h"
 #include "Systems/EnemyLogic.h"
-
 #include "Components/Identification.h"
+
+//include PlayerStats
+#include "playerStats.h"
 
 // Allocates and runs all sub-systems essential to operating the game
 class Application
@@ -30,7 +32,7 @@ class Application
 
 	GW::GRAPHICS::GOpenGLSurface ogl; // gateware openGL API wrapper
 	GW::INPUT::GController gamePads; // controller support
-	GW::INPUT::GInput immediateInput; // twitch keybaord/mouse
+	GW::INPUT::GInput gInput; // twitch keybaord/mouse
 	GW::INPUT::GBufferedInput bufferedInput; // event keyboard/mouse
 	GW::AUDIO::GAudio audioEngine; // can create music & sound effects
 	std::map<std::string, GW::AUDIO::GMusic> musicTracks;
@@ -55,6 +57,7 @@ class Application
 	// EventGenerator for Game Events
 	GW::CORE::GEventGenerator eventPusher;
 
+	bool leftMouse;
 
 public:
 	bool running;

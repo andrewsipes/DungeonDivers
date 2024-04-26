@@ -1,10 +1,6 @@
 #include "./h2bParser.h"
 #include "./userInterface.h"
-
-
-//LAMBDA FUNCTIONS
-//Place all Ui Related button calls here for now
-
+#include <chrono>
 
 // Creation, Rendering & Cleanup
 class RendererManager
@@ -12,16 +8,19 @@ class RendererManager
 	// proxy handles
 	GW::SYSTEM::GWindow win;
 	GW::GRAPHICS::GOpenGLSurface ogl;
-	GW::MATH::GMatrix gMatrixProxy;
-	GW::INPUT::GInput gInput;
+	GW::MATH::GMatrix gMatrixProxy;	
 	GW::INPUT::GController gController;
+	GW::INPUT::GInput gInput;
 
 	//for camera
+	bool reset = false;
 	GW::MATH::GMATRIXF viewMatrix;
 	GW::MATH::GMATRIXF cameraMatrix;
 	GW::MATH::GMATRIXF projectionMatrix;
 	bool reset = false;
 	bool freecam = false;
+	GW::MATH::GVECTORF mainMenuCamPos;
+	GW::MATH::GVECTORF mainMenuLookAtPos;
 
 	//for ui
 	GW::MATH::GMATRIXF UIviewMatrix;
@@ -35,33 +34,59 @@ class RendererManager
 	Level_Objects* lvl;
 
 	//Global variables for key inputs
-	bool tab = false;
-	bool t = false;
+	bool tab;
+	bool t;
+	bool leftMouse;
+
+	//gloals to track is mainmenu or pause hud was enabled
+	bool isMainMenuRendered;
+	bool isPauseMenuRendered;
 
 public:
+
 	//ui panels
 	playerUi* playerHUD;
 	mainMenuUi* mainMenuHUD;
 	pauseMenuUi* pauseMenu;
 	treasureMenuUi* treasureMenu;
+	controlsMenuUi* controlsMenu;
 	std::vector <uiPanel*> panels;
+	
+	bool freecam;
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, Level_Objects& Level)
 	{
-		//GW::SYSTEM::GLog log;
-		//log.Create("output.txt");
-		//bool success = lvl.LoadMeshes("../NewGameLevel.txt", "../NewModels", log.Relinquish());
-	
+		
 		//passed arguments for initializing
+		//gInput = &_gInput;
 		gameConfig = &_gameConfig;
 		win = _win;
 		ogl = _ogl;
 		app = &application;
 		lvl = &Level;
 
-		//sets default state for pausing the game
+		//sets default state for menu keybinds
 		tab = false;
 		t = false;
+		leftMouse = false;
+
+		isMainMenuRendered = false;
+		isPauseMenuRendered = false;
+
+		mainMenuCamPos = {
+		gameConfig->at("MainMenuCameraPos").at("posx").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("posy").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("posz").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("posw").as<float>() };
+
+		mainMenuLookAtPos = {
+		gameConfig->at("MainMenuCameraPos").at("lookx").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("looky").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("lookz").as<float>(),
+		gameConfig->at("MainMenuCameraPos").at("lookw").as<float>() };
+
+		//sets default state for freecam
+		freecam = true;
 
 		GW::SYSTEM::GLog log;
 
@@ -70,19 +95,13 @@ public:
 		//load ui Panels - this doesn't turn them on but simply lay out each UI for rendering later on.
 		initializePanels(log);
 
-		//Toggle which level you want to load
-		{
-			/////LEVELS/////
-			//bool levelSuccess = lvl.LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish(), ogl, cameraMatrix, viewMatrix, projectionMatrix);
-			//bool levelSuccess = lvl.LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-
-			////PANELS/////
-			//pauseMenu->toggleRender();
-			//mainMenuHUD->toggleRender();
-			playerHUD->toggleRender();
-			//treasureMenu->toggleRender();
-		}
-
+		////PANELS/////
+		//pauseMenu->toggleRender();
+		mainMenuHUD->toggleRender();
+		//playerHUD->toggleRender();
+		//treasureMenu->toggleRender();
+		//controlsMenu->toggleRender();
+	
 		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 		//create inputs
@@ -118,18 +137,22 @@ public:
 		treasureMenuUi* treasure = new treasureMenuUi(*gameConfig);
 		treasureMenu = treasure;
 
+		controlsMenuUi* controls = new controlsMenuUi(*gameConfig);
+		controlsMenu = controls;
+
 		//Load All meshes in the level at start
 		bool playerHUDSuccess = playerHUD->LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
 		bool mainMenuHUDSuccess = mainMenuHUD->LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
 		bool pauseMenuSuccess = pauseMenu->LoadMeshes("../PauseMenu.txt", "../Models/PauseMenuModels", log.Relinquish());
 		bool treasureMenuSuccess = treasureMenu->LoadMeshes("../treasureMenu.txt", "../Models/treasureMenuModels", log.Relinquish());
-
+		bool controlsMenuSuccess = controlsMenu->LoadMeshes("../controlsMenu.txt", "../Models/controlsMenuModels", log.Relinquish());
 
 		//add to vector of panels
 		panels.push_back(playerHUD);
 		panels.push_back(mainMenuHUD);
 		panels.push_back(pauseMenu);
 		panels.push_back(treasureMenu);
+		panels.push_back(controlsMenu);
 
 		for (uiPanel* panel : panels) {
 			initializePanel(panel);
@@ -257,8 +280,7 @@ public:
 		gController.GetState(0, G_RY_AXIS, rStickY);
 		gController.GetState(0, G_RX_AXIS, rStickX);
 
-		if (freecam)
-		{
+		if (freecam){
 
 			if (controller != GW::GReturn::FAILURE)
 			{
@@ -327,9 +349,15 @@ public:
 			//gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
 	
 		}
+
+		//Freeze the camera in main menu
+		else if (mainMenuHUD->render)
+		{
+			cameraMatrix = initializeCamView(mainMenuCamPos, mainMenuLookAtPos);
+		}
+		
 		else // not freecam
 		{
-
 			for each (Model m in lvl->allObjectsInLevel)
 			{
 				if (m.name == "MegaBee")
@@ -343,6 +371,7 @@ public:
 				}
 			}
 		}
+
 		//get view matrix
 		gMatrixProxy.InverseF(rotationMatrix, viewMatrix);
 
@@ -351,39 +380,72 @@ public:
 
 	//Event Handling for all buttons - manually place each button here and tag the lamda expression it should execute
 	void eventHandling() {
+
+		//Return Left Mouse state for re-use
+		if ((leftMouse) && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
+			leftMouse = false;
+		}
+
 		//MAINMENU
 		if (mainMenuHUD->render) {
-			mainMenuHUD->startButton->HandleInput(mainMenuHUD->startButton, G_BUTTON_LEFT, gInput, turnOffRender);
-			mainMenuHUD->controlsButton->HandleInput(mainMenuHUD->controlsButton, G_BUTTON_LEFT, gInput, turnOffRender);
+
+			if (!leftMouse && mainMenuHUD->controlsButton->HandleInputLeftMouseButton(gInput)) {
+				leftMouse = true;
+				isMainMenuRendered = true;
+				controlsMenu->render = true;
+				mainMenuHUD->render = false;
+
+			}
+
+			//mainMenuHUD->startButton->HandleInput(mainMenuHUD->startButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			mainMenuHUD->exitButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 		}
 
-		//PLAYERHUD
-		if (playerHUD->render) {
-		}
-
 		//PAUSEMENU
-		if (pauseMenu->render){
+		else if (pauseMenu->render){
 
-			pauseMenu->controlsPauseMenuButton->HandleInput(pauseMenu->controlsPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			if (!leftMouse && pauseMenu->controlsPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
+				
+				isPauseMenuRendered = true;
+				controlsMenu->render = true;
+				pauseMenu->render = false;
+
+			}
+
 			pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			pauseMenu->exitPauseMenuButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
-
-			if (pauseMenu->resumePauseMenuButton->HandleInputBool(G_BUTTON_LEFT, gInput) == true) {
-				//resume game
-				pauseMenu->toggleRender();
-			}
+			pauseMenu->resumePauseMenuButton->HandleInput(dynamic_cast<uiPanel*>(pauseMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
 
 		}
 
-		if (treasureMenu->render)
-		{
-			if (treasureMenu->exitTreasureMenuButton->HandleInputBool(G_BUTTON_LEFT, gInput) == true)
-			{
-				treasureMenu->toggleRender();
+		//CONTROLSMENU
+		else if (controlsMenu->render){
+
+			if (!leftMouse && controlsMenu->exitControlsMenuButton->HandleInputLeftMouseButton(gInput)) {
+
+				leftMouse = true;
+				controlsMenu->render = false;
+
+				if (isMainMenuRendered) {
+					mainMenuHUD->render = true;
+					isMainMenuRendered = false;
+				}
+
+				else if (isPauseMenuRendered) {
+					pauseMenu->render = true;
+					isPauseMenuRendered = false;
+				}
 			}
+
+
 		}
 
+	
+		//TREASURE MENU
+		else if (treasureMenu->render){
+			treasureMenu->exitTreasureMenuButton->HandleInput(dynamic_cast<uiPanel*>(treasureMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
+		}
+	
 		//KEYBINDS: Everything here should be checking if there was a key pressed and performing some action after
 		//CONTROLS:
 		//			TAB: toggles pause menu
@@ -392,26 +454,28 @@ public:
 		//
 		//
 
-		
 		{	//TOGGLE PAUSE MENU
-			if ((GetAsyncKeyState(VK_TAB) & 0x8000) && !tab) {
-				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render) {
+			if (!tab && (GetAsyncKeyState(VK_TAB) & 0x8000)) {
+				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
 					pauseMenu->render = true;
+
 				}
 
 				else if (pauseMenu->render) {
 					pauseMenu->render = false;
 				}
 				tab = true;
+
 			}
-			else if (!(GetAsyncKeyState(VK_TAB) & 0x8000)) {
+			else if (tab && !(GetAsyncKeyState(VK_TAB) & 0x8000)) {
 				tab = false;
 			}
+
 		}
 
 		{	//TOGGLE PAUSE MENU
-			if ((GetAsyncKeyState(0x54) & 0x8000) && !t) {
-				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render) {
+			if (!t &&(GetAsyncKeyState(0x54) & 0x8000)) {
+				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
 					treasureMenu->render = true;
 					
 				}
@@ -422,7 +486,7 @@ public:
 				t = true;
 				
 			}
-			else if (!(GetAsyncKeyState(0x54) & 0x8000)) {
+			else if (t && !(GetAsyncKeyState(0x54) & 0x8000)) {
 				t = false;
 			}
 			
@@ -440,16 +504,22 @@ public:
 
 		for (uiPanel* panel : panels){
 
-			if (panel == treasureMenu && panel->render){
-				treasureMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+			if (panel == playerHUD && panel->render)
+			{
+				playerHUD->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
-
-			if (panel->render){
+			else if (panel->render){
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 		}
 
 		eventHandling();
+	}
+
+	//swaps the level in render manager
+	void changeLevel(Level_Objects& level) {
+		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		lvl = &level;
 	}
 
 	~RendererManager() {

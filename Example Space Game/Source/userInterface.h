@@ -299,6 +299,35 @@ public:
 
 	}
 
+	//made for game over text buttons, they need their own method
+	bool DrawDigitModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _proj){
+
+		//Get Block Index, and Bind the Buffer
+		int blockIndex = (glGetUniformBlockIndex(shaderExecutable, "UboData"));
+		glBindBufferBase(GL_UNIFORM_BUFFER, 0, UBOBufferObject);
+		glUniformBlockBinding(shaderExecutable, blockIndex, 0);
+
+		//update vertex buffer
+		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+
+		//sets hud in front of everything else
+		glDepthRange(userButtonDepth, uiModelDepth);
+
+		//Draw meshes - iterates through the meshes and materials to draw them individually.
+		for (int j = 0; j < cpuModel.meshCount; j++) {
+			updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _proj);
+			SetUpPipeline(1);
+			updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
+			glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
+		}
+
+		glBindVertexArray(0);
+		glUseProgram(0);
+
+		return true;
+
+	}
+
 	//Uses the world matrix and adjusts it for placing each UI object properly
 	void loadDefaults() override {
 
@@ -1463,7 +1492,7 @@ class gameOverUi : public uiPanel {
 public:
 	uiModel* gameOverOverlay;
 	userButton* gameOverText, *youWinText, *highScoreText, *scoreText, * exitGameOverButton, *restartGameOverButton;
-	std::vector<uiModel*> scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, highScoreDigit1, highScoreDigit2, highScoreDigit3, highScoreDigit4;
+	std::vector<userButton*> scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, highScoreDigit1, highScoreDigit2, highScoreDigit3, highScoreDigit4;
 
 	gameOverUi() {
 		render = false;
@@ -1485,36 +1514,36 @@ public:
 		exitGameOverButton = &allUiButtonObjects[3];
 
 		for (int i = 0; i < 10; i++) {
-			scoreDigit1.push_back(&allUiObjects[i + 1]);
+			scoreDigit1.push_back(static_cast<userButton*>(&allUiObjects[i + 1]));
 		}
 
 		for (int i = 0; i < 10; i++) {
-			scoreDigit2.push_back(&allUiObjects[i + 11]);
+			scoreDigit2.push_back(static_cast<userButton*>(&allUiObjects[i + 11]));
 		}
 
 
 		for (int i = 0; i < 10; i++) {
-			scoreDigit3.push_back(&allUiObjects[i + 21]);
+			scoreDigit3.push_back(static_cast<userButton*>(&allUiObjects[i + 21]));
 		}
 
 		for (int i = 0; i < 10; i++) {
-			scoreDigit4.push_back(&allUiObjects[i + 31]);
+			scoreDigit4.push_back(static_cast<userButton*>(&allUiObjects[i + 31]));
 		}
 
 		for (int i = 0; i < 10; i++) {
-			highScoreDigit1.push_back(&allUiObjects[i + 41]);
+			highScoreDigit1.push_back(static_cast<userButton*>(&allUiObjects[i + 41]));
 		}
 
 		for (int i = 0; i < 10; i++) {
-			highScoreDigit2.push_back(&allUiObjects[i + 51]);
+			highScoreDigit2.push_back(static_cast<userButton*>(&allUiObjects[i + 51]));
 		}
 
 		for (int i = 0; i < 10; i++) {
-			highScoreDigit3.push_back(&allUiObjects[i + 61]);
+			highScoreDigit3.push_back(static_cast<userButton*>(&allUiObjects[i + 61]));
 		}
 
 		for (int i = 0; i < 10; i++) {
-			highScoreDigit4.push_back(&allUiObjects[i + 71]);
+			highScoreDigit4.push_back(static_cast<userButton*>(&allUiObjects[i + 71]));
 		}
 	
 
@@ -1524,35 +1553,36 @@ public:
 		
 		gameOverOverlay->loadDefaults();
 
-		for (uiModel* digit : scoreDigit1) {
+		for (userButton* digit : scoreDigit1) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit2) {
+		for (userButton* digit : scoreDigit2) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit3) {
+		for (userButton* digit : scoreDigit3) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : scoreDigit4) {
+		for (userButton* digit : scoreDigit4) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : highScoreDigit1) {
+
+		for (userButton* digit : highScoreDigit1) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : highScoreDigit2) {
+		for (userButton* digit : highScoreDigit2) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : highScoreDigit3) {
+		for (userButton* digit : highScoreDigit3) {
 			digit->loadDefaults();
 		}
 
-		for (uiModel* digit : highScoreDigit4) {
+		for (userButton* digit : highScoreDigit4) {
 			digit->loadDefaults();
 		}
 
@@ -1561,7 +1591,7 @@ public:
 				if (_text.name.find(_button.name) != std::string::npos) {
 					_button.text = &_text;
 					_button.loadDefaults();
-				}
+				}		
 			}
 		}
 	}
@@ -1585,9 +1615,51 @@ public:
 
 		// iterate over each model and tell it to draw itself
 		if (render) {
-			for (auto& e : allUiObjects) {
+			/*for (auto& e : allUiObjects) {
 				if (e.render)
 					e.DrawModel(_camera, _view, _proj, e.alpha);
+			}*/
+
+			gameOverOverlay->DrawModel(_camera, _view, _proj, gameOverOverlay->alpha);
+
+			for (userButton* digit : scoreDigit1) {
+				if(digit->render)
+					digit->DrawDigitModel(_camera, _view, _proj);
+			}
+
+			for (userButton* digit : scoreDigit2) {
+				if (digit->render)
+					digit->DrawDigitModel(_camera, _view, _proj);
+			}
+
+			for (userButton* digit : scoreDigit3) {
+				if (digit->render)
+					digit->DrawDigitModel(_camera, _view, _proj);
+			}
+
+			for (userButton* digit : scoreDigit4) {
+				if (digit->render)
+					digit->DrawDigitModel(_camera, _view, _proj);
+			}
+
+			for (userButton* digit : highScoreDigit1) {
+				if (digit->render)
+					digit->DrawDigitModel(_camera, _view, _proj);
+			}
+
+			for (userButton* digit : highScoreDigit2) {
+				if (digit->render)
+					digit->DrawDigitModel(_camera, _view, _proj);
+			}
+
+			for (userButton* digit : highScoreDigit3) {
+				if (digit->render)
+					digit->DrawDigitModel(_camera, _view, _proj);
+			}
+
+			for (userButton* digit : highScoreDigit4) {
+				if (digit->render)
+					digit->DrawDigitModel(_camera, _view, _proj);
 			}
 
 			for (auto& f : allUiButtonObjects) {
@@ -1660,16 +1732,16 @@ public:
 		int iter = 3;
 
 		//toggle all digits off
-		for (uiModel* digit : scoreDigit1) {
+		for (userButton* digit : scoreDigit1) {
 			digit->render = false;
 		}
-		for (uiModel* digit : scoreDigit2) {
+		for (userButton* digit : scoreDigit2) {
 			digit->render = false;
 		}
-		for (uiModel* digit : scoreDigit3) {
+		for (userButton* digit : scoreDigit3) {
 			digit->render = false;
 		}
-		for (uiModel* digit : scoreDigit4) {
+		for (userButton* digit : scoreDigit4) {
 			digit->render = false;
 		}
 

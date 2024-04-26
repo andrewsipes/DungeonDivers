@@ -519,6 +519,11 @@ public:
 			{
 				playerHUD->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
+
+			else if (panel == gameOverMenu && panel->render)
+			{
+				gameOverMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+			}
 			else if (panel->render){
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}

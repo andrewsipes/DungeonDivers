@@ -86,7 +86,7 @@ bool Application::Run() {
 	auto lvl2 = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-	lvl2->LoadMeshes("../Models/TestWorld/GameLevel.txt", "../Models/TestWorld/Models", log.Relinquish());
+	lvl2->LoadMeshes("../Models/TestWorld/Level2/GameLevel.txt", "../Models/TestWorld/Level2/Models", log.Relinquish());
 	lvl2->AddEntities(lvl2, game);
 	lvl2->AddSystems(lvl2, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher);
 	

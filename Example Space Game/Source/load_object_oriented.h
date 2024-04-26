@@ -1067,7 +1067,7 @@ public:
 					// damage anything we come into contact with
 					arrow.each<ESG::CollidedWith>([&arrow, level](flecs::entity hit)
 						{
-							if (!hit.has<ESG::Player>())
+							if (!(hit.has<ESG::Player>() || hit.has<ESG::Bullet>()))
 							{
 								Model m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);

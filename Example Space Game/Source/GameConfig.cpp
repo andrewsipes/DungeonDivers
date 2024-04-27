@@ -32,6 +32,7 @@ GameConfig::GameConfig() : ini::IniFile()
 	{ 
 		std::abort(); // a more graceful approach would be to overwrite defaults.ini
 	}
+
 }
 
 GameConfig::~GameConfig() 

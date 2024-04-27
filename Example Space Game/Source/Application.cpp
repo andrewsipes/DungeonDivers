@@ -88,8 +88,6 @@ bool Application::Run() {
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 	//lvl2->LoadMeshes("../Models/TestWorld/Level2/GameLevel.txt", "../Models/TestWorld/Level2/Models", log.Relinquish());
 	lvl2->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
-	lvl2->AddEntities(lvl2, game);
-	lvl2->AddSystems(lvl2, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher);
 
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
@@ -102,8 +100,11 @@ bool Application::Run() {
 	{
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 		RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
+		PlayerStats playerStats(*gameConfig);
 		auto& mainMenuMusic = musicTracks["MainMenu"];
 		mainMenuMusic.Play(true);
+		AddEntities(lvl2, game);
+		AddSystems(lvl2, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
 		while (+win.ProcessWindowEvents() && running == true)
 		{

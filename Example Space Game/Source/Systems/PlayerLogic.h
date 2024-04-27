@@ -5,6 +5,7 @@
 // Contains our global game settings
 #include "../GameConfig.h"
 #include "../Components/Physics.h"
+//#include "../load_object_oriented.h"
 
 // Dungeon Divers (avoid name collisions)
 namespace DD 

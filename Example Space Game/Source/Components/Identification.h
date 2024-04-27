@@ -7,6 +7,7 @@ namespace DD
 {
 	struct Player {};
 	struct Bullet {};
+	struct CountBullet{};
 	struct Enemy {};
 	struct Lives {};
 	struct ControllerID

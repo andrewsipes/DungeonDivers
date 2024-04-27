@@ -1,7 +1,7 @@
 # Blender 4.0.2 MTL File: 'MainMenu.blend'
 # www.blender.org
 
-newmtl DarkMetal.001
+newmtl DarkMetal.002
 Ns 96.078453
 Ka 1.000000 1.000000 1.000000
 Kd 0.033179 0.029635 0.048573
@@ -11,7 +11,7 @@ Ni 1.000000
 d 1.000000
 illum 2
 
-newmtl Fire
+newmtl Fire.001
 Ns 96.078453
 Ka 1.000000 1.000000 1.000000
 Kd 0.456900 0.136222 0.019765

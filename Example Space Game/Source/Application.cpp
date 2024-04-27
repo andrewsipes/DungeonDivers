@@ -29,8 +29,8 @@ bool Application::Init()
 	//	return false;
 	if (InitEntities() == false)
 		return false;
-	//if (InitSystems() == false)
-	//	return false;
+	if (InitSystems() == false)
+		return false;
 	return true;
 }
 
@@ -77,14 +77,19 @@ bool Application::Init()
 //}
 
 bool Application::Run() {
+	leftMouse = false;
 	running = true;
 	GEventResponder msgs;
 	GW::SYSTEM::GLog log;
 	log.Create("output.txt");
 	auto lvl = std::make_shared<Level_Objects>();
+	auto lvl2 = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-	//lvl->LoadMeshes("../GameLevel.txt", "../Models", log.Relinquish());
+	//lvl2->LoadMeshes("../Models/TestWorld/Level2/GameLevel.txt", "../Models/TestWorld/Level2/Models", log.Relinquish());
+	lvl2->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
+	lvl2->AddEntities(lvl2, game);
+	lvl2->AddSystems(lvl2, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher);
 
 	Level_Objects& Level = *lvl;
 	//AddEntities(*lvl);
@@ -93,13 +98,13 @@ bool Application::Run() {
 		{
 
 			auto e = game->entity( i.name.c_str() );
-			e.set<DD::Name>({ i.name });
+			e.set<ESG::Name>({ i.name });
 		}
 		int count = 0;
 
-		auto f = game->filter<DD::Name>();
+		auto f = game->filter<ESG::Name>();
 
-		f.each([&count](DD::Name& n)
+		f.each([&count](ESG::Name& n)
 			{
 				count++;
 			}
@@ -114,31 +119,87 @@ bool Application::Run() {
 		});
 	win.Register(msgs);
 
-		if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+	{
+		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
+		RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
+		auto& mainMenuMusic = musicTracks["MainMenu"];
+		mainMenuMusic.Play(true);
+
+		while (+win.ProcessWindowEvents() && running == true)
 		{
-			QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-			RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
-			//auto& mainMenuMusic = musicTracks["MainMenu"];
-			//mainMenuMusic.Play(true);
-			while (+win.ProcessWindowEvents() && running == true)
-			{
+			lvl2->Update(game, lvl2);
 
-				glClearColor(clr[0], clr[1], clr[2], clr[3]);
+			if(!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
+				GameLoop();
 
+			glClearColor(clr[0], clr[1], clr[2], clr[3]);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				//Update camera then render
-				rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
-				rendererManager.Render();
-				ogl.UniversalSwapBuffers();
+			#ifdef NDEBUG
+				if (rendererManager.mainMenuHUD->render){
+					rendererManager.freecam = false;
+				}
+			#endif
 
+			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+			rendererManager.Render();
+
+			//event Handling for the mainMenu - starts the game
+			if (rendererManager.mainMenuHUD->render) {
+
+				if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
+					leftMouse = true;
+					rendererManager.mainMenuHUD->toggleRender();
+					rendererManager.playerHUD->toggleRender();
+					rendererManager.changeLevel(*lvl2);
+				}
 
 			}
+
+			//Return Left Mouse state for re-use
+			else if ((leftMouse) && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
+				leftMouse = false;
+			}
+
+			//LEVEL SWAP: Currently works by using 0 or 1
+			{
+				//use these to determine if flag is read
+				bool zero = false, one = false;
+
+				//Main Menu
+				if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
+					zero = true;
+
+					rendererManager.changeLevel(*lvl);
+
+				}
+
+				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+					zero = false;
+				}
+
+				//Level1
+				if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
+					one = true;
+
+					rendererManager.changeLevel(*lvl2);
+
+				}
+
+				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+					one = false;
+				}
+			}
+
+
+			ogl.UniversalSwapBuffers();
+
 		}
+	}
 	return 0;
+
 }
-
-
 
 bool Application::Shutdown()
 {
@@ -179,13 +240,12 @@ bool Application::InitInput()
 {
 	if (-gamePads.Create())
 		return false;
-	if (-immediateInput.Create(win))
+	if (-gInput.Create(win))
 		return false;
 	if (-bufferedInput.Create(win))
 		return false;
 	return true;
 }
-
 
 //bool Application::InitAudio()
 //{
@@ -267,10 +327,10 @@ bool Application::LoadAudioResources()
 	};
 
 	//Load up the music tracks
-	if (!loadAudio(musicTracks, "MainMenu", "../Music/Main_Menu.wav", 0.15f) ||
-		!loadAudio(musicTracks, "Level1", "../Music/Level_1.wav", 0.15f) ||
-		!loadAudio(musicTracks, "Level2", "../Music/Level_2.wav", 0.15f) ||
-		!loadAudio(musicTracks, "Level3", "../Music/Level_3.wav", 0.15f))
+	if (!loadAudio(musicTracks, "MainMenu", "../Music/Main_Menu.wav", 0.005f) ||
+		!loadAudio(musicTracks, "Level1", "../Music/Level_1.wav", 0.005f) ||
+		!loadAudio(musicTracks, "Level2", "../Music/Level_2.wav", 0.005f) ||
+		!loadAudio(musicTracks, "Level3", "../Music/Level_3.wav", 0.005f))
 	{
 		return false;
 	}
@@ -291,11 +351,11 @@ bool Application::LoadAudioResources()
 	{
 		return false;
 	}
-
+#ifndef NDEBUG
 	std::cout << "All music and sfx loaded!" << std::endl;
+#endif
 	return true;
 }
-
 
 //bool Application::InitGraphics()
 //{
@@ -330,39 +390,36 @@ bool Application::InitEntities()
 	return true;
 }
 
-//bool Application::InitSystems()
-//{
-//	// connect systems to global ECS
-//	if (playerSystem.Init(	game, gameConfig, immediateInput, bufferedInput,
-//							gamePads, audioEngine, eventPusher) == false)
-//		return false;
-//	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
-//		return false;
-//	if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
-//		return false;
-//	if (physicsSystem.Init(game, gameConfig) == false)
-//		return false;
-//	if (bulletSystem.Init(game, gameConfig) == false)
-//		return false;
-//	if (enemySystem.Init(game, gameConfig, eventPusher) == false)
-//		return false;
-//
-//	return true;
-//}
+bool Application::InitSystems()
+{
+	// connect systems to global ECS
+	if (playerSystem.Init(	game, gameConfig, gInput, bufferedInput,
+							gamePads, audioEngine, eventPusher) == false)
+		return false;
+	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
+		return false;
+	/*if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
+		return false;*/
+	if (physicsSystem.Init(game, gameConfig) == false)
+		return false;
+	if (bulletSystem.Init(game, gameConfig) == false)
+		return false;
+	/*if (enemySystem.Init(game, gameConfig, eventPusher) == false)
+		return false;*/
 
 	//void Application::AddEntities(Level_Objects& lvl)
 	//{
 	//	for (auto& i : lvl.allObjectsInLevel)
 	//	{
 	//		auto e = game->entity(i.name);
-	//		e.set<DD::Name>({ i.name });
+	//		e.set<ESG::Name>({ i.name });
 	//
 	//
 	//	}
 	//	int count = 0;
-	//	auto f = game->filter<DD::Name>();
+	//	auto f = game->filter<ESG::Name>();
 	//
-	//	f.each([&count](DD::Name& n)
+	//	f.each([&count](ESG::Name& n)
 	//		{
 	//			count++;
 	//		}

@@ -37,7 +37,7 @@ def print_heir(ob, levels=10):
             if ob.name == 'skyBox' and ob.get("CubeMap") is not None:
                 file.write(spaces + ob.get("CubeMap") + "\n")
                 
-            # Swap from Blender space to OpenGL RH
+             # Swap from Blender space to OpenGL RH
             row_world = ob.matrix_world.transposed()
             converted = mathutils.Matrix.Identity(4)
             converted[0][0:3] = row_world[0][0], row_world[0][2], -row_world[0][1]
@@ -47,13 +47,23 @@ def print_heir(ob, levels=10):
 
             converted[3][0] = row_world[3][0]
             converted[3][1] = row_world[3][2]
-            converted[3][2] = -row_world[3][1]
-          
-           
+            converted[3][2] = -row_world[3][1] 
+            
             # flip the local Z axis for winding and transpose for export
-            scaleZ = mathutils.Matrix.Scale(-1.0, 4, (1.0, 0.0, 0.0))
+            scaleZ = mathutils.Matrix.Scale(-1.0, 4, (0.0, 0.0, 1.0))
             converted = scaleZ.transposed() @ converted  
             file.write(spaces + str(converted) + "\n")
+            
+            
+        # adding export of object aligned bounding data 
+        # only do this for a MESH
+            if ob.type == "MESH":
+                bbox_corners = [mathutils.Vector(corner) for corner in ob.bound_box]
+            for corner in bbox_corners:
+               # convert corners to vulkan/d3d coordinates
+                corner[1], corner[2] = corner[2], corner[1]
+                print(spaces, corner) # debug only
+                file.write(spaces + str(corner) + "\n") # write to file
             
              
         if ob.type == 'LIGHT' and ob.data.type == 'SPOT':
@@ -76,13 +86,9 @@ def print_heir(ob, levels=10):
             file.write(spaces + str(ob.data.energy) + "\n")
             file.write(spaces + str(ob.data.shadow_soft_size) + "\n")
             file.write(spaces + str(ob.data.spot_size) + "\n")
-            file.write(spaces + str(ob.data.spot_blend) + "\n")           
+            file.write(spaces + str(ob.data.spot_blend) + "\n") 
                       
             # Swap from Blender space to OpenGL RH
-            row_world = ob.matrix_world.transposed()
-            converted = mathutils.Matrix.Identity(4)
-               
-           # Swap from Blender space to OpenGL RH
             row_world = ob.matrix_world.transposed()
             converted = mathutils.Matrix.Identity(4)
             converted[0][0:3] = row_world[0][0], row_world[0][2], -row_world[0][1]
@@ -93,12 +99,12 @@ def print_heir(ob, levels=10):
             converted[3][0] = row_world[3][0]
             converted[3][1] = row_world[3][2]
             converted[3][2] = -row_world[3][1]
-          
-       
+            
             # flip the local Z axis for winding and transpose for export
-            scaleZ = mathutils.Matrix.Scale(-1.0, 4, (1.0, 0.0, 0.0))
+            scaleZ = mathutils.Matrix.Scale(-1.0, 4, (0.0, 0.0, 1.0))
             converted = scaleZ.transposed() @ converted  
             file.write(spaces + str(converted) + "\n")
+        
             
         if ob.type == 'LIGHT' and ob.data.type == 'POINT':
             # print to system console for debugging
@@ -121,10 +127,6 @@ def print_heir(ob, levels=10):
             # Swap from Blender space to OpenGL RH
             row_world = ob.matrix_world.transposed()
             converted = mathutils.Matrix.Identity(4)
-            
-            # Swap from Blender space to OpenGL RH
-            row_world = ob.matrix_world.transposed()
-            converted = mathutils.Matrix.Identity(4)
             converted[0][0:3] = row_world[0][0], row_world[0][2], -row_world[0][1]
             converted[1][0:3] = row_world[1][0], row_world[1][2], -row_world[1][1]
             converted[2][0:3] = row_world[2][0], row_world[2][2], -row_world[2][1]
@@ -133,23 +135,14 @@ def print_heir(ob, levels=10):
             converted[3][0] = row_world[3][0]
             converted[3][1] = row_world[3][2]
             converted[3][2] = -row_world[3][1]
-       
+            
             # flip the local Z axis for winding and transpose for export
-            scaleZ = mathutils.Matrix.Scale(-1.0, 4, (1.0, 0.0, 0.0))
+            scaleZ = mathutils.Matrix.Scale(-1.0, 4, (0.0, 0.0, 1.0))
             converted = scaleZ.transposed() @ converted  
             file.write(spaces + str(converted) + "\n")
+        
    
             
-        # adding export of object aligned bounding data 
-        # only do this for a MESH
-        #if ob.type == "MESH":
-        #    bbox_corners = [mathutils.Vector(corner) for corner in ob.bound_box]
-        #    for corner in bbox_corners:
-        #        # convert corners to vulkan/d3d coordinates
-        #        corner[1], corner[2] = corner[2], corner[1]
-        #        print(spaces, corner) # debug only
-        #        file.write(spaces + str(corner) + "\n") # write to file
-         
         # TODO: For a game ready exporter we would
         # probably want the delta(pivot) matrix, lights,
         # detailed mesh hierarchy information

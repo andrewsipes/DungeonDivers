@@ -11,10 +11,15 @@ namespace DD
 	struct Velocity { GW::MATH2D::GVECTOR2F value; };
 	struct Orientation { GW::MATH2D::GMATRIX2F value; };
 	struct Acceleration { GW::MATH2D::GVECTOR2F value; };
-	
+
+	struct World { GW::MATH::GMATRIXF value; };
+	struct LastWorld { GW::MATH::GMATRIXF value; };
+	struct BulletVel { GW::MATH::GVECTORF value; };
+	struct State { GW::MATH::GVECTORF value; };
+
 	// Individual TAGs
-	struct Collidable { GW::MATH2D::GRECTANGLE2D rectCollider; };
-	
+	struct Collidable { GW::MATH::GOBBF obb; };
+
 	// ECS Relationship tags
 	struct CollidedWith {};
 };

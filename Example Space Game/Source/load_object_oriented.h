@@ -3,6 +3,7 @@
 #include "./OpenGLExtensions.h"
 #include "./defines.h"
 #include "../Source/Components/Identification.h"
+#include "../Source/Components/Gameplay.h"
 
 //Depth of UI rendering
 #define userButtonTextDepth 0.0f
@@ -48,8 +49,82 @@ MessageCallback(GLenum source, GLenum type, GLuint id,
 }
 #endif
 
+//holds the sunlightdata
+struct SUNLIGHT_DATA
+{
+	GW::MATH::GVECTORF color, direction, ambient;
+};
+
+//the data we can parse from the lights
+class Light {
+public:
+	std::string name;
+	std::string type;
+	GW::MATH::GVECTORF position;
+	GW::MATH::GVECTORF color;
+	float intensity;
+	float radius;
+	float size;
+	float blend;
+
+	inline void SetName(std::string lightName) {
+		name = lightName;
+	}
+
+	inline void SetType(std::string lightType) {
+		type = lightType;
+	}
+
+	inline void setPosition(GW::MATH::GVECTORF lightPosition) {
+		position = lightPosition;
+	}
+
+	inline void SetColor(GW::MATH::GVECTORF lightColor) {
+		color = lightColor;
+	}
+
+	inline void SetPos(GW::MATH::GVECTORF lightPos) {
+		position = lightPos;
+	}
+
+	//takes in light power, and converts it to intensity
+	inline void SetIntensity(float lightPower) {
+		intensity = lightPower;
+	}
+};
+
+//this is what we can send to the shader for lighting
+struct LIGHT_DATA
+{
+	GW::MATH::GVECTORF position;
+	GW::MATH::GVECTORF color;
+	int intensity;
+	float radius;
+	float size = -1;
+	float blend = -1;
+};
+
+//uniform buffer data
+struct UBO_DATA
+{
+	GW::MATH::GVECTORF sunColor, sunDirection, sunAmbient;
+	GW::MATH::GMATRIXF _cam, _view, _proj, _world;
+	H2B::ATTRIBUTES material;
+	int numLights;
+} ubo;
+
+//vertex struct
+struct Vertex
+{
+	float  x, y, z, w;
+};
+
+//vector of lights - this will be sent to the uniform
+std::vector<LIGHT_DATA> lbo;
+
 // class Model contains everyhting needed to draw a single 3D model
-class Model {
+class Model
+{
 public:
 
 	// Name of the Model in the GameLevel (useful for debugging)
@@ -74,14 +149,48 @@ public:
 	GLuint fragmentShader;
 	GLuint shaderExecutable;
 
+	std::string modelFile; // path to .h2b file
+
+	// *NEW* object aligned bounding box data: // LBN, LTN, LTF, LBF, RBN, RTN, RTF, RBF
+	GW::MATH::GVECTORF boundary[8];
+	GW::MATH::GOBBF obb;
+
+	// *NEW* converts the vec3 boundries to an OBB
+	GW::MATH::GOBBF ComputeOBB() const
+	{
+		GW::MATH::GOBBF out =
+		{
+			GW::MATH::GIdentityVectorF,
+			GW::MATH::GIdentityVectorF,
+			GW::MATH::GIdentityQuaternionF // initally unrotated (local space)
+		};
+		out.center.x = (boundary[0].x + boundary[6].x) * 0.5f;
+		out.center.y = (boundary[0].y + boundary[6].y) * 0.5f;
+		out.center.z = (boundary[0].z + boundary[6].z) * 0.5f;
+		out.extent.x = std::fabsf(boundary[0].x - boundary[6].x) * 0.5f;
+		out.extent.y = std::fabsf(boundary[0].y - boundary[6].y) * 0.5f;
+		out.extent.z = std::fabsf(boundary[0].z - boundary[6].z) * 0.5f;
+		GW::MATH::GMatrix::GetRotationF(world, out.rotation);
+		return out;
+	}
+
+	bool operator==(Model const& rh)
+	{
+		return name == rh.name;
+	}
+	//holds the textureID for the skybox
+	unsigned int CubeMapTexture;
+
 	inline void SetName(std::string modelName) {
 		name = modelName;
 	}
+
 	inline void SetWorldMatrix(GW::MATH::GMATRIXF worldMatrix) {
 		world = worldMatrix;
 	}
 
-	bool LoadModelDataFromDisk(const char* h2bPath) {
+	bool LoadModelDataFromDisk(const char* h2bPath)
+	{
 		// if this succeeds "cpuModel" should now contain all the model's info
 		return cpuModel.Parse(h2bPath);
 	}
@@ -90,11 +199,25 @@ public:
 		// TODO: Use chosen API to upload this model's graphics data to GPU
 		lbo = updateLights(_lights);
 		ubo = updateUboInstance(cpuModel.materials[0], _camera, _view, _projection, _sLight);
-
 		InitializeGraphics();
 
-		if (name == "skyBox")
+		if (name == "skyBox") {
 			createCubeMap(skyBox);  //credits to learnOpenGL for the skybox image https://learnopengl.com/Advanced-OpenGL/Cubemaps
+		}
+
+		if (obb.extent.x != GW::MATH::GIdentityVectorF.x ||
+			obb.extent.y != GW::MATH::GIdentityVectorF.y ||
+			obb.extent.z != GW::MATH::GIdentityVectorF.z)
+		{
+#ifndef NDEBUG
+			std::cout << "Bounding box added successfully for model: " << name << std::endl;
+#endif
+		}
+#ifndef NDEBUG
+		else {
+			std::cerr << "Failed to add bounding box for model: " << name << std::endl;
+		}
+#endif
 
 		return true;
 	}
@@ -322,6 +445,7 @@ public:
 		glBindBuffer(GL_UNIFORM_BUFFER, lightBufferObject);
 		glBufferData(GL_UNIFORM_BUFFER, sizeInBytes, data, GL_DYNAMIC_DRAW);
 	}
+
 	void updateLightBufferObject(const std::vector <LIGHT_DATA>& _lights) {
 		glBindBuffer(GL_UNIFORM_BUFFER, lightBufferObject);
 		lbo = _lights;
@@ -412,7 +536,8 @@ public:
 };
 
 // class Level_Objects is simply a list of all the Models currently used by the level
-class Level_Objects {
+class Level_Objects
+{
 private:
 	// store all our models
 
@@ -423,16 +548,16 @@ private:
 	GW::MATH::GVECTORF sunLightAmbient;
 	GW::MATH::GVECTORF cameraForward;
 
-	//light Vectors,
+	//light Vectors
 	std::vector<LIGHT_DATA> LIGHTDATA;	//this vector uses the structure for lighting in the lbo, we use this to hold the necessary data until moved
 	std::vector<Light> lights;			//this vector will show all the data pulled from the textfile
 
 public:
-	//std::vector<Model> allObjectsInLevel;
-
 	std::vector<Model> allObjectsInLevel;
+
 	// Imports the default level txt format and creates a Model from each .h2b
-	bool virtual LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log) {
+	bool virtual LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log)
+	{
 		//light stuff RGBA
 		sunLightDir = { 1.0f, -1.0f, 2.0f, 0.0f };
 		GW::MATH::GVector::NormalizeF(sunLightDir, sunLightDir);
@@ -456,7 +581,8 @@ public:
 		UnloadLevel();// clear previous level data if there is any
 		GW::SYSTEM::GFile file;
 		file.Create();
-		if (-file.OpenTextRead(gameLevelPath)) {
+		if (-file.OpenTextRead(gameLevelPath))
+		{
 			log.LogCategorized(
 				"ERROR", (std::string("Game level not found: ") + gameLevelPath).c_str());
 			return false;
@@ -472,6 +598,7 @@ public:
 				Model newModel;
 				file.ReadLine(linebuffer, 1024, '\n');
 				log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
+
 				// create the model file name from this (strip the .001)
 				newModel.SetName(linebuffer);
 				std::string modelFile = linebuffer;
@@ -501,22 +628,44 @@ public:
 					std::to_string(transform.row4.y) + " Z " + std::to_string(transform.row4.z);
 				log.LogCategorized("INFO", loc.c_str());
 
+				for (int i = 0; i < 8; ++i)
+				{
+					file.ReadLine(linebuffer, 1024, '\n');
+					// read floats
+					std::sscanf(linebuffer + 9, "%f, %f, %f",
+						&newModel.boundary[i].x, &newModel.boundary[i].y, &newModel.boundary[i].z);
+				}
+				std::string bounds = "Boundary: Left ";
+				bounds += std::to_string(newModel.boundary[0].x) +
+					" Right " + std::to_string(newModel.boundary[6].x) +
+					" Bottom " + std::to_string(newModel.boundary[0].y) +
+					" Top " + std::to_string(newModel.boundary[6].y) +
+					" Near " + std::to_string(newModel.boundary[0].z) +
+					" Far " + std::to_string(newModel.boundary[6].z);
+				log.LogCategorized("INFO", bounds.c_str());
+
 				// Add new model to list of all Models
 				log.LogCategorized("MESSAGE", "Begin Importing .H2B File Data.");
 				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
 				newModel.SetWorldMatrix(transform);
+
+				newModel.obb = newModel.ComputeOBB();
+
 				// If we find and load it add it to the level
-				if (newModel.LoadModelDataFromDisk(modelFile.c_str())) {
+				if (newModel.LoadModelDataFromDisk(modelFile.c_str()))
+				{
 					// add to our level objects, we use std::move since Model::cpuModel is not copy safe.
 					allObjectsInLevel.push_back(std::move(newModel));
 					log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
 				}
-				else {
+				else
+				{
 					// notify user that a model file is missing but continue loading
 					log.LogCategorized("ERROR",
 						(std::string("H2B Not Found: ") + modelFile).c_str());
 					log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
 				}
+
 				log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
 			}
 
@@ -543,7 +692,6 @@ public:
 
 				else if (std::strcmp(linebuffer, "SPOT") == 0) {
 					light.SetType("SPOT");
-
 				}
 
 				log.LogCategorized("INFO", (std::string("LIGHT TYPE: ") + linebuffer).c_str());
@@ -638,7 +786,6 @@ public:
 		}
 
 		//Now we copy the data we can send to the shader to a seperate vector (for lights)
-
 		if (lights.size() > 16)
 		{
 			log.LogCategorized("ERROR", "You have more lights in the level than are currently supported. Only the first 16 will be supported");
@@ -672,9 +819,6 @@ public:
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
 	}
 
-
-
-
 	// Upload the CPU level to GPU
 	void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 		// iterate over each model and tell it to draw itself
@@ -682,7 +826,7 @@ public:
 			e.UploadModelData2GPU(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
 		}
 	}
-	
+
 	// Draws all objects in the level
 	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 		// iterate over each model and tell it to draw itself
@@ -696,8 +840,310 @@ public:
 		allObjectsInLevel.clear();
 	}
 
-	// *THIS APPROACH COMBINES DATA & LOGIC*
-	// *WITH THIS APPROACH THE CURRENT RENDERER SHOULD BE JUST AN API MANAGER CLASS*
-	// *ALL ACTUAL GPU LOADING AND RENDERING SHOULD BE HANDLED BY THE MODEL CLASS*
-	// For example: anything that is not a global API object should be encapsulated.
+	void Update(std::shared_ptr<flecs::world> game, std::shared_ptr<Level_Objects> level)
+	{
+		for each (Model m in level->allObjectsInLevel)
+		{
+			auto entity = game->lookup(m.name.c_str());
+			auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+			if (found != level->allObjectsInLevel.end())
+			{
+				size_t index = found - level->allObjectsInLevel.begin();
+				level->allObjectsInLevel[index].world = entity.get<ESG::World>()->value;
+			}
+		}
+	}
+
+	struct Models { Model mod; };
+
+	void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::world> game)
+	{
+		for each (Model i in Level->allObjectsInLevel)
+		{
+			auto e = game->entity(i.name.c_str());
+			e.set<ESG::Name>({ i.name });
+			e.set<ESG::World>({ i.world });
+			//e.add<ESG::World>();
+			e.set<Models>({ i });
+
+			if (i.name.substr(0, 5) == "alien")
+				e.add<ESG::Enemy>();
+
+			if (i.name.substr(0, 9) != "RealFloor")
+				e.set<ESG::Collidable>({ i.obb });
+
+
+			// Add debug output to verify OBBs are being added
+			//std::cout << "OBB added for entity: " << i.name << std::endl;
+
+			if (i.name == "MegaBee")
+			{
+				e.add<ESG::Player>();
+			}
+
+			//if (i.name == "alien")
+			//{
+			//	e.add<ESG::Enemy>();
+			//	e.add<ESG::Health>();
+			//}
+		}
+	}
+
+	void AddSystems(std::shared_ptr<Level_Objects> level,
+		std::shared_ptr<flecs::world> game,
+		std::weak_ptr<const GameConfig> gameConfig,
+		GW::INPUT::GInput immediateInput,
+		GW::INPUT::GBufferedInput bufferedInput,
+		GW::INPUT::GController controllerInput,
+		GW::AUDIO::GAudio _audioEngine,
+		GW::CORE::GEventGenerator eventPusher)
+	{
+		flecs::system playerSystem;
+
+		std::shared_ptr<const GameConfig> readCfg = gameConfig.lock();
+		float speed = (*readCfg).at("Player1").at("speed").as<float>();
+		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
+
+		flecs::system playerShootSystem = game->system<ESG::Player, ESG::World>("Player Shoot System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*, ESG::World* world)
+				{
+					for (auto i : it)
+					{
+						static bool U = false, D = false, L = false, R = false;
+						float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
+
+						GW::INPUT::GInput t = immediateInput;
+						if (!U && (GetAsyncKeyState(VK_UP) & 0x8000))
+						{
+							shootUp = 1;
+							U = true;
+						}
+						else if (U && !(GetAsyncKeyState(VK_UP) & 0x8000))
+							U = false;
+						
+						if (!D && (GetAsyncKeyState(VK_DOWN) & 0x8000))
+						{
+							shootDown = 1;
+							D = true;
+						}
+						else if (D && !(GetAsyncKeyState(VK_DOWN) & 0x8000))
+							D = false;
+
+						if (!L && (GetAsyncKeyState(VK_LEFT) & 0x8000))
+						{
+							shootLeft = 1;
+							L = true;
+						}
+						else if (L && !(GetAsyncKeyState(VK_LEFT) & 0x8000))
+							L = false;
+
+						if (!R && (GetAsyncKeyState(VK_RIGHT) & 0x8000))
+						{
+							shootRight = 1;
+							R = true;
+						}
+						else if (R && !(GetAsyncKeyState(VK_RIGHT) & 0x8000))
+							R = false;
+
+						int shootState = 0;
+
+						if (shootUp > 0)
+							shootState = 1;
+						if (shootLeft > 0)
+							shootState = 2;
+						if (shootRight > 0)
+							shootState = 3;
+						if (shootDown > 0)
+							shootState = 4;
+
+						int index = 0;
+						Model modelToDupe;
+						//GW::MATH::GMATRIXF world{};
+						for each (Model m in level->allObjectsInLevel)
+						{
+							if (m.name == "BeeStinger")
+							{
+								modelToDupe = m;
+								//world = m.world;
+								break;
+							}
+							index++;
+						}
+
+						std::string count;
+						auto f = game->filter<ESG::CountBullet>();
+						count = std::to_string(f.count());
+						/*std::cout << count << std::endl;*/
+						switch (shootState)
+						{
+						case 1:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<ESG::CountBullet>();
+
+							modelToDupe.world = world->value;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<ESG::Collidable>({ modelToDupe.obb });
+							e.set<ESG::World>({ world->value });
+							e.set<ESG::Name>({ modelToDupe.name });
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
+							e.add<ESG::Bullet>();
+
+							break;
+						}
+
+						case 2:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<ESG::CountBullet>();
+
+							modelToDupe.world = world->value;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<ESG::Collidable>({ modelToDupe.obb });
+							e.set<ESG::World>({ world->value });
+							e.set<ESG::Name>({ modelToDupe.name });
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{-bullSpeed, 0, 0 } });
+							e.add<ESG::Bullet>();
+							break;
+						}
+
+						case 3:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<ESG::CountBullet>();
+
+							modelToDupe.world = world->value;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<ESG::Collidable>({ modelToDupe.obb });
+							e.set<ESG::World>({ world->value });
+							e.set<ESG::Name>({ modelToDupe.name });
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+							e.add<ESG::Bullet>();
+							break;
+						}
+
+						case 4:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<ESG::CountBullet>();
+
+							modelToDupe.world = world->value;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<ESG::Collidable>({ modelToDupe.obb });
+							e.set<ESG::World>({ world->value });
+							e.set<ESG::Name>({ modelToDupe.name });
+							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, -bullSpeed } });
+							e.add<ESG::Bullet>();
+							break;
+						}
+
+						case 0:
+							break;
+						}
+					}
+				});
+
+		flecs::system bulletSystem = game->system<ESG::Bullet>("Bullet System")
+				.each([level](flecs::entity arrow, ESG::Bullet)
+					{
+						// damage anything we come into contact with
+						arrow.each<ESG::CollidedWith>([&arrow, level](flecs::entity hit)
+							{
+								if (!(hit.has<ESG::Player>() || hit.has<ESG::Bullet>()))
+								{
+									Model m = hit.get<Models>()->mod;
+									if (hit.has <ESG::Enemy>())
+									{
+										auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+										if (found != level->allObjectsInLevel.end())
+										{
+											level->allObjectsInLevel.erase(found);
+										}
+										hit.destruct();
+									}
+									m = arrow.get<Models>()->mod;
+									auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+			
+									if (found != level->allObjectsInLevel.end())
+									{
+										level->allObjectsInLevel.erase(found);
+									}
+									arrow.destruct();
+								}
+							});
+					});
+			
+			flecs::system playerCollisionSystem = game->system<ESG::Player>("Player Collision System")
+				.each([level](flecs::entity pl, ESG::Player)
+					{
+						pl.each<ESG::CollidedWith>([&pl, level](flecs::entity hit)
+							{
+			
+								if (!(hit.has<ESG::Bullet>() || hit.has<ESG::Enemy>()))
+								{
+									//std::cout << hit.get<ESG::Name>()->name << std::endl;
+			
+									//pl.set<ESG::World>({pl.get<ESG::LastWorld>()->value});
+									hit.remove<ESG::CollidedWith>();
+								}
+								//pl.remove<ESG::CollidedWith>();
+							});
+			
+					});
+			//flecs::system enemyCollisionSystem = game->system<ESG::Enemy>("Enemy Collision System")
+			//	.each([level](flecs::entity pl, ESG::Enemy)
+			//		{
+			//			pl.each<ESG::CollidedWith>([&pl, level](flecs::entity hit)
+			//				{
+			//					if (!(hit.has<ESG::Bullet>()))
+			//					{
+			//						hit.remove<ESG::CollidedWith>();
+			//						
+			//					}
+			//					pl.destruct();
+			//				});
+
+			//		});
+
+		flecs::system bulletMove = game->system<ESG::BulletVel, ESG::World, ESG::Name, Models>("Bullet Move System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::BulletVel* v, ESG::World* w, ESG::Name* n, Models* m)
+				{
+					for (auto i : it)
+					{
+						auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m[i].mod);
+
+						if (found != level->allObjectsInLevel.end())
+						{
+							size_t index = found - level->allObjectsInLevel.begin();
+
+							GW::MATH::GVECTORF moveVec = { v[i].value.x * it.delta_time() * bullSpeed, 0, v[i].value.z * it.delta_time() * bullSpeed };
+							auto e = game->lookup(n[i].name.c_str());
+							ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+							GW::MATH::GMatrix::TranslateLocalF(edit->value, moveVec, edit->value);
+
+							level->allObjectsInLevel[index].world = edit->value;
+						}
+					}
+				});
+
+	}
 };
+
+// *THIS APPROACH COMBINES DATA & LOGIC*
+// *WITH THIS APPROACH THE CURRENT RENDERER SHOULD BE JUST AN API MANAGER CLASS*
+// *ALL ACTUAL GPU LOADING AND RENDERING SHOULD BE HANDLED BY THE MODEL CLASS*
+// For example: anything that is not a global API object should be encapsulated.

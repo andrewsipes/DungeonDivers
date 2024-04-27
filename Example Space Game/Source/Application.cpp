@@ -82,12 +82,12 @@ bool Application::Run() {
 	GEventResponder msgs;
 	GW::SYSTEM::GLog log;
 	log.Create("output.txt");
-	auto lvl = std::make_shared<Level_Objects>();
-	auto lvl2 = std::make_shared<Level_Objects>();
+	auto mainMenu = std::make_shared<Level_Objects>();
+	auto lvl1 = std::make_shared<Level_Objects>();
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	mainMenu->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 	//lvl2->LoadMeshes("../Models/TestWorld/Level2/GameLevel.txt", "../Models/TestWorld/Level2/Models", log.Relinquish());
-	lvl2->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
+	lvl1->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
 
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
@@ -99,16 +99,16 @@ bool Application::Run() {
 	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 	{
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-		RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
+		RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
 		PlayerStats playerStats(*gameConfig);
 		auto& mainMenuMusic = musicTracks["MainMenu"];
 		mainMenuMusic.Play(true);
-		AddEntities(lvl2, game);
-		AddSystems(lvl2, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+		AddEntities(lvl1, game);
+		AddSystems(lvl1, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
 		while (+win.ProcessWindowEvents() && running == true)
 		{
-			lvl2->Update(game, lvl2);
+			lvl1->Update(game, lvl1);
 
 			if(!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
 				GameLoop();
@@ -132,7 +132,7 @@ bool Application::Run() {
 					leftMouse = true;
 					rendererManager.mainMenuHUD->toggleRender();
 					rendererManager.playerHUD->toggleRender();
-					rendererManager.changeLevel(*lvl2);
+					rendererManager.changeLevel(*lvl1, 1);
 				}
 
 			}
@@ -151,7 +151,7 @@ bool Application::Run() {
 				if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
 					zero = true;
 
-					rendererManager.changeLevel(*lvl);
+					rendererManager.changeLevel(*mainMenu, 0);
 
 				}
 
@@ -163,7 +163,7 @@ bool Application::Run() {
 				if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
 					one = true;
 
-					rendererManager.changeLevel(*lvl2);
+					rendererManager.changeLevel(*lvl1, 1);
 
 				}
 

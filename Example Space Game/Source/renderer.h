@@ -534,8 +534,10 @@ public:
 	}
 
 	//swaps the level in render manager
-	void changeLevel(Level_Objects& level) {
+	void changeLevel(Level_Objects& level, int levelNum) {
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		if(playerHUD->render)
+			playerHUD->updateLevelText(levelNum);
 		lvl = &level;
 	}
 
@@ -585,12 +587,11 @@ void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::w
 }
 
 
-void Updatebullshit(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc) {
+void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc) {
 	std::cout << "success!" << std::endl;
 
 		ps.updateScore(50);
 		rm.playerHUD->updateHUDScore(ps.getScore());
-
 
 		if (ps.getScore() > (*gc).at("Player1").at("highscore").as<int>())
 		{
@@ -784,7 +785,7 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
-								Updatebullshit(*rm, *ps, gameConfig);
+								UpdatePlayerScore(*rm, *ps, gameConfig); // update score if we hit an enemy
 							}
 							m = arrow.get<Models>()->mod;
 							auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);

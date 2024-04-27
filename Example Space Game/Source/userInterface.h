@@ -1069,6 +1069,15 @@ public:
 
 	}
 
+	void updateLevelText(int levelNum) {
+		for (uiModel* digit : levelDigit) {
+			digit->render = false;
+		}
+
+		levelDigit[levelNum]->toggleRender();
+
+	}
+
 	//combines updating score and life into single method
 	void updateHUD(int score, int life) {
 		updateHUDHearts(life);

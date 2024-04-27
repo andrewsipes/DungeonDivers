@@ -600,10 +600,9 @@ public:
 			if (std::strcmp(linebuffer, "MESH") == 0)
 			{
 				Model newModel;
-				//Model add = { linebuffer };
-				//std::string blendName = linebuffer; //ADDED *NEW*
 				file.ReadLine(linebuffer, 1024, '\n');
 				log.LogCategorized("INFO", (std::string("Model Detected: ") + linebuffer).c_str());
+
 				// create the model file name from this (strip the .001)
 				newModel.SetName(linebuffer);
 				std::string modelFile = linebuffer;
@@ -671,28 +670,6 @@ public:
 					log.LogCategorized("WARNING", "Loading will continue but model(s) are missing.");
 				}
 
-				// If we find and load it - add it to the level
-				//if (newModel.LoadModelDataFromDisk(modelFile.c_str()))
-				//{
-				//	// Check if the model already exists in allObjectsInLevel
-				//	auto found = std::find_if(allObjectsInLevel.begin(), allObjectsInLevel.end(), [&](const Model& model)
-				//	{
-				//			return !(model < newModel) && !(newModel < model); // Equivalent to model == newModel
-				//	});
-				//	if (found == allObjectsInLevel.end()) // Model doesn't exist
-				//	{
-				//		// Add the blenderName to newModel
-				//		newModel.blenderNames.push_back(std::move(modelFile));
-				//		// Add newModel to allObjectsInLevel
-				//		allObjectsInLevel.push_back(std::move(newModel));
-				//		log.LogCategorized("INFO", (std::string("H2B Imported: ") + modelFile).c_str());
-				//	}
-				//	else
-				//	{
-				//		// Model already exists, so just update its blenderNames
-				//		found->blenderNames.push_back(std::move(modelFile));
-				//	}
-				//}
 				log.LogCategorized("MESSAGE", "Importing of .H2B File Data Complete.");
 			}
 

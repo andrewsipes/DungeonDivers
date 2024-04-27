@@ -551,7 +551,30 @@ public:
 
 };
 
+
 struct Models { Model mod; };
+
+//Updates PlayerStats and UI Score
+void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc) {
+
+		ps.updateScore(50);
+		rm.playerHUD->updateHUDScore(ps.getScore());
+
+		if (ps.getScore() > (*gc).at("Player1").at("highscore").as<int>())
+		{
+			(*gc)["Player1"]["highscore"] = ps.getScore();
+			rm.playerHUD->updateHUDHighScore(ps.getScore());
+		}
+}
+
+//Updates Player HP and UI
+void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps) {
+
+	ps.updateHearts(1);
+	rm.playerHUD->updateHUDHearts(ps.getHearts());
+
+
+}
 
 void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::world> game)
 {
@@ -585,21 +608,6 @@ void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::w
 		//}
 	}
 }
-
-
-void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc) {
-	std::cout << "success!" << std::endl;
-
-		ps.updateScore(50);
-		rm.playerHUD->updateHUDScore(ps.getScore());
-
-		if (ps.getScore() > (*gc).at("Player1").at("highscore").as<int>())
-		{
-			(*gc)["Player1"]["highscore"] = ps.getScore();
-			rm.playerHUD->updateHUDHighScore(ps.getScore());
-		}
-}
-
 
 void AddSystems(std::shared_ptr<Level_Objects> level,
 	std::shared_ptr<flecs::world> game,

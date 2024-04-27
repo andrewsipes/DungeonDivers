@@ -25,8 +25,6 @@ bool Application::Init()
 		return false;
 	if (InitAudio() == false)
 		return false;
-	//if (InitGraphics() == false)
-	//	return false;
 	if (InitEntities() == false)
 		return false;
 	if (InitSystems() == false)
@@ -34,56 +32,17 @@ bool Application::Init()
 	return true;
 }
 
-//bool Application::Run()
-//{
-// ClearValue clrAndDepth[2];
-//	clrAndDepth[0].color = { {0, 0, 0, 1} };
-//	clrAndDepth[1].depthStencil = { 1.0f, 0u };
-//	// grab vsync selection
-//	bool vsync = gameConfig->at("Window").at("vsync").as<bool>();
-//	// set background color from settings
-//	const char* channels[] = { "red", "green", "blue" };
-//	for (int i = 0; i < std::size(channels); ++i) {
-//		clrAndDepth[0].color.float32[i] =
-//			gameConfig->at("BackGroundColor").at(channels[i]).as<float>();
-//	}
-//	// create an event handler to see if the window was closed early
-//	bool winClosed = false;
-//	GW::CORE::GEventResponder winHandler;
-//	winHandler.Create([&winClosed](GW::GEvent e) {
-//		GW::SYSTEM::GWindow::Events ev;
-//		if (+e.Read(ev) && ev == GW::SYSTEM::GWindow::Events::DESTROY)
-//			winClosed = true;
-//	});
-//	window.Register(winHandler);
-//	while (+window.ProcessWindowEvents())
-//	{
-//		if (winClosed == true)
-//			return true;
-//		if (+vulkan.StartFrame(2, clrAndDepth))
-//		{
-//			if (GameLoop() == false) {
-//				vulkan.EndFrame(vsync);
-//				return false;
-//			}
-//			if (-vulkan.EndFrame(vsync)) {
-//				// failing EndFrame is not always a critical error, see the GW docs for specifics
-//			}
-//		}
-//		else
-//			return false;
-//	}
-//	return true;
-//}
-
 bool Application::Run() {
 	leftMouse = false;
 	running = true;
+
 	GEventResponder msgs;
 	GW::SYSTEM::GLog log;
 	log.Create("output.txt");
+
 	auto mainMenu = std::make_shared<Level_Objects>();
 	auto lvl1 = std::make_shared<Level_Objects>();
+
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	mainMenu->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 	//lvl2->LoadMeshes("../Models/TestWorld/Level2/GameLevel.txt", "../Models/TestWorld/Level2/Models", log.Relinquish());
@@ -283,24 +242,6 @@ bool Application::LoadAudioResources()
 #endif
 	return true;
 }
-
-//bool Application::InitGraphics()
-//{
-//#ifndef NDEBUG
-//	const char* debugLayers[] = {
-//		"VK_LAYER_KHRONOS_validation", // standard validation layer
-//		//"VK_LAYER_RENDERDOC_Capture" // add this if you have installed RenderDoc
-//	};
-//	if (+vulkan.Create(window, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT,
-//		sizeof(debugLayers) / sizeof(debugLayers[0]),
-//		debugLayers, 0, nullptr, 0, nullptr, false))
-//		return true;
-//#else
-//	if (+vulkan.Create(window, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
-//		return true;
-//#endif
-//	return false;
-//}
 
 bool Application::InitEntities()
 {

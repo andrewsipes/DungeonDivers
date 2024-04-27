@@ -69,7 +69,6 @@ private:
 	bool InitWindow();
 	bool InitInput();
 	bool InitAudio();
-	bool InitGraphics();
 	bool InitEntities();
 	bool InitSystems();
 	bool GameLoop();

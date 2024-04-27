@@ -899,7 +899,6 @@ public:
 			if (i.name == "MegaBee")
 			{
 				e.add<ESG::Player>();
-				e.add<ESG::Health>();
 			}
 
 			//if (i.name == "alien")
@@ -1159,72 +1158,6 @@ public:
 						}
 					}
 				});
-	
-
-		//filter and find entities
-				//std::vector<flecs::entity> enemies;
-				//std::vector<flecs::entity> bullets;
-				//std::vector<flecs::entity> players;
-				//
-				//for (const auto& shape : testCache)
-				//{
-				//	if (shape.owner.has<Enemy>())
-				//	{
-				//		enemies.push_back(shape.owner);
-				//	}
-				//	else if (shape.owner.has<Bullet>()) 
-				//	{
-				//		bullets.push_back(shape.owner);
-				//	}
-				//	else if (shape.owner.has<Player>()) 
-				//	{
-				//		players.push_back(shape.owner);
-				//	}
-				//}
-				//
-				////specific collision checks
-				////bullets and enemies
-				//// Check collisions between bullets and enemies
-				//for (const auto& bullet : bullets) 
-				//{
-				//	for (const auto& enemy : enemies) 
-				//	{
-				//		if (bullet.has<CollidedWith>(enemy)) 
-				//		{
-				//			// Bullet collided with enemy
-				//			// if you have no health left be destroyed
-				//			if (enemy.get<Health>()->value <= 0)
-				//			{
-				//				// play explode sound
-				//				enemy.destruct();
-				//			}
-				//		}
-				//	}
-				//}
-				//
-				// Check collisions between bullets and players
-				//for (const auto& bullet : bullets) 
-				//{
-				//	for (const auto& player : players) 
-				//	{
-				//		// Handle collision between bullet and player
-				//		if (player.get<Health>()->value <= 0)
-				//		{
-				//			// play explode sound
-				//			player.destruct();
-				//		}
-				//	}
-				//}
-				//
-				//// Check collisions between enemies and players
-				//for (const auto& enemy : enemies) 
-				//{
-				//	for (const auto& player : players) 
-				//	{
-				//		// Handle collision between enemy and player
-				//		// Example: player.get<Health>()->value -= enemyDamage;
-				//	}
-				//}
 
 	}
 };

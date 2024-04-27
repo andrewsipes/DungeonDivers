@@ -36,11 +36,12 @@ class RendererManager
 	bool t;
 	bool leftMouse;
 
-	//gloals to track is mainmenu or pause hud was enabled
-	bool isMainMenuRendered;
-	bool isPauseMenuRendered;
 
 public:
+
+	//globals to track is mainmenu or pause hud was enabled
+	bool isMainMenuRendered;
+	bool isPauseMenuRendered;
 
 	bool freecam = false;
 	//ui panels
@@ -49,6 +50,7 @@ public:
 	pauseMenuUi* pauseMenu;
 	treasureMenuUi* treasureMenu;
 	controlsMenuUi* controlsMenu;
+	gameOverUi* gameOverMenu;
 	std::vector <uiPanel*> panels;
 	
 
@@ -95,10 +97,11 @@ public:
 
 		////PANELS/////
 		//pauseMenu->toggleRender();
-		mainMenuHUD->toggleRender();
+		//mainMenuHUD->toggleRender();
 		//playerHUD->toggleRender();
 		//treasureMenu->toggleRender();
 		//controlsMenu->toggleRender();
+		gameOverMenu->toggleRender();
 	
 		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
@@ -138,12 +141,16 @@ public:
 		controlsMenuUi* controls = new controlsMenuUi(*gameConfig);
 		controlsMenu = controls;
 
+		gameOverUi* gameOver = new gameOverUi(*gameConfig);
+		gameOverMenu = gameOver;
+
 		//Load All meshes in the level at start
 		bool playerHUDSuccess = playerHUD->LoadMeshes("../playerHUD.txt", "../Models/playerHUDModels", log.Relinquish());
 		bool mainMenuHUDSuccess = mainMenuHUD->LoadMeshes("../MainMenuHUD.txt", "../Models/MainMenuHUDmodels", log.Relinquish());
 		bool pauseMenuSuccess = pauseMenu->LoadMeshes("../PauseMenu.txt", "../Models/PauseMenuModels", log.Relinquish());
 		bool treasureMenuSuccess = treasureMenu->LoadMeshes("../treasureMenu.txt", "../Models/treasureMenuModels", log.Relinquish());
 		bool controlsMenuSuccess = controlsMenu->LoadMeshes("../controlsMenu.txt", "../Models/controlsMenuModels", log.Relinquish());
+		bool gameOverMenuSuccess =  gameOverMenu->LoadMeshes("../GameOver.txt", "../Models/gameOverModels", log.Relinquish());
 
 		//add to vector of panels
 		panels.push_back(playerHUD);
@@ -151,6 +158,7 @@ public:
 		panels.push_back(pauseMenu);
 		panels.push_back(treasureMenu);
 		panels.push_back(controlsMenu);
+		panels.push_back(gameOverMenu);
 
 		for (uiPanel* panel : panels) {
 			initializePanel(panel);
@@ -443,6 +451,10 @@ public:
 
 		}
 
+		else if (gameOverMenu->render) {
+			gameOverMenu->exitGameOverButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
+		}
+
 	
 		//TREASURE MENU
 		else if (treasureMenu->render){
@@ -495,10 +507,6 @@ public:
 			
 		}
 
-		
-
-	
-
 	}
 
 	//Render Loop for all objects (place Panels and Levels here);
@@ -510,6 +518,11 @@ public:
 			if (panel == playerHUD && panel->render)
 			{
 				playerHUD->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+			}
+
+			else if (panel == gameOverMenu && panel->render)
+			{
+				gameOverMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
 			}
 			else if (panel->render){
 				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);

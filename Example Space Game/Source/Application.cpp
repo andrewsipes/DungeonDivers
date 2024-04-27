@@ -90,7 +90,7 @@ bool Application::Run() {
 	lvl2->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
 	lvl2->AddEntities(lvl2, game);
 	lvl2->AddSystems(lvl2, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher);
-	
+
 	msgs.Create([&](const GW::GEvent& e) {
 		GW::SYSTEM::GWindow::Events q;
 		if (+e.Read(q) && q == GWindow::Events::RESIZE)
@@ -108,7 +108,10 @@ bool Application::Run() {
 		while (+win.ProcessWindowEvents() && running == true)
 		{
 			lvl2->Update(game, lvl2);
-			GameLoop();
+
+			if(!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
+				GameLoop();
+
 			glClearColor(clr[0], clr[1], clr[2], clr[3]);
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -118,19 +121,19 @@ bool Application::Run() {
 				}
 			#endif
 
-			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());			
+			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
 			rendererManager.Render();
-			
+
 			//event Handling for the mainMenu - starts the game
 			if (rendererManager.mainMenuHUD->render) {
 
 				if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 					leftMouse = true;
 					rendererManager.mainMenuHUD->toggleRender();
+					rendererManager.playerHUD->toggleRender();
 					rendererManager.changeLevel(*lvl2);
 				}
-					
-		
+
 			}
 
 			//Return Left Mouse state for re-use
@@ -327,8 +330,9 @@ bool Application::LoadAudioResources()
 	{
 		return false;
 	}
-
+#ifndef NDEBUG
 	std::cout << "All music and sfx loaded!" << std::endl;
+#endif
 	return true;
 }
 

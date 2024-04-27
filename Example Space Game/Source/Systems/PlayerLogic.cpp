@@ -30,8 +30,8 @@ bool DD::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 	float speed = (*readCfg).at("Player1").at("speed").as<float>();
 	chargeTime = (*readCfg).at("Player1").at("chargeTime").as<float>();
 
-	playerSystem = game->system<ESG::Player, ESG::World>("Player Move System")
-		.iter([this, speed](flecs::iter it, ESG::Player*, ESG::World*)
+	playerSystem = game->system<DD::Player, DD::World>("Player Move System")
+		.iter([this, speed](flecs::iter it, DD::Player*, DD::World*)
 		{
 				for (auto i : it)
 				{
@@ -46,12 +46,12 @@ bool DD::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 
 					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed};
 					auto e = game->lookup("MegaBee");
-					e.set<ESG::LastWorld>({ e.get<ESG::World>()->value });
-					ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+					e.set<DD::LastWorld>({ e.get<DD::World>()->value });
+					DD::World* edit = game->entity(e).get_mut<DD::World>();
 
 					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
 				}
-				//std::cout << "X: " << e.get<ESG::World>()->value.row4.x << "Y: " << e.get<ESG::World>()->value.row4.z << std::endl;
+				//std::cout << "X: " << e.get<DD::World>()->value.row4.x << "Y: " << e.get<DD::World>()->value.row4.z << std::endl;
 		});
 
 

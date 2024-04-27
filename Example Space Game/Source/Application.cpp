@@ -98,13 +98,13 @@ bool Application::Run() {
 		{
 
 			auto e = game->entity( i.name.c_str() );
-			e.set<ESG::Name>({ i.name });
+			e.set<DD::Name>({ i.name });
 		}
 		int count = 0;
 
-		auto f = game->filter<ESG::Name>();
+		auto f = game->filter<DD::Name>();
 
-		f.each([&count](ESG::Name& n)
+		f.each([&count](DD::Name& n)
 			{
 				count++;
 			}
@@ -406,20 +406,20 @@ bool Application::InitSystems()
 		return false;
 	/*if (enemySystem.Init(game, gameConfig, eventPusher) == false)
 		return false;*/
-
+	}
 	//void Application::AddEntities(Level_Objects& lvl)
 	//{
 	//	for (auto& i : lvl.allObjectsInLevel)
 	//	{
 	//		auto e = game->entity(i.name);
-	//		e.set<ESG::Name>({ i.name });
+	//		e.set<DD::Name>({ i.name });
 	//
 	//
 	//	}
 	//	int count = 0;
-	//	auto f = game->filter<ESG::Name>();
+	//	auto f = game->filter<DD::Name>();
 	//
-	//	f.each([&count](ESG::Name& n)
+	//	f.each([&count](DD::Name& n)
 	//		{
 	//			count++;
 	//		}
@@ -428,13 +428,13 @@ bool Application::InitSystems()
 	//	std::cout << count << std::endl;
 	//}
 
-bool Application::GameLoop()
-{
-	// compute delta time and pass to the ECS system
-	static auto start = std::chrono::steady_clock::now();
-	double elapsed = std::chrono::duration<double>(
-		std::chrono::steady_clock::now() - start).count();
-	start = std::chrono::steady_clock::now();
-	// let the ECS system run
-	return game->progress(static_cast<float>(elapsed));
-}
+	bool Application::GameLoop()
+	{
+		// compute delta time and pass to the ECS system
+		static auto start = std::chrono::steady_clock::now();
+		double elapsed = std::chrono::duration<double>(
+			std::chrono::steady_clock::now() - start).count();
+		start = std::chrono::steady_clock::now();
+		// let the ECS system run
+		return game->progress(static_cast<float>(elapsed));
+	}

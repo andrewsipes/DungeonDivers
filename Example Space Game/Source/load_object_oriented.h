@@ -850,7 +850,7 @@ public:
 			if (found != level->allObjectsInLevel.end())
 			{
 				size_t index = found - level->allObjectsInLevel.begin();
-				level->allObjectsInLevel[index].world = entity.get<ESG::World>()->value;
+				level->allObjectsInLevel[index].world = entity.get<DD::World>()->value;
 			}
 		}
 	}
@@ -862,16 +862,16 @@ public:
 		for each (Model i in Level->allObjectsInLevel)
 		{
 			auto e = game->entity(i.name.c_str());
-			e.set<ESG::Name>({ i.name });
-			e.set<ESG::World>({ i.world });
-			//e.add<ESG::World>();
+			e.set<DD::Name>({ i.name });
+			e.set<DD::World>({ i.world });
+			//e.add<DD::World>();
 			e.set<Models>({ i });
 
 			if (i.name.substr(0, 5) == "alien")
-				e.add<ESG::Enemy>();
+				e.add<DD::Enemy>();
 
 			if (i.name.substr(0, 9) != "RealFloor")
-				e.set<ESG::Collidable>({ i.obb });
+				e.set<DD::Collidable>({ i.obb });
 
 
 			// Add debug output to verify OBBs are being added
@@ -879,13 +879,13 @@ public:
 
 			if (i.name == "MegaBee")
 			{
-				e.add<ESG::Player>();
+				e.add<DD::Player>();
 			}
 
 			//if (i.name == "alien")
 			//{
-			//	e.add<ESG::Enemy>();
-			//	e.add<ESG::Health>();
+			//	e.add<DD::Enemy>();
+			//	e.add<DD::Health>();
 			//}
 		}
 	}
@@ -905,8 +905,8 @@ public:
 		float speed = (*readCfg).at("Player1").at("speed").as<float>();
 		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
 
-		flecs::system playerShootSystem = game->system<ESG::Player, ESG::World>("Player Shoot System")
-			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::Player*, ESG::World* world)
+		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
 				{
 					for (auto i : it)
 					{
@@ -972,7 +972,7 @@ public:
 						}
 
 						std::string count;
-						auto f = game->filter<ESG::CountBullet>();
+						auto f = game->filter<DD::CountBullet>();
 						count = std::to_string(f.count());
 						/*std::cout << count << std::endl;*/
 						switch (shootState)
@@ -980,18 +980,18 @@ public:
 						case 1:
 						{
 							auto tempEnt = game->entity(count.c_str());
-							tempEnt.add<ESG::CountBullet>();
+							tempEnt.add<DD::CountBullet>();
 
 							modelToDupe.world = world->value;
 							modelToDupe.name += count;
 							level->allObjectsInLevel.push_back(modelToDupe);
 							auto e = game->entity(modelToDupe.name.c_str());
 							e.set<Models>({ modelToDupe });
-							e.set<ESG::Collidable>({ modelToDupe.obb });
-							e.set<ESG::World>({ world->value });
-							e.set<ESG::Name>({ modelToDupe.name });
-							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
-							e.add<ESG::Bullet>();
+							e.set<DD::Collidable>({ modelToDupe.obb });
+							e.set<DD::World>({ world->value });
+							e.set<DD::Name>({ modelToDupe.name });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
+							e.add<DD::Bullet>();
 
 							break;
 						}
@@ -999,54 +999,54 @@ public:
 						case 2:
 						{
 							auto tempEnt = game->entity(count.c_str());
-							tempEnt.add<ESG::CountBullet>();
+							tempEnt.add<DD::CountBullet>();
 
 							modelToDupe.world = world->value;
 							modelToDupe.name += count;
 							level->allObjectsInLevel.push_back(modelToDupe);
 							auto e = game->entity(modelToDupe.name.c_str());
 							e.set<Models>({ modelToDupe });
-							e.set<ESG::Collidable>({ modelToDupe.obb });
-							e.set<ESG::World>({ world->value });
-							e.set<ESG::Name>({ modelToDupe.name });
-							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{-bullSpeed, 0, 0 } });
-							e.add<ESG::Bullet>();
+							e.set<DD::Collidable>({ modelToDupe.obb });
+							e.set<DD::World>({ world->value });
+							e.set<DD::Name>({ modelToDupe.name });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{-bullSpeed, 0, 0 } });
+							e.add<DD::Bullet>();
 							break;
 						}
 
 						case 3:
 						{
 							auto tempEnt = game->entity(count.c_str());
-							tempEnt.add<ESG::CountBullet>();
+							tempEnt.add<DD::CountBullet>();
 
 							modelToDupe.world = world->value;
 							modelToDupe.name += count;
 							level->allObjectsInLevel.push_back(modelToDupe);
 							auto e = game->entity(modelToDupe.name.c_str());
 							e.set<Models>({ modelToDupe });
-							e.set<ESG::Collidable>({ modelToDupe.obb });
-							e.set<ESG::World>({ world->value });
-							e.set<ESG::Name>({ modelToDupe.name });
-							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-							e.add<ESG::Bullet>();
+							e.set<DD::Collidable>({ modelToDupe.obb });
+							e.set<DD::World>({ world->value });
+							e.set<DD::Name>({ modelToDupe.name });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+							e.add<DD::Bullet>();
 							break;
 						}
 
 						case 4:
 						{
 							auto tempEnt = game->entity(count.c_str());
-							tempEnt.add<ESG::CountBullet>();
+							tempEnt.add<DD::CountBullet>();
 
 							modelToDupe.world = world->value;
 							modelToDupe.name += count;
 							level->allObjectsInLevel.push_back(modelToDupe);
 							auto e = game->entity(modelToDupe.name.c_str());
 							e.set<Models>({ modelToDupe });
-							e.set<ESG::Collidable>({ modelToDupe.obb });
-							e.set<ESG::World>({ world->value });
-							e.set<ESG::Name>({ modelToDupe.name });
-							e.set<ESG::BulletVel>({ GW::MATH::GVECTORF{0, 0, -bullSpeed } });
-							e.add<ESG::Bullet>();
+							e.set<DD::Collidable>({ modelToDupe.obb });
+							e.set<DD::World>({ world->value });
+							e.set<DD::Name>({ modelToDupe.name });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0, -bullSpeed } });
+							e.add<DD::Bullet>();
 							break;
 						}
 
@@ -1056,16 +1056,16 @@ public:
 					}
 				});
 
-		flecs::system bulletSystem = game->system<ESG::Bullet>("Bullet System")
-				.each([level](flecs::entity arrow, ESG::Bullet)
+		flecs::system bulletSystem = game->system<DD::Bullet>("Bullet System")
+				.each([level](flecs::entity arrow, DD::Bullet)
 					{
 						// damage anything we come into contact with
-						arrow.each<ESG::CollidedWith>([&arrow, level](flecs::entity hit)
+						arrow.each<DD::CollidedWith>([&arrow, level](flecs::entity hit)
 							{
-								if (!(hit.has<ESG::Player>() || hit.has<ESG::Bullet>()))
+								if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>()))
 								{
 									Model m = hit.get<Models>()->mod;
-									if (hit.has <ESG::Enemy>())
+									if (hit.has <DD::Enemy>())
 									{
 										auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
@@ -1087,31 +1087,31 @@ public:
 							});
 					});
 			
-			flecs::system playerCollisionSystem = game->system<ESG::Player>("Player Collision System")
-				.each([level](flecs::entity pl, ESG::Player)
+			flecs::system playerCollisionSystem = game->system<DD::Player>("Player Collision System")
+				.each([level](flecs::entity pl, DD::Player)
 					{
-						pl.each<ESG::CollidedWith>([&pl, level](flecs::entity hit)
+						pl.each<DD::CollidedWith>([&pl, level](flecs::entity hit)
 							{
 			
-								if (!(hit.has<ESG::Bullet>() || hit.has<ESG::Enemy>()))
+								if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 								{
-									//std::cout << hit.get<ESG::Name>()->name << std::endl;
+									//std::cout << hit.get<DD::Name>()->name << std::endl;
 			
-									//pl.set<ESG::World>({pl.get<ESG::LastWorld>()->value});
-									hit.remove<ESG::CollidedWith>();
+									//pl.set<DD::World>({pl.get<DD::LastWorld>()->value});
+									hit.remove<DD::CollidedWith>();
 								}
-								//pl.remove<ESG::CollidedWith>();
+								//pl.remove<DD::CollidedWith>();
 							});
 			
 					});
-			//flecs::system enemyCollisionSystem = game->system<ESG::Enemy>("Enemy Collision System")
-			//	.each([level](flecs::entity pl, ESG::Enemy)
+			//flecs::system enemyCollisionSystem = game->system<DD::Enemy>("Enemy Collision System")
+			//	.each([level](flecs::entity pl, DD::Enemy)
 			//		{
-			//			pl.each<ESG::CollidedWith>([&pl, level](flecs::entity hit)
+			//			pl.each<DD::CollidedWith>([&pl, level](flecs::entity hit)
 			//				{
-			//					if (!(hit.has<ESG::Bullet>()))
+			//					if (!(hit.has<DD::Bullet>()))
 			//					{
-			//						hit.remove<ESG::CollidedWith>();
+			//						hit.remove<DD::CollidedWith>();
 			//						
 			//					}
 			//					pl.destruct();
@@ -1119,8 +1119,8 @@ public:
 
 			//		});
 
-		flecs::system bulletMove = game->system<ESG::BulletVel, ESG::World, ESG::Name, Models>("Bullet Move System")
-			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::BulletVel* v, ESG::World* w, ESG::Name* n, Models* m)
+		flecs::system bulletMove = game->system<DD::BulletVel, DD::World, DD::Name, Models>("Bullet Move System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::BulletVel* v, DD::World* w, DD::Name* n, Models* m)
 				{
 					for (auto i : it)
 					{
@@ -1132,7 +1132,7 @@ public:
 
 							GW::MATH::GVECTORF moveVec = { v[i].value.x * it.delta_time() * bullSpeed, 0, v[i].value.z * it.delta_time() * bullSpeed };
 							auto e = game->lookup(n[i].name.c_str());
-							ESG::World* edit = game->entity(e).get_mut<ESG::World>();
+							DD::World* edit = game->entity(e).get_mut<DD::World>();
 							GW::MATH::GMatrix::TranslateLocalF(edit->value, moveVec, edit->value);
 
 							level->allObjectsInLevel[index].world = edit->value;

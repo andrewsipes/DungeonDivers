@@ -67,7 +67,7 @@ bool DD::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 						box.owner = e; // allows later changes
 						box.obby = c.obb;
 						box.obby.center = w.value.row4;
-						box.name = e.get<ESG::Name>()->name;
+						box.name = e.get<DD::Name>()->name;
 
 						// add to vector
 						testCache.push_back(box);

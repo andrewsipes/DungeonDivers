@@ -23,8 +23,8 @@ bool DD::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<con
 	int width = (*readCfg).at("Window").at("width").as<int>();
 	float speed = (*readCfg).at("Enemy1").at("speed").as<float>();
 
-	//flecs::system enemySystem = game->system<ESG::Enemy, ESG::World>("Enemy Movement System")
-	//		.iter([this, speed](flecs::iter it, ESG::Enemy*, ESG::World* w)
+	//flecs::system enemySystem = game->system<DD::Enemy, DD::World>("Enemy Movement System")
+	//		.iter([this, speed](flecs::iter it, DD::Enemy*, DD::World* w)
 	//			{
 	//				for (auto i : it)
 	//				{
@@ -33,8 +33,8 @@ bool DD::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<con
 	//
 	//					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
 	//					auto ene = game->lookup("alien");
-	//					ene.set<ESG::LastWorld>({ ene.get<ESG::World>()->value });
-	//					ESG::World* edit = game->entity(ene).get_mut<ESG::World>();
+	//					ene.set<DD::LastWorld>({ ene.get<DD::World>()->value });
+	//					DD::World* edit = game->entity(ene).get_mut<DD::World>();
 	//
 	//					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
 	//

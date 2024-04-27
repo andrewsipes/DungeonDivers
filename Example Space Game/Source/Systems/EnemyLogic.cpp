@@ -43,20 +43,21 @@ bool ESG::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 	//			});
 
 	// destroy any bullets that have the CollidedWith relationship
-	game->system<Enemy, Health>("Enemy System")
-		.each([this, speed](flecs::entity e, Enemy, Health& h)
-			{
-				// if you have no health left be destroyed
-				if (e.get<Health>()->value <= 0)
-				{
-					// play explode sound
-					e.destruct();
-					ESG::PLAY_EVENT_DATA x;
-					GW::GEvent explode;
-					explode.Write(ESG::PLAY_EVENT::ENEMY_DESTROYED, x);
-					eventPusher.Push(explode);
-				}
-			});
+
+	//game->system<Enemy, Health>("Enemy System")
+	//	.each([this, speed](flecs::entity e, Enemy, Health& h)
+	//		{
+	//			// if you have no health left be destroyed
+	//			if (e.get<Health>()->value <= 0)
+	//			{
+	//				// play explode sound
+	//				e.destruct();
+	//				ESG::PLAY_EVENT_DATA x;
+	//				GW::GEvent explode;
+	//				explode.Write(ESG::PLAY_EVENT::ENEMY_DESTROYED, x);
+	//				eventPusher.Push(explode);
+	//			}
+	//		});
 
 	return true;
 }

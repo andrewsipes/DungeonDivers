@@ -37,6 +37,7 @@ bool ESG::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 				{
 					float xaxis = 0, input = 0, zaxis = 0;
 					GW::INPUT::GInput t = immediateInput;
+
 					t.GetState(G_KEY_A, input); xaxis -= input;
 					t.GetState(G_KEY_D, input); xaxis += input;
 					t.GetState(G_KEY_S, input); zaxis -= input;

@@ -86,28 +86,11 @@ bool ESG::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<
 
 						if (results == GW::MATH::GCollision::GCollisionCheck::COLLISION)
 						{
-							// Create an ECS relationship between the colliders
-							// Each system can decide how to respond to this info independently
-							/*if (testCache[i].name == "alien")
-							{
-								std::cout << "alien found in testCache i" << std::endl;
-							}
-
-							if (testCache[j].name == "alien")
-							{
-								std::cout << "alien found in testCache j" << std::endl;
-							}*/
-
 							testCache[i].owner.add<CollidedWith>(testCache[j].owner);
 							testCache[j].owner.add<CollidedWith>(testCache[i].owner);
 
-							/*if (testCache[i].name == "alien" && testCache[j].name == "BeeStinger"
-								|| testCache[j].name == "BeeStinger" && testCache[i].name == "BeeStinger")
-							{
-								std::cout << "alien and BeeStinger collided!" << std::endl;
-							}*/
 
-							std::cout << "Collision Detected between:  1: " << testCache[i].owner.get<Name>()->name << "    2. " << testCache[j].owner.get<Name>()->name << std::endl;
+							//std::cout << "Collision Detected between:  1: " << testCache[i].owner.get<Name>()->name << "    2. " << testCache[j].owner.get<Name>()->name << std::endl;
 						}
 					}
 				}

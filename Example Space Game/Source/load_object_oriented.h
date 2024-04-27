@@ -886,8 +886,12 @@ public:
 			//e.add<ESG::World>();
 			e.set<Models>({ i });
 
+			if (i.name.substr(0, 5) == "alien")
+				e.add<ESG::Enemy>();
+
 			if (i.name.substr(0, 9) != "RealFloor")
 				e.set<ESG::Collidable>({ i.obb });
+
 
 			// Add debug output to verify OBBs are being added
 			//std::cout << "OBB added for entity: " << i.name << std::endl;
@@ -898,11 +902,11 @@ public:
 				e.add<ESG::Health>();
 			}
 
-			if (i.name == "alien")
-			{
-				e.add<ESG::Enemy>();
-				e.add<ESG::Health>();
-			}
+			//if (i.name == "alien")
+			//{
+			//	e.add<ESG::Enemy>();
+			//	e.add<ESG::Health>();
+			//}
 		}
 	}
 
@@ -926,13 +930,41 @@ public:
 				{
 					for (auto i : it)
 					{
+						static bool U = false, D = false, L = false, R = false;
 						float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
 
 						GW::INPUT::GInput t = immediateInput;
-						t.GetState(G_KEY_UP, input); shootUp += input;
-						t.GetState(G_KEY_DOWN, input); shootDown += input;
-						t.GetState(G_KEY_LEFT, input); shootLeft += input;
-						t.GetState(G_KEY_RIGHT, input); shootRight += input;
+						if (!U && (GetAsyncKeyState(VK_UP) & 0x8000))
+						{
+							shootUp = 1;
+							U = true;
+						}
+						else if (U && !(GetAsyncKeyState(VK_UP) & 0x8000))
+							U = false;
+						
+						if (!D && (GetAsyncKeyState(VK_DOWN) & 0x8000))
+						{
+							shootDown = 1;
+							D = true;
+						}
+						else if (D && !(GetAsyncKeyState(VK_DOWN) & 0x8000))
+							D = false;
+
+						if (!L && (GetAsyncKeyState(VK_LEFT) & 0x8000))
+						{
+							shootLeft = 1;
+							L = true;
+						}
+						else if (L && !(GetAsyncKeyState(VK_LEFT) & 0x8000))
+							L = false;
+
+						if (!R && (GetAsyncKeyState(VK_RIGHT) & 0x8000))
+						{
+							shootRight = 1;
+							R = true;
+						}
+						else if (R && !(GetAsyncKeyState(VK_RIGHT) & 0x8000))
+							R = false;
 
 						int shootState = 0;
 
@@ -1052,13 +1084,24 @@ public:
 							{
 								if (!(hit.has<ESG::Player>() || hit.has<ESG::Bullet>()))
 								{
-									//Model m = arrow.get<Models>()->mod;
-									//auto found = std::find(this->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+									Model m = hit.get<Models>()->mod;
+									if (hit.has <ESG::Enemy>())
+									{
+										auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+										if (found != level->allObjectsInLevel.end())
+										{
+											level->allObjectsInLevel.erase(found);
+										}
+										hit.destruct();
+									}
+									m = arrow.get<Models>()->mod;
+									auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 			
-									/*if (found != level->allObjectsInLevel.end())
+									if (found != level->allObjectsInLevel.end())
 									{
 										level->allObjectsInLevel.erase(found);
-									}*/
+									}
 									arrow.destruct();
 								}
 							});
@@ -1081,21 +1124,20 @@ public:
 							});
 			
 					});
+			//flecs::system enemyCollisionSystem = game->system<ESG::Enemy>("Enemy Collision System")
+			//	.each([level](flecs::entity pl, ESG::Enemy)
+			//		{
+			//			pl.each<ESG::CollidedWith>([&pl, level](flecs::entity hit)
+			//				{
+			//					if (!(hit.has<ESG::Bullet>()))
+			//					{
+			//						hit.remove<ESG::CollidedWith>();
+			//						
+			//					}
+			//					pl.destruct();
+			//				});
 
-			flecs::system enemyCollisionSystem = game->system<ESG::Enemy>("Enemy Collision System")
-				.each([level](flecs::entity pl, ESG::Enemy)
-					{
-						pl.each<ESG::CollidedWith>([&pl, level](flecs::entity hit)
-							{
-								if (!(hit.has<ESG::Bullet>()))
-								{
-									hit.remove<ESG::CollidedWith>();
-									
-								}
-								pl.destruct();
-							});
-
-					});
+			//		});
 
 		flecs::system bulletMove = game->system<ESG::BulletVel, ESG::World, ESG::Name, Models>("Bullet Move System")
 			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, ESG::BulletVel* v, ESG::World* w, ESG::Name* n, Models* m)

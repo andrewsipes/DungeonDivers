@@ -654,7 +654,8 @@ public:
 				modelFile = std::string(h2bFolderPath) + "/" + modelFile;
 				newModel.SetWorldMatrix(transform);
 
-				newModel.obb = newModel.ComputeOBB();
+				if(id !=0)
+					newModel.obb = newModel.ComputeOBB();
 
 				// If we find and load it add it to the level
 				if (newModel.LoadModelDataFromDisk(modelFile.c_str()))

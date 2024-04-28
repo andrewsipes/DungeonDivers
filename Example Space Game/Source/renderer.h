@@ -510,10 +510,21 @@ public:
 	//swaps the level in render manager
 	void changeLevel(Level_Objects& level) {
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		if(playerHUD->render)
+		if (playerHUD->render) {
 			playerHUD->updateLevelText(level.getid());
+		}
 		lvl = &level;
 	}
+
+	//swaps the level in render manager
+	void restartLevel(Level_Objects& level) {
+		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		if (playerHUD->render) {
+			playerHUD->updateLevelText(level.getid());
+		}
+		lvl = &level;
+	}
+
 
 
 
@@ -567,9 +578,29 @@ public:
 
 	}
 
-	void restartLevel(std::shared_ptr<Level_Objects> _currentLevel, RendererManager* _rendererManager, GW::SYSTEM::GLog _log) {
-		int currentLevelId = _currentLevel->getid();
+	//updates HUD to state before level
+	void resetHUDonRestart(RendererManager* _rendererManager, PlayerStats& ps) {
 
+		ps.setScore(ps.getScoreBeforeDeath());
+		ps.setHearts(ps.getHeartsBeforeDeath());
+
+		_rendererManager->playerHUD->updateHUDScore(ps.getScore());
+		_rendererManager->playerHUD->updateHUDHearts(ps.getHearts());
+
+		updateEnemyCount(_rendererManager, 0);
+	}
+
+	//sets enemy text on player HUD by checking how many enemies have the enemy tag, put 0 in update if you want to refresh display only
+	void updateEnemyCount(RendererManager* _rendererManager, int update) {
+		auto f = game->filter<DD::Enemy>();
+		_rendererManager->playerHUD->updateEnemies(f.count(), update);
+	}
+
+	//removes all entities from the level and reloads the meshes based on id
+	void restartLevel(std::shared_ptr<Level_Objects> _currentLevel, RendererManager* _rendererManager, PlayerStats& ps, GW::SYSTEM::GLog _log) {
+
+
+		int currentLevelId = _currentLevel->getid();
 		RemoveEntities();
 
 		//update these per level id
@@ -583,10 +614,10 @@ public:
 
 		}
 
-		_rendererManager->changeLevel(*_currentLevel);
+		_rendererManager->restartLevel(*_currentLevel);
 		AddEntities();
+		resetHUDonRestart(_rendererManager, ps);
 	}
-
 
 	void RemoveEntities() {
 
@@ -816,8 +847,7 @@ public:
 										level->allObjectsInLevel.erase(found);
 									}
 									hit.destruct();
-									auto f = game->filter<DD::Enemy>();
-									rm->playerHUD->updateEnemies(f.count(), -1);
+									updateEnemyCount(rm, -1);
 									UpdatePlayerScore(*rm, *ps, gameConfig); // update score if we hit an enemy
 								}
 								m = arrow.get<Models>()->mod;

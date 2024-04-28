@@ -105,6 +105,8 @@ bool Application::Run() {
 					rendererManager.mainMenuHUD->toggleRender();
 					rendererManager.playerHUD->toggleRender();
 					rendererManager.changeLevel(*currentLevel);
+					playerStats.updateHeartsBeforeDeath();		//go ahead and save in case of restart or death
+					playerStats.updateScoreBeforeDeath();
 				}
 
 			}
@@ -126,7 +128,7 @@ bool Application::Run() {
 					zero = true;
 
 					//rendererManager.changeLevel(*mainMenu);
-					gpManager->restartLevel(currentLevel,&rendererManager, log);
+					gpManager->restartLevel(currentLevel,&rendererManager, playerStats, log);
 						
 					
 				}

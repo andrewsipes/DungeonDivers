@@ -846,6 +846,9 @@ public:
 		allObjectsInLevel.clear();
 		lights.clear();
 		LIGHTDATA.clear();
+		allObjectsInLevel.shrink_to_fit();
+		lights.shrink_to_fit();
+		LIGHTDATA.shrink_to_fit();
 	}
 
 	void Update(std::shared_ptr<flecs::world> game, std::shared_ptr<Level_Objects> level)

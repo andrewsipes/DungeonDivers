@@ -57,9 +57,6 @@ class Application
 	// EventGenerator for Game Events
 	GW::CORE::GEventGenerator eventPusher;
 
-
-
-
 	bool leftMouse;
 
 public:
@@ -76,7 +73,6 @@ private:
 	bool InitEntities();
 	bool InitSystems();
 	bool GameLoop();
-	//void restartLevel(std::shared_ptr<Level_Objects> _currentLevel, gamePlayManager* _gpManager, RendererManager* _rendererManager);
 
 	//separate audio manager from initaudio
 	bool LoadAudioResources();

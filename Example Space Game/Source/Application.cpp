@@ -172,7 +172,6 @@ bool Application::Run() {
 		return 0;
 	}
 
-
 bool Application::Shutdown()
 {
 	// disconnect systems from global ECS
@@ -304,26 +303,6 @@ bool Application::InitSystems()
 	/*if (enemySystem.Init(game, gameConfig, eventPusher) == false)
 		return false;*/
 	}
-	//void Application::AddEntities(Level_Objects& lvl)
-	//{
-	//	for (auto& i : lvl.allObjectsInLevel)
-	//	{
-	//		auto e = game->entity(i.name);
-	//		e.set<DD::Name>({ i.name });
-	//
-	//
-	//	}
-	//	int count = 0;
-	//	auto f = game->filter<DD::Name>();
-	//
-	//	f.each([&count](DD::Name& n)
-	//		{
-	//			count++;
-	//		}
-	//	);
-	//
-	//	std::cout << count << std::endl;
-	//}
 
 bool Application::GameLoop()
 {
@@ -335,4 +314,5 @@ bool Application::GameLoop()
 	// let the ECS system run
 	return game->progress(static_cast<float>(elapsed));
 }
+
 

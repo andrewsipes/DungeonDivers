@@ -607,6 +607,7 @@ public:
 		for each (Model i in Level->allObjectsInLevel)
 		{
 			auto e = game->entity(i.name.c_str());
+			e.clear();
 			e.destruct();
 
 	

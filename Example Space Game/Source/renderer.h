@@ -800,7 +800,7 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 					});
 			});
 
-	flecs::system playerCollisionSystem = game->system<DD::Player>("Player Collision System")
+	/*flecs::system playerCollisionSystem = game->system<DD::Player>("Player Collision System")
 		.each([level](flecs::entity pl, DD::Player)
 			{
 				pl.each<DD::CollidedWith>([&pl, level](flecs::entity hit)
@@ -808,15 +808,16 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 
 						if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 						{
-							//std::cout << hit.get<DD::Name>()->name << std::endl;
+							std::cout << hit.get<DD::Name>()->name << std::endl;
 
-							//pl.set<DD::World>({pl.get<DD::LastWorld>()->value});
-							hit.remove<DD::CollidedWith>();
+							pl.set<DD::World>({pl.get<DD::LastWorld>()->value});
 						}
-						//pl.remove<DD::CollidedWith>();
+						hit.remove<DD::CollidedWith>();
+						pl.remove<DD::CollidedWith>();
 					});
 
-			});
+			});*/
+
 	//flecs::system enemyCollisionSystem = game->system<DD::Enemy>("Enemy Collision System")
 	//	.each([level](flecs::entity pl, DD::Enemy)
 	//		{

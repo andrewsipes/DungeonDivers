@@ -46,12 +46,21 @@ bool DD::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 
 					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed};
 					auto e = game->lookup("MegaBee");
-					e.set<DD::LastWorld>({ e.get<DD::World>()->value });
 					DD::World* edit = game->entity(e).get_mut<DD::World>();
+					bool move = true;
 
+					e.each<DD::CollidedWith>([&e, &edit, &move, &v, xaxis, it, speed, zaxis](flecs::entity hit)
+						{
+							if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
+							{
+								e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+							}
+							hit.remove<DD::CollidedWith>(e);
+							e.remove<DD::CollidedWith>(hit);
+						});
+					e.set<DD::LastWorld>({ e.get<DD::World>()->value });
 					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
 				}
-				//std::cout << "X: " << e.get<DD::World>()->value.row4.x << "Y: " << e.get<DD::World>()->value.row4.z << std::endl;
 		});
 
 

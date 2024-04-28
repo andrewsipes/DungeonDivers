@@ -79,19 +79,22 @@ bool DD::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 					// the inner loop starts at the entity after you so you don't double check collisions
 					for (int j = i + 1; j < testCache.size(); ++j)
 					{
-						// test the two world space polygons for collision
-						// possibly make this cheaper by leaving one of them local and using an inverse matrix
-						GW::MATH::GCollision::GCollisionCheck results;
-						GW::MATH::GCollision::TestOBBToOBBF(testCache[i].obby, testCache[j].obby, results);
-
-						if (results == GW::MATH::GCollision::GCollisionCheck::COLLISION)
+						if (!(testCache[i].name.substr(0, 8) == "RealWall" && testCache[j].name.substr(0, 8) == "RealWall"))
 						{
-							testCache[i].owner.add<CollidedWith>(testCache[j].owner);
-							testCache[j].owner.add<CollidedWith>(testCache[i].owner);
+							// test the two world space polygons for collision
+							// possibly make this cheaper by leaving one of them local and using an inverse matrix
+							GW::MATH::GCollision::GCollisionCheck results;
+							GW::MATH::GCollision::TestOBBToOBBF(testCache[i].obby, testCache[j].obby, results);
+
+							if (results == GW::MATH::GCollision::GCollisionCheck::COLLISION)
+							{
+								testCache[i].owner.add<CollidedWith>(testCache[j].owner);
+								testCache[j].owner.add<CollidedWith>(testCache[i].owner);
 							
-							#ifndef NDEBUG
-							std::cout << "Collision Detected between:  1: " << testCache[i].owner.get<Name>()->name << "    2. " << testCache[j].owner.get<Name>()->name << std::endl;
-							#endif
+								#ifndef NDEBUG
+								std::cout << "Collision Detected between:  1: " << testCache[i].owner.get<Name>()->name << "    2. " << testCache[j].owner.get<Name>()->name << std::endl;
+								#endif
+							}
 						}
 					}
 				}

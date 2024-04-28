@@ -10,6 +10,7 @@ using namespace SYSTEM;
 using namespace GRAPHICS;
 using namespace GW::AUDIO;
 
+
 bool Application::Init()
 {
 	eventPusher.Create();
@@ -43,28 +44,34 @@ bool Application::Run() {
 	auto lvl1 = std::make_shared<Level_Objects>();
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
 
-	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	mainMenu->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-	//lvl2->LoadMeshes("../Models/TestWorld/Level2/GameLevel.txt", "../Models/TestWorld/Level2/Models", log.Relinquish());
-	lvl1->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
+	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1}; // Buffer
+	
+	mainMenu->LoadMeshes(0,"../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+
+	lvl1->LoadMeshes(1,"../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
 
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
 			if (+e.Read(q) && q == GWindow::Events::RESIZE)
 				clr[2] += 0.01f;
 		});
+
 	win.Register(msgs);
 
 	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
+		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 
 		currentLevel = lvl1;
 
-		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 		RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
 		PlayerStats playerStats(*gameConfig);
 		gamePlayManager* gpManager = new gamePlayManager(currentLevel, game);
-		auto& mainMenuMusic = musicTracks["MainMenu"];
-		mainMenuMusic.Play(true);
+
+		#if NEDEBUG
+				auto& mainMenuMusic = musicTracks["MainMenu"];
+				mainMenuMusic.Play(true);
+		#endif
+
 		gpManager->AddEntities();
 		gpManager->AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
@@ -97,7 +104,7 @@ bool Application::Run() {
 					rendererManager.playerHUD->updateEnemies(f.count(),0); // update the # of enemies
 					rendererManager.mainMenuHUD->toggleRender();
 					rendererManager.playerHUD->toggleRender();
-					rendererManager.changeLevel(*currentLevel, 1);
+					rendererManager.changeLevel(*currentLevel);
 				}
 
 			}
@@ -118,19 +125,10 @@ bool Application::Run() {
 				if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
 					zero = true;
 
-					rendererManager.changeLevel(*mainMenu, 0);		//change to some other level
-					auto lvl3 = std::make_shared<Level_Objects>(); //create a shared pointer for the old level , but recreated
-					currentLevel->UnloadLevel();
-					currentLevel.reset();
-					currentLevel = lvl3;
-					currentLevel->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
-					rendererManager.changeLevel(*currentLevel, 3);
-					gamePlayManager* newGpManager = new gamePlayManager(currentLevel, game);					
-					newGpManager->AddEntities();						//add ECS						
-					newGpManager->AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
-					gpManager->Remove();
-
-
+					//rendererManager.changeLevel(*mainMenu);
+					gpManager->restartLevel(currentLevel,&rendererManager, log);
+						
+					
 				}
 
 				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
@@ -141,7 +139,7 @@ bool Application::Run() {
 				if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
 					one = true;
 
-					rendererManager.changeLevel(*lvl3, 1);
+					rendererManager.changeLevel(*lvl1);
 
 				}
 
@@ -309,13 +307,14 @@ bool Application::InitSystems()
 	//	std::cout << count << std::endl;
 	//}
 
-	bool Application::GameLoop()
-	{
-		// compute delta time and pass to the ECS system
-		static auto start = std::chrono::steady_clock::now();
-		double elapsed = std::chrono::duration<double>(
-			std::chrono::steady_clock::now() - start).count();
-		start = std::chrono::steady_clock::now();
-		// let the ECS system run
-		return game->progress(static_cast<float>(elapsed));
-	}
+bool Application::GameLoop()
+{
+	// compute delta time and pass to the ECS system
+	static auto start = std::chrono::steady_clock::now();
+	double elapsed = std::chrono::duration<double>(
+		std::chrono::steady_clock::now() - start).count();
+	start = std::chrono::steady_clock::now();
+	// let the ECS system run
+	return game->progress(static_cast<float>(elapsed));
+}
+

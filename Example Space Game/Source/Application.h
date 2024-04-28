@@ -69,13 +69,14 @@ public:
 	bool Run();
 	bool Shutdown();
 private:
-	//void AddEntities(Level_Objects& lvl);
+
 	bool InitWindow();
 	bool InitInput();
 	bool InitAudio();
 	bool InitEntities();
 	bool InitSystems();
 	bool GameLoop();
+	//void restartLevel(std::shared_ptr<Level_Objects> _currentLevel, gamePlayManager* _gpManager, RendererManager* _rendererManager);
 
 	//separate audio manager from initaudio
 	bool LoadAudioResources();

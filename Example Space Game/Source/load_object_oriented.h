@@ -539,14 +539,13 @@ public:
 class Level_Objects
 {
 private:
-	// store all our models
+	int id;
 
 	//sunLight stuff
 	SUNLIGHT_DATA sunLight;
 	GW::MATH::GVECTORF sunLightDir;
 	GW::MATH::GVECTORF sunLightColor;
 	GW::MATH::GVECTORF sunLightAmbient;
-	GW::MATH::GVECTORF cameraForward;
 
 	//light Vectors
 	std::vector<LIGHT_DATA> LIGHTDATA;	//this vector uses the structure for lighting in the lbo, we use this to hold the necessary data until moved
@@ -555,16 +554,22 @@ private:
 public:
 	std::vector<Model> allObjectsInLevel;
 
-	// Imports the default level txt format and creates a Model from each .h2b
-	bool virtual LoadMeshes(const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log)
-	{
-		//light stuff RGBA
-		sunLightDir = { 1.0f, -1.0f, 2.0f, 0.0f };
-		GW::MATH::GVector::NormalizeF(sunLightDir, sunLightDir);
+	bool getid(){
+		return id;
+	}
 
-		sunLightColor = { 51.0 / 255.0f, 255.0f / 255.0f, 0.0f / 255.0f, 1.0f };
-		sunLightAmbient = { 0.35f, 0.35f, 0.35f };
-		sunLight = { sunLightColor, sunLightDir, sunLightAmbient };
+	// Imports the default level txt format and creates a Model from each .h2b
+	bool virtual LoadMeshes(int level_id, const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log)
+	{
+		//Default light stuff, should be removed later if not used
+		{
+			sunLightDir = { 1.0f, -1.0f, 2.0f, 0.0f };
+			GW::MATH::GVector::NormalizeF(sunLightDir, sunLightDir);
+			sunLightAmbient = { 0.35f, 0.35f, 0.35f };
+			sunLight = { sunLightColor, sunLightDir, sunLightAmbient }; 
+		}
+
+		id = level_id;
 
 		// What this does:
 		// Parse GameLevel.txt

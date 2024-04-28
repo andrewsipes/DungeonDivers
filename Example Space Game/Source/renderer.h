@@ -508,10 +508,10 @@ public:
 	}
 
 	//swaps the level in render manager
-	void changeLevel(Level_Objects& level, int levelNum) {
+	void changeLevel(Level_Objects& level) {
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		if(playerHUD->render)
-			playerHUD->updateLevelText(levelNum);
+			playerHUD->updateLevelText(level.getid());
 		lvl = &level;
 	}
 
@@ -527,33 +527,12 @@ public:
 
 };
 
+
+//Acts as intermediate between flecs systems and UI systems
+class gamePlayManager {
+
 struct Models { Model mod; };
 
-//Updates PlayerStats and UI Score
-void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc) {
-
-		ps.updateScore(50);
-		rm.playerHUD->updateHUDScore(ps.getScore());
-
-		if (ps.getScore() > (*gc).at("Player1").at("highscore").as<int>())
-		{
-			(*gc)["Player1"]["highscore"] = ps.getScore();
-			rm.playerHUD->updateHUDHighScore(ps.getScore());
-		}
-
-}
-
-//Updates Player HP and UI
-void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps, int hearts) {
-
-	ps.updateHearts(hearts);
-	rm.playerHUD->updateHUDHearts(ps.getHearts());
-
-
-}
-
-
-class gamePlayManager {
 public:
 	std::shared_ptr <Level_Objects> Level;
 	std::shared_ptr<flecs::world> game;
@@ -565,14 +544,58 @@ public:
 		game = _game;
 	}
 
+	//Updates PlayerStats and UI Score
+	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc) {
 
-	void Remove() {
+			ps.updateScore(50);
+			rm.playerHUD->updateHUDScore(ps.getScore());
+
+			if (ps.getScore() > (*gc).at("Player1").at("highscore").as<int>())
+			{
+				(*gc)["Player1"]["highscore"] = ps.getScore();
+				rm.playerHUD->updateHUDHighScore(ps.getScore());
+			}
+
+	}
+
+	//Updates Player HP and UI
+	void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps, int hearts) {
+
+		ps.updateHearts(hearts);
+		rm.playerHUD->updateHUDHearts(ps.getHearts());
+
+
+	}
+
+	void restartLevel(std::shared_ptr<Level_Objects> _currentLevel, RendererManager* _rendererManager, GW::SYSTEM::GLog _log) {
+		int currentLevelId = _currentLevel->getid();
+
+		RemoveEntities();
+
+		//update these per level id
+		switch (currentLevelId) {
+		case 1:
+			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+		case 2:
+			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+		case 3:
+			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+
+		}
+
+		_rendererManager->changeLevel(*_currentLevel);
+		AddEntities();
+	}
+
+
+	void RemoveEntities() {
 
 		for each (Model i in Level->allObjectsInLevel)
 		{
 			auto e = game->entity(i.name.c_str());
 			e.destruct();
 
+	
 		}
 	}
 	
@@ -776,10 +799,10 @@ public:
 				});
 
 		flecs::system bulletSystem = game->system<DD::Bullet>("Bullet System")
-			.each([level, rm, ps, &gameConfig, game](flecs::entity arrow, DD::Bullet)
+			.each([level, rm, ps, &gameConfig, game, this](flecs::entity arrow, DD::Bullet)
 				{
 					// damage anything we come into contact with
-					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game](flecs::entity hit)
+					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this](flecs::entity hit)
 						{
 							if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>()))
 							{

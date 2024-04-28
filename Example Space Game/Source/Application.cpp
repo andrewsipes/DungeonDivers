@@ -100,8 +100,10 @@ bool Application::Run() {
 
 				if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 					leftMouse = true;
-					auto f = game->filter<DD::Enemy>(); // get enemies
-					rendererManager.playerHUD->updateEnemies(f.count(),0); // update the # of enemies
+					//auto f = game->filter<DD::Enemy>(); // get enemies
+					//rendererManager.playerHUD->updateEnemies(f.count(),0); // update the # of enemies
+
+					gpManager->updateEnemyCount(&rendererManager, 0);
 					rendererManager.mainMenuHUD->toggleRender();
 					rendererManager.playerHUD->toggleRender();
 					rendererManager.changeLevel(*currentLevel);

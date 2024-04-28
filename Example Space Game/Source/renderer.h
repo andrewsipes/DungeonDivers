@@ -849,6 +849,7 @@ public:
 									hit.destruct();
 									updateEnemyCount(rm, -1);
 									UpdatePlayerScore(*rm, *ps, gameConfig); // update score if we hit an enemy
+									UpdatePlayerHearts(*rm, *ps, 1);
 								}
 								m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);

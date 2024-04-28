@@ -637,6 +637,8 @@ public:
 
 			if (i.name.substr(0, 9) != "RealFloor")
 				e.set<DD::Collidable>({ i.obb });
+			if (i.name.substr(0, 5) == "Heart")
+				e.add<DD::Heart>();
 
 
 			// Add debug output to verify OBBs are being added
@@ -666,7 +668,7 @@ public:
 
 
 		playerSystem = game->system<DD::Player, DD::World>("Player Move System")
-			.iter([immediateInput, speed, game](flecs::iter it, DD::Player*, DD::World*)
+			.iter([immediateInput, speed, game, level](flecs::iter it, DD::Player*, DD::World*)
 			{
 				for (auto i : it)
 				{
@@ -683,9 +685,33 @@ public:
 					auto e = game->lookup("MegaBee");
 					DD::World* edit = game->entity(e).get_mut<DD::World>();
 
-					e.each<DD::CollidedWith>([&e](flecs::entity hit)
+					e.each<DD::CollidedWith>([&e, level](flecs::entity hit)
 						{
-							if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
+							if (hit.has<DD::Heart>())
+							{
+								Model m = hit.get<Models>()->mod;
+								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+								if (found != level->allObjectsInLevel.end())
+								{
+									level->allObjectsInLevel.erase(found);
+								}
+								hit.destruct();
+								// INSERT HEART INCREASE STUFF HERE---------------------------
+							}
+							else if (hit.has<DD::Treasure>())
+							{
+								Model m = hit.get<Models>()->mod;
+								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+								if (found != level->allObjectsInLevel.end())
+								{
+									level->allObjectsInLevel.erase(found);
+								}
+								hit.destruct();
+								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
+							}
+							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 							{
 								e.set<DD::World>({ e.get<DD::LastWorld>()->value });
 							}

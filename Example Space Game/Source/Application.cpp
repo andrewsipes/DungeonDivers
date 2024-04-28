@@ -44,16 +44,16 @@ bool Application::Run() {
 	auto lvl1 = std::make_shared<Level_Objects>();
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
 
-	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1}; // Buffer
-	
-	mainMenu->LoadMeshes(0,"../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 
-	lvl1->LoadMeshes(1,"../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
+	mainMenu->LoadMeshes(0, "../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 
-		msgs.Create([&](const GW::GEvent& e) {
-			GW::SYSTEM::GWindow::Events q;
-			if (+e.Read(q) && q == GWindow::Events::RESIZE)
-				clr[2] += 0.01f;
+	lvl1->LoadMeshes(1, "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
+
+	msgs.Create([&](const GW::GEvent& e) {
+		GW::SYSTEM::GWindow::Events q;
+		if (+e.Read(q) && q == GWindow::Events::RESIZE)
+			clr[2] += 0.01f;
 		});
 
 	win.Register(msgs);
@@ -61,62 +61,70 @@ bool Application::Run() {
 	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 
-		currentLevel = lvl1;
+	currentLevel = lvl1;
 
-		RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
-		PlayerStats playerStats(*gameConfig);
-		gamePlayManager* gpManager = new gamePlayManager(currentLevel, game);
+	RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
+	PlayerStats playerStats(*gameConfig);
+	gamePlayManager gpManager(currentLevel, game);
 
-		#if NEDEBUG
-				auto& mainMenuMusic = musicTracks["MainMenu"];
-				mainMenuMusic.Play(true);
-		#endif
+#if NEDEBUG
+	auto& mainMenuMusic = musicTracks["MainMenu"];
+	mainMenuMusic.Play(true);
+#endif
 
-		gpManager->AddEntities();
-		gpManager->AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+	gpManager.AddEntities();
+	gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
-	
-		while (+win.ProcessWindowEvents() && running == true)
-		{
-			currentLevel->Update(game, currentLevel);
 
-			if(!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
-				GameLoop();
+	while (+win.ProcessWindowEvents() && running == true)
+	{
+		currentLevel->Update(game, currentLevel);
 
-			glClearColor(clr[0], clr[1], clr[2], clr[3]);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		if (!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
+			GameLoop();
 
-			#ifdef NDEBUG
-				if (rendererManager.mainMenuHUD->render){
-					rendererManager.freecam = false;
-				}
-			#endif
+		glClearColor(clr[0], clr[1], clr[2], clr[3]);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
-			rendererManager.Render();
+#ifdef NDEBUG
+		if (rendererManager.mainMenuHUD->render) {
+			rendererManager.freecam = false;
+		}
+#endif
 
-			//event Handling for the mainMenu - starts the game
-			if (rendererManager.mainMenuHUD->render) {
+		rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+		rendererManager.Render();
 
-				if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
-					leftMouse = true;
-					//auto f = game->filter<DD::Enemy>(); // get enemies
-					//rendererManager.playerHUD->updateEnemies(f.count(),0); // update the # of enemies
+		//event Handling for the mainMenu - starts the game
+		if (rendererManager.mainMenuHUD->render) {
 
-					gpManager->updateEnemyCount(&rendererManager, 0);
-					rendererManager.mainMenuHUD->toggleRender();
-					rendererManager.playerHUD->toggleRender();
-					rendererManager.changeLevel(*currentLevel);
-					playerStats.updateHeartsBeforeDeath();		//go ahead and save in case of restart or death
-					playerStats.updateScoreBeforeDeath();
-				}
+			if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
+				leftMouse = true;
 
+				gpManager.updateEnemyCount(&rendererManager, 0);
+				rendererManager.mainMenuHUD->toggleRender();
+				rendererManager.playerHUD->toggleRender();
+				rendererManager.changeLevel(*currentLevel);
+				playerStats.updateHeartsBeforeDeath();		//go ahead and save in case of restart or death
+				playerStats.updateScoreBeforeDeath();
 			}
 
-			//Return Left Mouse state for re-use
-			else if ((leftMouse) && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
-				leftMouse = false;
+		}
+
+		else if (rendererManager.pauseMenu->render) {
+
+			if (rendererManager.pauseMenu->restartPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
+				leftMouse = true;
+				gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
+				rendererManager.pauseMenu->toggleRender();
+
 			}
+		}
+
+		//Return Left Mouse state for re-use
+		else if ((leftMouse) && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
+			leftMouse = false;
+		}
 
 			//LEVEL SWAP: Currently works by using 0 or 1
 			{
@@ -130,9 +138,9 @@ bool Application::Run() {
 					zero = true;
 
 					//rendererManager.changeLevel(*mainMenu);
-					gpManager->restartLevel(currentLevel,&rendererManager, playerStats, log);
-						
-					
+					gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
+
+
 				}
 
 				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
@@ -156,8 +164,9 @@ bool Application::Run() {
 			ogl.UniversalSwapBuffers();
 
 		}
-	return 0;
-}
+		return 0;
+	}
+
 
 bool Application::Shutdown()
 {

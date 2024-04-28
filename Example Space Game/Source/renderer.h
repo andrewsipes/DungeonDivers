@@ -300,10 +300,6 @@ public:
 			//check if mouse value is redundant - if so do nothing
 			if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
 			{
-				// do nothing
-
-				//gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
-
 				gMatrixProxy.RotateXLocalF(rotationMatrix, -pitch, rotationMatrix);
 				gMatrixProxy.RotateYGlobalF(rotationMatrix, -yaw, rotationMatrix);
 			}
@@ -321,9 +317,6 @@ public:
 			//apply translation to the camera
 			gMatrixProxy.TranslateLocalF(rotationMatrix, cameraTranslationVector, rotationMatrix);
 
-			//apply rotation 
-			//gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
-	
 		}
 
 		//Freeze the camera in main menu
@@ -359,7 +352,7 @@ public:
 		callTime = currTime;
 	}
 
-	//Event Handling for all buttons - manually place each button here and tag the lamda expression it should execute
+	//Event Handling for most buttons - manually place each button here and tag the lamda expression it should execute
 	void eventHandling() {
 
 		//Return Left Mouse state for re-use
@@ -393,12 +386,7 @@ public:
 
 			}
 
-			else if (!leftMouse && pauseMenu->restartPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
-
-
-			}
-
-			pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			//pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			pauseMenu->exitPauseMenuButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 			pauseMenu->resumePauseMenuButton->HandleInput(dynamic_cast<uiPanel*>(pauseMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
 
@@ -579,13 +567,13 @@ public:
 	}
 
 	//updates HUD to state before level
-	void resetHUDonRestart(RendererManager* _rendererManager, PlayerStats& ps) {
+	void resetHUDonRestart(RendererManager* _rendererManager, PlayerStats* ps) {
 
-		ps.setScore(ps.getScoreBeforeDeath());
-		ps.setHearts(ps.getHeartsBeforeDeath());
+		ps->setScore(ps->getScoreBeforeDeath());
+		ps->setHearts(ps->getHeartsBeforeDeath());
 
-		_rendererManager->playerHUD->updateHUDScore(ps.getScore());
-		_rendererManager->playerHUD->updateHUDHearts(ps.getHearts());
+		_rendererManager->playerHUD->updateHUDScore(ps->getScore());
+		_rendererManager->playerHUD->updateHUDHearts(ps->getHearts());
 
 		updateEnemyCount(_rendererManager, 0);
 	}
@@ -597,7 +585,7 @@ public:
 	}
 
 	//removes all entities from the level and reloads the meshes based on id
-	void restartLevel(std::shared_ptr<Level_Objects> _currentLevel, RendererManager* _rendererManager, PlayerStats& ps, GW::SYSTEM::GLog _log) {
+	void restartLevel(std::shared_ptr<Level_Objects> _currentLevel, RendererManager* _rendererManager, PlayerStats* ps, GW::SYSTEM::GLog _log) {
 
 
 		int currentLevelId = _currentLevel->getid();
@@ -849,7 +837,7 @@ public:
 									hit.destruct();
 									updateEnemyCount(rm, -1);
 									UpdatePlayerScore(*rm, *ps, gameConfig); // update score if we hit an enemy
-									UpdatePlayerHearts(*rm, *ps, 1);
+									
 								}
 								m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);

@@ -551,7 +551,6 @@ public:
 
 };
 
-
 struct Models { Model mod; };
 
 //Updates PlayerStats and UI Score
@@ -565,12 +564,13 @@ void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<Gam
 			(*gc)["Player1"]["highscore"] = ps.getScore();
 			rm.playerHUD->updateHUDHighScore(ps.getScore());
 		}
+
 }
 
 //Updates Player HP and UI
-void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps) {
+void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps, int hearts) {
 
-	ps.updateHearts(1);
+	ps.updateHearts(hearts);
 	rm.playerHUD->updateHUDHearts(ps.getHearts());
 
 
@@ -608,6 +608,7 @@ void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::w
 		//}
 	}
 }
+
 
 void AddSystems(std::shared_ptr<Level_Objects> level,
 	std::shared_ptr<flecs::world> game,
@@ -776,10 +777,10 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 			});
 
 	flecs::system bulletSystem = game->system<DD::Bullet>("Bullet System")
-		.each([level, rm, ps, &gameConfig](flecs::entity arrow, DD::Bullet)
+		.each([level, rm, ps, &gameConfig, game](flecs::entity arrow, DD::Bullet)
 			{
 				// damage anything we come into contact with
-				arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig](flecs::entity hit)
+				arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game](flecs::entity hit)
 					{
 						if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>()))
 						{
@@ -793,6 +794,8 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
+								auto f = game->filter<DD::Enemy>();
+								rm->playerHUD->updateEnemies(f.count(), -1);
 								UpdatePlayerScore(*rm, *ps, gameConfig); // update score if we hit an enemy
 							}
 							m = arrow.get<Models>()->mod;

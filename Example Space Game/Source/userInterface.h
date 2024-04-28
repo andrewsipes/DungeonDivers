@@ -1407,10 +1407,6 @@ public:
 		treasureMenuText->toggleRender();
 		exitTreasureMenuButton->toggleRender();
 
-		for (userButton* treasure : treasures)	{
-			treasure->toggleRender();
-		}
-
 	}
 
 	// Draws all objects in the level

@@ -65,6 +65,7 @@ bool Application::Run() {
 		AddEntities(lvl1, game);
 		AddSystems(lvl1, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
+	
 		while (+win.ProcessWindowEvents() && running == true)
 		{
 			lvl1->Update(game, lvl1);
@@ -89,6 +90,8 @@ bool Application::Run() {
 
 				if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 					leftMouse = true;
+					auto f = game->filter<DD::Enemy>(); // get enemies
+					rendererManager.playerHUD->updateEnemies(f.count(),0); // update the # of enemies
 					rendererManager.mainMenuHUD->toggleRender();
 					rendererManager.playerHUD->toggleRender();
 					rendererManager.changeLevel(*lvl1, 1);
@@ -147,8 +150,6 @@ bool Application::Shutdown()
 	//	return false;
 	//if (levelSystem.Shutdown() == false)
 	//	return false;
-	////if (vkRenderingSystem.Shutdown() == false)
-	//	//return false;
 	//if (physicsSystem.Shutdown() == false)
 	//	return false;
 	//if (bulletSystem.Shutdown() == false)
@@ -266,8 +267,6 @@ bool Application::InitSystems()
 		return false;
 	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
 		return false;
-	/*if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
-		return false;*/
 	if (physicsSystem.Init(game, gameConfig) == false)
 		return false;
 	if (bulletSystem.Init(game, gameConfig) == false)

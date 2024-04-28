@@ -451,7 +451,7 @@ public:
 
 		}
 
-		{	//TOGGLE PAUSE MENU
+		{	//TOGGLE TREASURE MENU
 			if (!t &&(GetAsyncKeyState(0x54) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
 					treasureMenu->render = true;
@@ -507,9 +507,7 @@ public:
 	//re loads the current level
 	void reloadLevel(Level_Objects& level) {
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		/*if (playerHUD->render) {
-			playerHUD->updateLevelText(level.getid());
-		}*/
+
 	}
 
 

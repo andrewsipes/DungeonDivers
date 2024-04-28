@@ -95,10 +95,19 @@ bool Application::Run() {
 		rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
 		rendererManager.Render();
 
-		//event Handling for the mainMenu - starts the game
-		if (rendererManager.mainMenuHUD->render) {
+		//Return Left Mouse state for re-use
+		if (leftMouse && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
+			leftMouse = false;
+		}
 
-			if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
+		else if (!leftMouse && GetAsyncKeyState(VK_LBUTTON) & 0x8000){
+			leftMouse = true;
+		}
+
+		//event Handling for the mainMenu - starts the game
+		if (rendererManager.mainMenuHUD->render && !rendererManager.controlsMenu->render) {
+
+			if (!leftMouse && rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
 
 				gpManager.updateEnemyCount(&rendererManager, 0);
@@ -122,10 +131,7 @@ bool Application::Run() {
 			}
 		}
 
-		//Return Left Mouse state for re-use
-		else if ((leftMouse) && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
-			leftMouse = false;
-		}
+		
 
 			////LEVEL SWAP: Currently works by using 0 or 1
 			//{

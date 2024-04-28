@@ -30,7 +30,7 @@ bool DD::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 	float speed = (*readCfg).at("Player1").at("speed").as<float>();
 	chargeTime = (*readCfg).at("Player1").at("chargeTime").as<float>();
 
-	playerSystem = game->system<DD::Player, DD::World>("Player Move System")
+	/*playerSystem = game->system<DD::Player, DD::World>("Player Move System")
 		.iter([this, speed](flecs::iter it, DD::Player*, DD::World*)
 		{
 				for (auto i : it)
@@ -47,9 +47,8 @@ bool DD::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed};
 					auto e = game->lookup("MegaBee");
 					DD::World* edit = game->entity(e).get_mut<DD::World>();
-					bool move = true;
 
-					e.each<DD::CollidedWith>([&e, &edit, &move, &v, xaxis, it, speed, zaxis](flecs::entity hit)
+					e.each<DD::CollidedWith>([&e](flecs::entity hit)
 						{
 							if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 							{
@@ -61,7 +60,7 @@ bool DD::PlayerLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<co
 					e.set<DD::LastWorld>({ e.get<DD::World>()->value });
 					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
 				}
-		});
+		});*/
 
 
 	// Create an event cache for when the spacebar/'A' button is pressed

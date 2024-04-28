@@ -52,6 +52,7 @@ bool DD::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 	game->entity("Detect-Collisions").add<CollisionSystem>();
 
 	game->system<CollisionSystem>()
+		.kind(flecs::PostUpdate)
 		.each([this](CollisionSystem& s)
 			{
 				//std::cout << queryCache.count() << std::endl;

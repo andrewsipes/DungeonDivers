@@ -664,6 +664,40 @@ public:
 		float speed = (*readCfg).at("Player1").at("speed").as<float>();
 		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
 
+
+		playerSystem = game->system<DD::Player, DD::World>("Player Move System")
+			.iter([immediateInput, speed, game](flecs::iter it, DD::Player*, DD::World*)
+			{
+				for (auto i : it)
+				{
+					float xaxis = 0, input = 0, zaxis = 0;
+					GW::INPUT::GInput t = immediateInput;
+
+					t.GetState(G_KEY_A, input); xaxis -= input;
+					t.GetState(G_KEY_D, input); xaxis += input;
+					t.GetState(G_KEY_S, input); zaxis -= input;
+					t.GetState(G_KEY_W, input); zaxis += input;
+
+
+					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
+					auto e = game->lookup("MegaBee");
+					DD::World* edit = game->entity(e).get_mut<DD::World>();
+
+					e.each<DD::CollidedWith>([&e](flecs::entity hit)
+						{
+							if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
+							{
+								e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+							}
+					hit.remove<DD::CollidedWith>(e);
+					e.remove<DD::CollidedWith>(hit);
+						});
+					e.set<DD::LastWorld>({ e.get<DD::World>()->value });
+					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+				}
+			});
+
+
 		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
 			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
 				{

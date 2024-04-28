@@ -838,6 +838,8 @@ public:
 	// used to wipe CPU & GPU level data between levels
 	void UnloadLevel() {
 		allObjectsInLevel.clear();
+		lights.clear();
+		LIGHTDATA.clear();
 	}
 
 	void Update(std::shared_ptr<flecs::world> game, std::shared_ptr<Level_Objects> level)

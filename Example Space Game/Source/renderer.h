@@ -615,12 +615,12 @@ public:
 
 	void RemoveEntities() {
 
-		for each (Model i in Level->allObjectsInLevel)
-		{
-			auto e = game->entity(i.name.c_str());	
-			e.destruct();
-		}
-
+		game->defer_begin();
+		game->each([](flecs::entity e)
+			{
+				e.destruct();
+			});
+		game->defer_end();
 	}
 	
 	void AddEntities()
@@ -630,7 +630,6 @@ public:
 			auto e = game->entity(i.name.c_str());
 			e.set<DD::Name>({ i.name });
 			e.set<DD::World>({ i.world });
-			//e.add<DD::World>();
 			e.set<Models>({ i });
 
 			if (i.name.substr(0, 5) == "alien")
@@ -647,12 +646,6 @@ public:
 			{
 				e.add<DD::Player>();
 			}
-
-			//if (i.name == "alien")
-			//{
-			//	e.add<DD::Enemy>();
-			//	e.add<DD::Health>();
-			//}
 		}
 	}
 
@@ -875,21 +868,6 @@ public:
 					});
 
 			});*/
-
-	//flecs::system enemyCollisionSystem = game->system<DD::Enemy>("Enemy Collision System")
-	//	.each([level](flecs::entity pl, DD::Enemy)
-	//		{
-	//			pl.each<DD::CollidedWith>([&pl, level](flecs::entity hit)
-	//				{
-	//					if (!(hit.has<DD::Bullet>()))
-	//					{
-	//						hit.remove<DD::CollidedWith>();
-	//						
-	//					}
-	//					pl.destruct();
-	//				});
-
-	//		});
 
 	//flecs::system enemyCollisionSystem = game->system<DD::Enemy>("Enemy Collision System")
 	//	.each([level](flecs::entity pl, DD::Enemy)

@@ -21,11 +21,6 @@ class RendererManager
 	GW::MATH::GVECTORF mainMenuCamPos;
 	GW::MATH::GVECTORF mainMenuLookAtPos;
 
-	//for ui
-	GW::MATH::GMATRIXF UIviewMatrix;
-	GW::MATH::GMATRIXF UIcameraMatrix;
-	GW::MATH::GMATRIXF UIorthoMatrix;
-
 	Application *app;
 	GameConfig* gameConfig;
 
@@ -117,11 +112,6 @@ public:
 
 		//initialize projection matrix based on FOV and near and far planes
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
-
-		//UI matricies - not currently used
-		UIorthoMatrix = initializeOrthoprojectionMatrix();
-		gMatrixProxy.IdentityF(UIcameraMatrix);
-		gMatrixProxy.InverseF(UIcameraMatrix, UIviewMatrix);
 	}
 
 	//initializes all panels
@@ -171,7 +161,7 @@ public:
 		panel->assign();
 		panel->arrange();
 		panel->start();
-		panel->UploadLevelToGPU(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+		panel->UploadLevelToGPU(cameraMatrix, viewMatrix, projectionMatrix);
 	}
 
 	//initializes a world matrix and sets it to identity
@@ -215,26 +205,6 @@ public:
 		return projMatrix;
 	}
 
-	//initializes an Orthoprojectionmatrix
-	GW::MATH::GMATRIXF initializeOrthoprojectionMatrix()
-	{
-		float _left = 0.0;
-		float _right = gameConfig->at("Window").at("width").as<int>();
-		float _bottom = 0.0;
-		float _top = gameConfig->at("Window").at("height").as<int>();
-		float _near = -1;
-		float _far = 1;
-
-		// Create the orthographic projection matrix
-		GW::MATH::GMATRIXF ortho = {
-			2 / (_right - _left),   0,                      0,                  -(_right + _left) / (_right - _left),
-			0,                      2 / (_top - _bottom),   0,                  -(_top + _bottom) / (_top - _bottom),
-			0,                      0,                      -2 / (_far - _near), -(_far + _near) / (_far - _near),
-			0,                      0,                      0,                  1
-		};
-
-		return ortho;
-	}
 	//Updates camera movement based on movement
 	void UpdateCamera(int windowWidth, int windowHeight)
 	{
@@ -518,15 +488,15 @@ public:
 
 			if (panel == playerHUD && panel->render)
 			{
-				playerHUD->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+				playerHUD->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
 
 			else if (panel == gameOverMenu && panel->render)
 			{
-				gameOverMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+				gameOverMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
 			else if (panel->render){
-				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+				panel->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
 		}
 

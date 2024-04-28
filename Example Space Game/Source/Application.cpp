@@ -41,6 +41,7 @@ bool Application::Run() {
 	log.Create("output.txt");
 
 	auto mainMenu = std::make_shared<Level_Objects>();
+	auto lvl1 = std::make_shared<Level_Objects>();
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
 
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
@@ -95,8 +96,7 @@ bool Application::Run() {
 
 			if (!leftMouse && rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
-
-				auto lvl1 = std::make_shared<Level_Objects>();
+				
 				lvl1->LoadMeshes(1, "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
 				currentLevel = lvl1;
 
@@ -110,7 +110,7 @@ bool Application::Run() {
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
 				rendererManager.changeLevel(*currentLevel);
-				playerStats->updateHeartsBeforeDeath();		//go ahead and save in case of restart or death
+				playerStats->updateHeartsBeforeDeath();		
 				playerStats->updateScoreBeforeDeath();
 			}
 
@@ -127,41 +127,67 @@ bool Application::Run() {
 			}
 		}
 
+		//event handling for pause menu - allows for restart
+		else if (rendererManager.gameOverMenu->render) {
+
+			if (rendererManager.gameOverMenu->restartGameOverButton->HandleInputLeftMouseButton(gInput)) {
+				leftMouse = true;
+
+				//restarts game by setting current level to level1
+				if (rendererManager.gameOverMenu->youWinText->render) {
+					gpManager->restartGame(currentLevel, &rendererManager, playerStats, log);
+				}
+
+				//restarts just the level per usual
+				else {
+					gpManager->restartLevel(currentLevel, &rendererManager, playerStats, log);
+				}
+
+				rendererManager.gameOverMenu->toggleRender();
+
+			}
+		}
+
+
 		
 
-			////LEVEL SWAP: Currently works by using 0 or 1
-			//{
-			//	//use these to determine if flag is read
-			//	bool zero = false, one = false;
+			//LEVEL SWAP: Currently works by using 0 or 1
+			{
+				//use these to determine if flag is read
+				bool zero = false, one = false;
 
-			//	auto lvl3 = std::make_shared<Level_Objects>();
+				auto lvl3 = std::make_shared<Level_Objects>();
 
-			//	//Main Menu
-			//	if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
-			//		zero = true;
+				//Main Menu
+				if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
+					zero = true;
 
-			//		//rendererManager.changeLevel(*mainMenu);
-			//		gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
+					//rendererManager.changeLevel(*mainMenu);
+					//gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
+
+					rendererManager.gameOverMenu->youWinText->render =false;
+					rendererManager.gameOverMenu->gameOverText->render = true;
+					rendererManager.gameOverMenu->toggleRender();
 
 
-			//	}
+				}
 
-			//	else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
-			//		zero = false;
-			//	}
+				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+					zero = false;
+				}
 
-			//	//Level1
-			//	if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
-			//		one = true;
+				//Level1
+				if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
+					one = true;
 
-			//		rendererManager.changeLevel(*lvl1);
+					rendererManager.changeLevel(*lvl1);
 
-			//	}
+				}
 
-			//	else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
-			//		one = false;
-			//	}
-			//}
+				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+					one = false;
+				}
+			}
 
 
 			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());

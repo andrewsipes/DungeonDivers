@@ -498,15 +498,14 @@ public:
 	//swaps the level in render manager
 	void changeLevel(Level_Objects& level) {
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		if (playerHUD->render) {
-			playerHUD->updateLevelText(level.getid());
-		}
+		playerHUD->updateLevelText(level.getid());
 		lvl = &level;
 	}
 
 	//re loads the current level
 	void reloadLevel(Level_Objects& level) {
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD->updateLevelText(level.getid());
 
 	}
 
@@ -520,7 +519,6 @@ public:
 
 
 };
-
 
 //Acts as intermediate between flecs systems and UI systems
 class gamePlayManager {
@@ -602,16 +600,27 @@ public:
 		resetHUDonRestart(_rendererManager, ps);
 	}
 
+	//removes all entities from the level and reloads the meshes based on id
+	void restartGame(std::shared_ptr<Level_Objects> _lvl1, RendererManager* _rendererManager, PlayerStats* ps, GW::SYSTEM::GLog _log) {
+
+		RemoveEntities();
+
+		_lvl1->LoadMeshes(_lvl1->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+		_rendererManager->changeLevel(*_lvl1);
+
+		AddEntities();
+		resetHUDonRestart(_rendererManager, ps);
+	}
+
+
 	void RemoveEntities() {
 
 		for each (Model i in Level->allObjectsInLevel)
 		{
-			auto e = game->entity(i.name.c_str());
-			e.clear();
+			auto e = game->entity(i.name.c_str());	
 			e.destruct();
-
-	
 		}
+
 	}
 	
 	void AddEntities()

@@ -111,6 +111,7 @@ bool Application::Run() {
 
 		}
 
+		//event handling for pause menu - allows for restart
 		else if (rendererManager.pauseMenu->render) {
 
 			if (rendererManager.pauseMenu->restartPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
@@ -126,39 +127,39 @@ bool Application::Run() {
 			leftMouse = false;
 		}
 
-			//LEVEL SWAP: Currently works by using 0 or 1
-			{
-				//use these to determine if flag is read
-				bool zero = false, one = false;
+			////LEVEL SWAP: Currently works by using 0 or 1
+			//{
+			//	//use these to determine if flag is read
+			//	bool zero = false, one = false;
 
-				auto lvl3 = std::make_shared<Level_Objects>();
+			//	auto lvl3 = std::make_shared<Level_Objects>();
 
-				//Main Menu
-				if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
-					zero = true;
+			//	//Main Menu
+			//	if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
+			//		zero = true;
 
-					//rendererManager.changeLevel(*mainMenu);
-					gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
+			//		//rendererManager.changeLevel(*mainMenu);
+			//		gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
 
 
-				}
+			//	}
 
-				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
-					zero = false;
-				}
+			//	else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+			//		zero = false;
+			//	}
 
-				//Level1
-				if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
-					one = true;
+			//	//Level1
+			//	if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
+			//		one = true;
 
-					rendererManager.changeLevel(*lvl1);
+			//		rendererManager.changeLevel(*lvl1);
 
-				}
+			//	}
 
-				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
-					one = false;
-				}
-			}
+			//	else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
+			//		one = false;
+			//	}
+			//}
 
 
 			ogl.UniversalSwapBuffers();

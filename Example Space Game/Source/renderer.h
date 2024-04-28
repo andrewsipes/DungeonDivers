@@ -504,16 +504,13 @@ public:
 		lvl = &level;
 	}
 
-	//swaps the level in render manager
-	void restartLevel(Level_Objects& level) {
+	//re loads the current level
+	void reloadLevel(Level_Objects& level) {
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		if (playerHUD->render) {
+		/*if (playerHUD->render) {
 			playerHUD->updateLevelText(level.getid());
-		}
-		lvl = &level;
+		}*/
 	}
-
-
 
 
 	~RendererManager() {
@@ -602,7 +599,7 @@ public:
 
 		}
 
-		_rendererManager->restartLevel(*_currentLevel);
+		_rendererManager->reloadLevel(*_currentLevel);
 		AddEntities();
 		resetHUDonRestart(_rendererManager, ps);
 	}

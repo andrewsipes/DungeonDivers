@@ -413,8 +413,6 @@ public:
 					isPauseMenuRendered = false;
 				}
 			}
-
-
 		}
 
 		else if (gameOverMenu->render) {
@@ -868,6 +866,7 @@ public:
 						auto f = game->filter<DD::CountBullet>();
 						count = std::to_string(f.count());
 						/*std::cout << count << std::endl;*/
+
 						switch (shootState)
 						{
 						case 1:
@@ -877,13 +876,15 @@ public:
 
 							modelToDupe.world = world->value;
 							modelToDupe.name += count;
-							level->allObjectsInLevel.push_back(modelToDupe);
 							auto e = game->entity(modelToDupe.name.c_str());
+							GW::MATH::GMatrix::RotateXLocalF(modelToDupe.world, D2R(90), modelToDupe.world);
+							level->allObjectsInLevel.push_back(modelToDupe);
+
 							e.set<Models>({ modelToDupe });
 							e.set<DD::Collidable>({ modelToDupe.obb });
-							e.set<DD::World>({ world->value });
+							e.set<DD::World>({ modelToDupe.world });
 							e.set<DD::Name>({ modelToDupe.name });
-							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0} });
 							e.add<DD::Bullet>();
 
 							break;
@@ -898,11 +899,13 @@ public:
 							modelToDupe.name += count;
 							level->allObjectsInLevel.push_back(modelToDupe);
 							auto e = game->entity(modelToDupe.name.c_str());
+							GW::MATH::GMatrix::RotateZLocalF(modelToDupe.world, D2R(90), modelToDupe.world);
+
 							e.set<Models>({ modelToDupe });
 							e.set<DD::Collidable>({ modelToDupe.obb });
-							e.set<DD::World>({ world->value });
+							e.set<DD::World>({ modelToDupe.world });
 							e.set<DD::Name>({ modelToDupe.name });
-							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{-bullSpeed, 0, 0 } });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0 } });
 							e.add<DD::Bullet>();
 							break;
 						}
@@ -916,11 +919,13 @@ public:
 							modelToDupe.name += count;
 							level->allObjectsInLevel.push_back(modelToDupe);
 							auto e = game->entity(modelToDupe.name.c_str());
+							GW::MATH::GMatrix::RotateZLocalF(modelToDupe.world, D2R(-90), modelToDupe.world);
+
 							e.set<Models>({ modelToDupe });
 							e.set<DD::Collidable>({ modelToDupe.obb });
-							e.set<DD::World>({ world->value });
+							e.set<DD::World>({ modelToDupe.world });
 							e.set<DD::Name>({ modelToDupe.name });
-							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0 } });
 							e.add<DD::Bullet>();
 							break;
 						}
@@ -934,11 +939,13 @@ public:
 							modelToDupe.name += count;
 							level->allObjectsInLevel.push_back(modelToDupe);
 							auto e = game->entity(modelToDupe.name.c_str());
+							GW::MATH::GMatrix::RotateXLocalF(modelToDupe.world, D2R(-90), modelToDupe.world);
+
 							e.set<Models>({ modelToDupe });
 							e.set<DD::Collidable>({ modelToDupe.obb });
-							e.set<DD::World>({ world->value });
+							e.set<DD::World>({ modelToDupe.world });
 							e.set<DD::Name>({ modelToDupe.name });
-							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0, -bullSpeed } });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0 } });
 							e.add<DD::Bullet>();
 							break;
 						}
@@ -971,6 +978,16 @@ public:
 									UpdatePlayerScore(*rm, *ps, gameConfig, 50); // update score if we hit an enemy
 
 								}
+								else if (hit.has<DD::Destruct>())
+								{
+									auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+									if (found != level->allObjectsInLevel.end())
+									{
+										level->allObjectsInLevel.erase(found);
+									}
+									hit.destruct();
+								}
 								m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
@@ -984,24 +1001,6 @@ public:
 
 						});
 				});
-
-	/*flecs::system playerCollisionSystem = game->system<DD::Player>("Player Collision System")
-		.each([level](flecs::entity pl, DD::Player)
-			{
-				pl.each<DD::CollidedWith>([&pl, level](flecs::entity hit)
-					{
-
-						if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
-						{
-							std::cout << hit.get<DD::Name>()->name << std::endl;
-
-							pl.set<DD::World>({pl.get<DD::LastWorld>()->value});
-						}
-						hit.remove<DD::CollidedWith>();
-						pl.remove<DD::CollidedWith>();
-					});
-
-			});*/
 
 	//flecs::system enemyCollisionSystem = game->system<DD::Enemy>("Enemy Collision System")
 	//	.each([level](flecs::entity pl, DD::Enemy)
@@ -1029,7 +1028,7 @@ public:
 					{
 						size_t index = found - level->allObjectsInLevel.begin();
 
-						GW::MATH::GVECTORF moveVec = { v[i].value.x * it.delta_time() * bullSpeed, 0, v[i].value.z * it.delta_time() * bullSpeed };
+						GW::MATH::GVECTORF moveVec = { 0, v[i].value.y * it.delta_time() * bullSpeed, 0 };
 						auto e = game->lookup(n[i].name.c_str());
 						DD::World* edit = game->entity(e).get_mut<DD::World>();
 						GW::MATH::GMatrix::TranslateLocalF(edit->value, moveVec, edit->value);

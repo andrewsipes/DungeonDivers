@@ -12,6 +12,7 @@ namespace DD
 	struct Lives {};
 	struct Treasure {};
 	struct Heart {};
+	struct Destruct {};
 	struct ControllerID
 	{
 		unsigned index = 0;

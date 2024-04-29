@@ -668,7 +668,7 @@ public:
 
 
 		playerSystem = game->system<DD::Player, DD::World>("Player Move System")
-			.iter([immediateInput, speed, game, level](flecs::iter it, DD::Player*, DD::World*)
+			.iter([immediateInput, speed, game, level, this, &rm, &ps](flecs::iter it, DD::Player*, DD::World*)
 			{
 				for (auto i : it)
 				{
@@ -685,7 +685,7 @@ public:
 					auto e = game->lookup("MegaBee");
 					DD::World* edit = game->entity(e).get_mut<DD::World>();
 
-					e.each<DD::CollidedWith>([&e, level](flecs::entity hit)
+					e.each<DD::CollidedWith>([&e, level, this, &rm, &ps](flecs::entity hit)
 						{
 							if (hit.has<DD::Heart>())
 							{
@@ -698,7 +698,9 @@ public:
 								}
 								hit.destruct();
 								// INSERT HEART INCREASE STUFF HERE---------------------------
+								UpdatePlayerHearts(*rm, *ps, 1);
 							}
+
 							else if (hit.has<DD::Treasure>())
 							{
 								Model m = hit.get<Models>()->mod;

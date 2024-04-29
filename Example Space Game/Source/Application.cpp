@@ -97,7 +97,7 @@ bool Application::Run() {
 			if (!leftMouse && rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
 				
-				lvl1->LoadMeshes(1, "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
+				lvl1->LoadMeshes(1, "../Models/TestWorld/Level3/GameLevel.txt", "../Models/TestWorld/Level3/Models", log.Relinquish());
 				currentLevel = lvl1;
 
 				playerStats = new PlayerStats(*gameConfig);

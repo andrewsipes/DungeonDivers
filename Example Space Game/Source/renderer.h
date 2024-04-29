@@ -6,6 +6,7 @@
 
 
 
+
 // Creation, Rendering & Cleanup
 class RendererManager
 {
@@ -538,11 +539,17 @@ public:
 	std::shared_ptr <Level_Objects> Level;
 	std::shared_ptr<flecs::world> game;
 
+	//PUT SOUNDS HERE
+	GW::AUDIO::GMusic shoot;
+	GW::GReturn test;
+
 	gamePlayManager(std::shared_ptr <Level_Objects> _Level,
 	std::shared_ptr<flecs::world> _game){
 
 		Level = _Level;
 		game = _game;
+
+		
 	}
 
 	//Updates PlayerStats and UI Score
@@ -663,6 +670,13 @@ public:
 		}
 	}
 
+	//EXAMPLE SOUND METHOD
+	void playSound(GW::AUDIO::GAudio& _audioEngine) {
+
+		GW::GReturn test = shoot.Create("../SoundFX/Player_Attack.wav", _audioEngine, 1.0f);
+		shoot.Play(false);
+	}
+
 	void AddSystems(std::shared_ptr<Level_Objects> level,
 		std::shared_ptr<flecs::world> game,
 		std::shared_ptr<GameConfig> gameConfig,
@@ -680,7 +694,7 @@ public:
 
 
 		playerSystem = game->system<DD::Player, DD::World>("Player Move System")
-			.iter([immediateInput, speed, game, level, this, &rm, &ps, &gameConfig](flecs::iter it, DD::Player*, DD::World*)
+			.iter([immediateInput, speed, game, level, this, &rm, &ps, &gameConfig, &_audioEngine](flecs::iter it, DD::Player*, DD::World*)
 			{
 				for (auto i : it)
 				{
@@ -697,7 +711,7 @@ public:
 					auto e = game->lookup("MegaBee");
 					DD::World* edit = game->entity(e).get_mut<DD::World>();
 
-					e.each<DD::CollidedWith>([&e, level, this, &rm, &ps, &gameConfig](flecs::entity hit)
+					e.each<DD::CollidedWith>([&e, level, this, &rm, &ps, &gameConfig, _audioEngine](flecs::entity hit)
 						{
 							if (hit.has<DD::Heart>())
 							{
@@ -711,6 +725,8 @@ public:
 								hit.destruct();
 								UpdatePlayerHearts(*rm, *ps, 1);
 
+								ps->treasures++;
+								
 							}
 
 							else if (hit.has<DD::Treasure>())
@@ -723,8 +739,6 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
-
-								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
 
 								if (m.name == "CrystalYellow") {
 									rm->treasureMenu->treasures[0]->text->render = true;
@@ -761,7 +775,10 @@ public:
 									rm->treasureMenu->treasures[5]->text->render = true;
 								}
 
+
+
 								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
+							
 							}
 							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 							{
@@ -799,7 +816,7 @@ public:
 				});
 
 		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
-			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
+			.iter([immediateInput, game, level, bullSpeed,&_audioEngine, this](flecs::iter it, DD::Player*, DD::World* world)
 				{
 					for (auto i : it)
 					{
@@ -885,6 +902,9 @@ public:
 							e.set<DD::Name>({ modelToDupe.name });
 							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
 							e.add<DD::Bullet>();
+
+							//FOR RALF
+							playSound(_audioEngine);
 
 							break;
 						}

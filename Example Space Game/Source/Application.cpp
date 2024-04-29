@@ -16,6 +16,8 @@ using namespace GW::AUDIO;
 bool Application::Init()
 {
 	eventPusher.Create();
+		GW::AUDIO::GSound shoot;
+					GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
 
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>();
@@ -36,6 +38,7 @@ bool Application::Init()
 }
 
 bool Application::Run() {
+	
 	leftMouse = false;
 	running = true;
 
@@ -44,6 +47,8 @@ bool Application::Run() {
 
 	auto mainMenu = std::make_shared<Level_Objects>();
 	auto lvl1 = std::make_shared<Level_Objects>();
+	auto lvl2 = std::make_shared<Level_Objects>();
+	auto lvl3 = std::make_shared<Level_Objects>();
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
 
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
@@ -65,10 +70,11 @@ bool Application::Run() {
 	PlayerStats* playerStats;
 	RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
 
-#if NEDEBUG
-	auto& mainMenuMusic = musicTracks["MainMenu"];
-	mainMenuMusic.Play(true);
-#endif
+
+	//auto& mainMenuMusic = musicTracks["MainMenu"];
+	//auto& mainMenuMusic = musicTracks["MainMenu"];
+	//mainMenuMusic.Play(true);
+
 
 
 	while (+win.ProcessWindowEvents() && running == true)
@@ -150,7 +156,26 @@ bool Application::Run() {
 			}
 		}
 
+		//if (playerStats->treasures %3 == 0) {
 
+		//	switch (playerStats->treasures) {
+
+		//	case 3: 
+		//		
+		//		lvl2->LoadMeshes(0, "../Level2.txt", "../Models/Level2", log.Relinquish());
+		//		//load this level
+		//		break;
+		//	case 6: 
+		//		//load this level
+		//		break;
+		//	case 9:
+		//		//you win
+		//		break;
+		//	default:
+		//		//do nothing
+		//		break;
+		//	}
+		//}
 
 
 			//LEVEL SWAP: Currently works by using 0 or 1
@@ -167,9 +192,14 @@ bool Application::Run() {
 					//rendererManager.changeLevel(*mainMenu);
 					//gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
 
-					rendererManager.gameOverMenu->youWinText->render =false;
-					rendererManager.gameOverMenu->gameOverText->render = true;
-					rendererManager.gameOverMenu->toggleRender();
+					//rendererManager.gameOverMenu->youWinText->render =false;
+					//rendererManager.gameOverMenu->gameOverText->render = true;
+					//rendererManager.gameOverMenu->toggleRender();
+
+				
+					//GW::GReturn test2 = shoot.Play(false);
+					//GW::GReturn test3 = shoot.Resume();
+
 
 
 				}

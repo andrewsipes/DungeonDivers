@@ -13,10 +13,12 @@ private:
 	GameConfig* gameConfig;
 
 public:
+	int treasures;
 	//some default values, we shouldn't use this
 	PlayerStats() {
 		score = 0000;
 		hearts = 4;
+		treasures = 0;
 	}
 
 	//sets all required parementers when constructed

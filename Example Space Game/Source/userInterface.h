@@ -1407,6 +1407,12 @@ public:
 		treasureMenuText->toggleRender();
 		exitTreasureMenuButton->toggleRender();
 
+		for (userButton* button : treasures) {
+
+			button->toggleRender();
+			button->text->render = false;
+		}
+
 	}
 
 	// Draws all objects in the level
@@ -1422,8 +1428,12 @@ public:
 			for (auto& f : allUiButtonObjects) {
 				if (f.render) {
 					f.DrawModel(_camera, _view, _proj, f.alpha);
-					f.text->DrawModel(_camera, _view, _proj, f.text->alpha);
+
+					if (f.text->render) {
+						f.text->DrawModel(_camera, _view, _proj, f.text->alpha);
+					}
 				}
+
 			}
 		}
 	}

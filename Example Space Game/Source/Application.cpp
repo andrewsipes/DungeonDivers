@@ -4,6 +4,8 @@
 #include "./renderer.h"
 #include "../gateware-main/Gateware.h"
 
+
+
 using namespace GW;
 using namespace CORE;
 using namespace SYSTEM;
@@ -96,8 +98,8 @@ bool Application::Run() {
 
 			if (!leftMouse && rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
-				
-				lvl1->LoadMeshes(1, "../Models/TestWorld/Level3/GameLevel.txt", "../Models/TestWorld/Level3/Models", log.Relinquish());
+
+				lvl1->LoadMeshes(1, "../Level2.txt", "../Models/Level2", log.Relinquish());
 				currentLevel = lvl1;
 
 				playerStats = new PlayerStats(*gameConfig);
@@ -110,7 +112,7 @@ bool Application::Run() {
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
 				rendererManager.changeLevel(*currentLevel);
-				playerStats->updateHeartsBeforeDeath();		
+				playerStats->updateHeartsBeforeDeath();
 				playerStats->updateScoreBeforeDeath();
 			}
 
@@ -149,7 +151,7 @@ bool Application::Run() {
 		}
 
 
-		
+
 
 			//LEVEL SWAP: Currently works by using 0 or 1
 			{
@@ -224,7 +226,7 @@ bool Application::InitWindow()
 	int ystart = gameConfig->at("Window").at("ystart").as<int>();
 	std::string title = gameConfig->at("Window").at("title").as<std::string>();
 	// open window
-	if (+win.Create(xstart, ystart, width, height, GWindowStyle::WINDOWEDLOCKED) &&
+	if (+win.Create(xstart, ystart, width, height, GWindowStyle::WINDOWEDBORDERED) &&
 		+win.SetWindowName(title.c_str())) {
 		return true;
 	}
@@ -340,5 +342,3 @@ bool Application::GameLoop()
 	// let the ECS system run
 	return game->progress(static_cast<float>(elapsed));
 }
-
-

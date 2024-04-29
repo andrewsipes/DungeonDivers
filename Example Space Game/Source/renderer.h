@@ -2,6 +2,7 @@
 #include "./userInterface.h"
 #include <chrono>
 #include "playerStats.h"
+#include <map>
 
 
 
@@ -11,7 +12,7 @@ class RendererManager
 	// proxy handles
 	GW::SYSTEM::GWindow win;
 	GW::GRAPHICS::GOpenGLSurface ogl;
-	GW::MATH::GMatrix gMatrixProxy;	
+	GW::MATH::GMatrix gMatrixProxy;
 	GW::INPUT::GController gController;
 	GW::INPUT::GInput gInput;
 
@@ -50,11 +51,11 @@ public:
 	controlsMenuUi* controlsMenu;
 	gameOverUi* gameOverMenu;
 	std::vector <uiPanel*> panels;
-	
+
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, Level_Objects& Level)
 	{
-		
+
 		//passed arguments for initializing
 		gameConfig = &_gameConfig;
 		win = _win;
@@ -99,7 +100,7 @@ public:
 		//treasureMenu->toggleRender();
 		//controlsMenu->toggleRender();
 		//gameOverMenu->toggleRender();
-	
+
 		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 		//create inputs
@@ -287,8 +288,8 @@ public:
 				pitch = (FOV * mouseY) / windowHeight;
 				yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth;
 			}
-		
-		
+
+
 			//calculate translation
 			const float Camera_Speed = 10 * 0.5f;
 			float perFrameSpeed = Camera_Speed * updateTime.count();
@@ -326,7 +327,7 @@ public:
 		{
 			cameraMatrix = initializeCamView(mainMenuCamPos, mainMenuLookAtPos);
 		}
-		
+
 		else // not freecam
 		{
 			Model m;
@@ -341,7 +342,7 @@ public:
 
 				gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
 				gMatrixProxy.IdentityF(rotationMatrix);
-				auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y + 10, m.world.row4.z, 1 }, 
+				auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y + 10, m.world.row4.z, 1 },
 												GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y, m.world.row4.z + .0001f, 1 },
 												GW::MATH::GVECTORF{ 0, 1, 0, 0 }, rotationMatrix);
 				gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
@@ -381,7 +382,7 @@ public:
 		else if (pauseMenu->render){
 
 			if (!leftMouse && pauseMenu->controlsPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
-				
+
 				isPauseMenuRendered = true;
 				controlsMenu->render = true;
 				pauseMenu->render = false;
@@ -420,12 +421,12 @@ public:
 			gameOverMenu->exitGameOverButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 		}
 
-	
+
 		//TREASURE MENU
 		else if (treasureMenu->render){
 			treasureMenu->exitTreasureMenuButton->HandleInput(dynamic_cast<uiPanel*>(treasureMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
 		}
-	
+
 		//KEYBINDS: Everything here should be checking if there was a key pressed and performing some action after
 		//CONTROLS:
 		//			TAB: toggles pause menu
@@ -457,25 +458,25 @@ public:
 			if (!t &&(GetAsyncKeyState(0x54) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
 					treasureMenu->render = true;
-					
+
 				}
 
 				else if (treasureMenu->render) {
 					treasureMenu->render = false;
 				}
 				t = true;
-				
+
 			}
 			else if (t && !(GetAsyncKeyState(0x54) & 0x8000)) {
 				t = false;
 			}
-			
+
 		}
 
 	}
 
 	//Render Loop for all objects (place Panels and Levels here);
-	void Render(){		
+	void Render(){
 		lvl->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
 		for (uiPanel* panel : panels){
@@ -489,6 +490,12 @@ public:
 			{
 				gameOverMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
+
+			else if (panel == treasureMenu && panel->render)
+			{
+				treasureMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
+			}
+
 			else if (panel->render){
 				panel->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
@@ -533,15 +540,15 @@ public:
 
 	gamePlayManager(std::shared_ptr <Level_Objects> _Level,
 	std::shared_ptr<flecs::world> _game){
-	
+
 		Level = _Level;
 		game = _game;
 	}
 
 	//Updates PlayerStats and UI Score
-	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc) {
+	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc, int score) {
 
-			ps.updateScore(50);
+			ps.updateScore(score);
 			rm.playerHUD->updateHUDScore(ps.getScore());
 
 			if (ps.getScore() > (*gc).at("Player1").at("highscore").as<int>())
@@ -624,7 +631,7 @@ public:
 			});
 		game->defer_end();
 	}
-	
+
 	void AddEntities()
 	{
 		for each (Model i in Level->allObjectsInLevel)
@@ -673,7 +680,7 @@ public:
 
 
 		playerSystem = game->system<DD::Player, DD::World>("Player Move System")
-			.iter([immediateInput, speed, game, level](flecs::iter it, DD::Player*, DD::World*)
+			.iter([immediateInput, speed, game, level, this, &rm, &ps, &gameConfig](flecs::iter it, DD::Player*, DD::World*)
 			{
 				for (auto i : it)
 				{
@@ -690,7 +697,7 @@ public:
 					auto e = game->lookup("MegaBee");
 					DD::World* edit = game->entity(e).get_mut<DD::World>();
 
-					e.each<DD::CollidedWith>([&e, level](flecs::entity hit)
+					e.each<DD::CollidedWith>([&e, level, this, &rm, &ps, &gameConfig](flecs::entity hit)
 						{
 							if (hit.has<DD::Heart>())
 							{
@@ -702,8 +709,10 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
-								// INSERT HEART INCREASE STUFF HERE---------------------------
+								UpdatePlayerHearts(*rm, *ps, 1);
+
 							}
+
 							else if (hit.has<DD::Treasure>())
 							{
 								Model m = hit.get<Models>()->mod;
@@ -714,7 +723,45 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
+
 								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
+
+								if (m.name == "CrystalYellow") {
+									rm->treasureMenu->treasures[0]->text->render = true;
+								}
+
+								else if (m.name == "CrystalRed") {
+									rm->treasureMenu->treasures[4]->text->render = true;
+								}
+
+								else if (m.name == "CrystalBlue") {
+									rm->treasureMenu->treasures[3]->text->render = true;
+								}
+
+								else if (m.name == "CrystalOrange") {
+									rm->treasureMenu->treasures[2]->text->render = true;
+								}
+
+								else if (m.name == "CrystalCyan") {
+									rm->treasureMenu->treasures[6]->text->render = true;
+								}
+
+								else if (m.name == "CrystalMagenta") {
+									rm->treasureMenu->treasures[1]->text->render = true;
+								}
+
+								else if (m.name == "CrystalBlack") {
+									rm->treasureMenu->treasures[8]->text->render = true;
+								}
+
+								else if (m.name == "CrystalWhite") {
+									rm->treasureMenu->treasures[7]->text->render = true;
+								}
+								else if (m.name == "CrystalGreen") {
+									rm->treasureMenu->treasures[5]->text->render = true;
+								}
+
+								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
 							}
 							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 							{
@@ -921,8 +968,8 @@ public:
 									}
 									hit.destruct();
 									updateEnemyCount(rm, -1);
-									UpdatePlayerScore(*rm, *ps, gameConfig); // update score if we hit an enemy
-									
+									UpdatePlayerScore(*rm, *ps, gameConfig, 50); // update score if we hit an enemy
+
 								}
 								m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
@@ -964,7 +1011,7 @@ public:
 	//					if (!(hit.has<DD::Bullet>()))
 	//					{
 	//						hit.remove<DD::CollidedWith>();
-	//						
+	//
 	//					}
 	//					pl.destruct();
 	//				});
@@ -994,8 +1041,5 @@ public:
 
 	}
 
-	
+
 };
-
-
-

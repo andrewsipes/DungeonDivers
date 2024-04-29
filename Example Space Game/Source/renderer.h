@@ -648,6 +648,8 @@ public:
 				e.add<DD::Heart>();
 			if (i.name.substr(0, 7) == "Crystal")
 				e.add<DD::Treasure>();
+			if (i.name.substr(0, 8) == "Destruct")
+				e.add<DD::Destruct>();
 
 
 

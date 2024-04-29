@@ -13,7 +13,7 @@ private:
 	GameConfig* gameConfig;
 
 public:
-	int treasures;
+	int treasures, treasuresBeforeDeath;
 
 	//some default values, we shouldn't use this
 	PlayerStats() {
@@ -60,6 +60,10 @@ public:
 	//for saving heath at the beginning of the level
 	void updateHeartsBeforeDeath(){
 		heartsBeforeDeath = hearts;
+	}
+
+	void updateTreasuresBeforeDeath() {
+		treasuresBeforeDeath = treasures;
 	}
 
 	//resets player after death

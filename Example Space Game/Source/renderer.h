@@ -581,6 +581,7 @@ public:
 
 		ps->setScore(ps->getScoreBeforeDeath());
 		ps->setHearts(ps->getHeartsBeforeDeath());
+		ps->treasures = ps->treasuresBeforeDeath;
 
 		_rendererManager->playerHUD->updateHUDScore(ps->getScore());
 		_rendererManager->playerHUD->updateHUDHearts(ps->getHearts());
@@ -632,7 +633,7 @@ public:
 	//loads the next level
 	void nextLevel(std::shared_ptr<Level_Objects> currentLevel, PlayerStats* ps, RendererManager* rm, GW::SYSTEM::GLog log) {
 
-		ps->updateHeartsBeforeDeath();	ps->updateScoreBeforeDeath();
+		ps->updateHeartsBeforeDeath();	ps->updateScoreBeforeDeath(); ps->updateTreasuresBeforeDeath();
 		RemoveEntities();
 		
 		switch (currentLevel->getid()) {
@@ -645,7 +646,7 @@ public:
 		}
 		Level = currentLevel;
 		AddEntities();
-		updateEnemyCount(rm, 0);updateTreasureCount(rm, 0);
+		updateEnemyCount(rm, 0); updateTreasureCount(rm, 0);
 		rm->changeLevel(*currentLevel);
 
 	}
@@ -700,7 +701,7 @@ public:
 
 		RemoveEntities();
 
-		_lvl1->LoadMeshes(_lvl1->getid(), "../Level2.txt", "../Models/Level2", _log.Relinquish());
+		_lvl1->LoadMeshes(1, "../Level2.txt", "../Models/Level2", _log.Relinquish());
 		_rendererManager->changeLevel(*_lvl1);
 
 		AddEntities();

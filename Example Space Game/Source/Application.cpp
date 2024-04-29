@@ -132,7 +132,7 @@ bool Application::Run() {
 
 				//restarts game by setting current level to level1
 				if (rendererManager.gameOverMenu->youWinText->render) {
-					gpManager.restartGame(currentLevel, &rendererManager, &playerStats, gameConfig, log);
+					gpManager.restartGame(0, &rendererManager, &playerStats, gameConfig, log);
 				}
 
 				//restarts just the level per usual
@@ -154,30 +154,10 @@ bool Application::Run() {
 			case 3:
 				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
-			/*	playerStats.updateHeartsBeforeDeath();
-				playerStats.updateScoreBeforeDeath();
-				gpManager.RemoveEntities();
-				currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
-				gpManager.Level = currentLevel;
-				gpManager.AddEntities();
-				gpManager.updateEnemyCount(&rendererManager, 0);
-				gpManager.updateTreasureCount(&rendererManager, 0);
-				rendererManager.changeLevel(*currentLevel);*/
 				break;
 			case 6: 
 				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
-				/*playerStats.updateHeartsBeforeDeath();
-				playerStats.updateScoreBeforeDeath();
-				gpManager.RemoveEntities();
-				currentLevel->LoadMeshes(3, "../Level2.txt", "../Models/Level2", log.Relinquish());
-				gpManager.Level = currentLevel;
-				gpManager.AddEntities();
-				gpManager.updateEnemyCount(&rendererManager, 0);
-				gpManager.updateTreasureCount(&rendererManager, 0);
-				rendererManager.changeLevel(*currentLevel);
-		*/
-
 				break;
 			case 9:
 				gpManager.RemoveEntities();

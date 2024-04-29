@@ -641,6 +641,9 @@ public:
 				e.set<DD::Collidable>({ i.obb });
 			if (i.name.substr(0, 5) == "Heart")
 				e.add<DD::Heart>();
+			if (i.name.substr(0, 7) == "Crystal")
+				e.add<DD::Treasure>();
+
 
 
 			// Add debug output to verify OBBs are being added

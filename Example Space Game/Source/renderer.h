@@ -576,7 +576,7 @@ public:
 	}
 
 	//updates HUD to state before level
-	void resetHUDonRestartLevel(RendererManager* _rendererManager, PlayerStats* ps) {
+	void resetHUDonRestartLevel(int id, RendererManager* _rendererManager, PlayerStats* ps) {
 
 		ps->setScore(ps->getScoreBeforeDeath());
 		ps->setHearts(ps->getHeartsBeforeDeath());
@@ -585,6 +585,29 @@ public:
 		_rendererManager->playerHUD->updateHUDHearts(ps->getHearts());
 
 		updateEnemyCount(_rendererManager, 0);
+		updateTreasureCount(_rendererManager, 0);
+
+		//turn off treasures
+
+		switch (id) {
+		case 1:
+			//turn off treasure menu treasures
+			_rendererManager->treasureMenu->treasures[0]->text->render = false;
+			_rendererManager->treasureMenu->treasures[1]->text->render = false;
+			_rendererManager->treasureMenu->treasures[2]->text->render = false;
+			break;
+		case 2:
+			_rendererManager->treasureMenu->treasures[3]->text->render = false;
+			_rendererManager->treasureMenu->treasures[4]->text->render = false;
+			_rendererManager->treasureMenu->treasures[5]->text->render = false;
+			break;
+		case 3:
+			_rendererManager->treasureMenu->treasures[6]->text->render = false;
+			_rendererManager->treasureMenu->treasures[7]->text->render = false;
+			_rendererManager->treasureMenu->treasures[8]->text->render = false;
+			break;
+
+		}
 	}
 
 	//updates HUD to state before level
@@ -596,6 +619,10 @@ public:
 
 		_rendererManager->playerHUD->updateHUDScore(ps->getScore());
 		_rendererManager->playerHUD->updateHUDHearts(ps->getHearts());
+
+		for (userButton* treasure : _rendererManager->treasureMenu->treasures) {
+			treasure->text->render = false;
+		}
 
 		updateEnemyCount(_rendererManager, 0);
 		updateTreasureCount(_rendererManager, 0);
@@ -636,7 +663,14 @@ public:
 
 		_rendererManager->reloadLevel(*_currentLevel);
 		AddEntities();
-		resetHUDonRestartLevel(_rendererManager, ps);
+		resetHUDonRestartLevel(currentLevelId, _rendererManager, ps);
+	}
+
+	//return number of treasures in level
+	int getTreasuresInLevel() {
+		auto f = game->filter<DD::Treasure>();
+		
+		return f.count();
 	}
 
 	//removes all entities from the level and reloads the meshes based on id
@@ -644,14 +678,14 @@ public:
 
 		RemoveEntities();
 
-		_lvl1->LoadMeshes(_lvl1->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+		_lvl1->LoadMeshes(_lvl1->getid(), "../Level2.txt", "../Models/Level2", _log.Relinquish());
 		_rendererManager->changeLevel(*_lvl1);
 
 		AddEntities();
 		resetHUDonRestartGame(_rendererManager, _ps, _gameConfig);
 	}
 
-
+	//remove entities from game
 	void RemoveEntities() {
 
 		game->defer_begin();
@@ -662,6 +696,7 @@ public:
 		game->defer_end();
 	}
 
+	//add entities to game
 	void AddEntities()
 	{
 		for each (Model i in Level->allObjectsInLevel)

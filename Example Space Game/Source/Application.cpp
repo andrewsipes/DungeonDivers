@@ -46,9 +46,6 @@ bool Application::Run() {
 	log.Create("output.txt");
 
 	auto mainMenu = std::make_shared<Level_Objects>();
-	auto lvl1 = std::make_shared<Level_Objects>();
-	auto lvl2 = std::make_shared<Level_Objects>();
-	auto lvl3 = std::make_shared<Level_Objects>();
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
 
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
@@ -66,10 +63,14 @@ bool Application::Run() {
 	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 
-	gamePlayManager gpManager(lvl1, game);
+
+	currentLevel->LoadMeshes(1, "../Level2.txt", "../Models/Level2", log.Relinquish());
+	gamePlayManager gpManager(currentLevel, game);
 	PlayerStats playerStats(*gameConfig);
 	RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
 
+	gpManager.AddEntities();
+	gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
 	auto& mainMenuMusic = musicTracks["MainMenu"];
 	mainMenuMusic.Play(true);
@@ -100,12 +101,6 @@ bool Application::Run() {
 
 			if (!leftMouse && rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
-
-				lvl1->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
-				currentLevel = lvl1;
-
-				gpManager.AddEntities();
-				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
 				gpManager.updateEnemyCount(&rendererManager, 0);
 				gpManager.updateTreasureCount(&rendererManager, 0);
@@ -152,14 +147,16 @@ bool Application::Run() {
 
 		//NOT TESTED
 
-		if (playerStats.treasures != 0 && playerStats.treasures %3 == 0) {
+		if (gpManager.getTreasuresInLevel() <= 0) {
 
 			switch (playerStats.treasures) {
 
 			case 3:
+				playerStats.updateHeartsBeforeDeath();
+				playerStats.updateScoreBeforeDeath();
 				gpManager.RemoveEntities();
-				lvl2->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
-				currentLevel = lvl2;
+				currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
+				gpManager.Level = currentLevel;
 				gpManager.AddEntities();
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				gpManager.updateEnemyCount(&rendererManager, 0);
@@ -167,14 +164,17 @@ bool Application::Run() {
 				rendererManager.changeLevel(*currentLevel);
 				break;
 			case 6: 
+				playerStats.updateHeartsBeforeDeath();
+				playerStats.updateScoreBeforeDeath();
 				gpManager.RemoveEntities();
-				lvl3->LoadMeshes(3, "../Level3.txt", "../Models/Level3", log.Relinquish());
-				currentLevel = lvl3;
+				currentLevel->LoadMeshes(3, "../Level2.txt", "../Models/Level2", log.Relinquish());
+				gpManager.Level = currentLevel;
 				gpManager.AddEntities();
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				gpManager.updateEnemyCount(&rendererManager, 0);
 				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.changeLevel(*currentLevel);
+		
 
 				break;
 			case 9:

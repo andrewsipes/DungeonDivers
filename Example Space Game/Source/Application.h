@@ -60,16 +60,16 @@ class Application
 	bool leftMouse;
 
 public:
+	GW::SYSTEM::GLog log;
 	bool running;
 	bool Init();
 	bool Run();
 	bool Shutdown();
 private:
-	//void AddEntities(Level_Objects& lvl);
+
 	bool InitWindow();
 	bool InitInput();
 	bool InitAudio();
-	bool InitGraphics();
 	bool InitEntities();
 	bool InitSystems();
 	bool GameLoop();

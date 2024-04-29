@@ -10,6 +10,8 @@ namespace DD
 	struct CountBullet{};
 	struct Enemy {};
 	struct Lives {};
+	struct Treasure {};
+	struct Heart {};
 	struct ControllerID
 	{
 		unsigned index = 0;

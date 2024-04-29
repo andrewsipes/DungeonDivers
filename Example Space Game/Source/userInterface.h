@@ -1069,6 +1069,15 @@ public:
 
 	}
 
+	void updateLevelText(int levelNum) {
+		for (uiModel* digit : levelDigit) {
+			digit->render = false;
+		}
+
+		levelDigit[levelNum]->toggleRender();
+
+	}
+
 	//combines updating score and life into single method
 	void updateHUD(int score, int life) {
 		updateHUDHearts(life);
@@ -1398,8 +1407,10 @@ public:
 		treasureMenuText->toggleRender();
 		exitTreasureMenuButton->toggleRender();
 
-		for (userButton* treasure : treasures)	{
-			treasure->toggleRender();
+		for (userButton* button : treasures) {
+
+			button->toggleRender();
+			button->text->render = false;
 		}
 
 	}
@@ -1417,8 +1428,12 @@ public:
 			for (auto& f : allUiButtonObjects) {
 				if (f.render) {
 					f.DrawModel(_camera, _view, _proj, f.alpha);
-					f.text->DrawModel(_camera, _view, _proj, f.text->alpha);
+
+					if (f.text->render) {
+						f.text->DrawModel(_camera, _view, _proj, f.text->alpha);
+					}
 				}
+
 			}
 		}
 	}

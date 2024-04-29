@@ -39,6 +39,15 @@ public:
 		}
 	}
 
+	//updates the player score, accounts for max score which 9999
+	void setScore(int _score) {
+		score = _score;
+
+		if (score > maxScore) {
+			score = maxScore;
+		}
+	}
+
 	//for saving score at the beginning of the level
 	void updateScoreBeforeDeath() {
 		scoreBeforeDeath = score;
@@ -66,6 +75,15 @@ public:
 		}
 	}
 
+	//update player health
+	void setHearts(int _hearts) {
+		hearts = _hearts;
+
+		if (hearts > maxHearts) {
+			hearts = maxHearts;
+		}
+	}
+
 	//get player health value
 	int getHearts() {
 		return hearts;
@@ -74,6 +92,16 @@ public:
 	//get player score value
 	int getScore() {
 		return score;
+	}
+
+	//get player health value
+	int getHeartsBeforeDeath() {
+		return heartsBeforeDeath;
+	}
+
+	//get player score value
+	int getScoreBeforeDeath() {
+		return scoreBeforeDeath;
 	}
 
 	//update high score if current score is greater than player best

@@ -10,6 +10,7 @@ using namespace SYSTEM;
 using namespace GRAPHICS;
 using namespace GW::AUDIO;
 
+
 bool Application::Init()
 {
 	eventPusher.Create();
@@ -25,8 +26,6 @@ bool Application::Init()
 		return false;
 	if (InitAudio() == false)
 		return false;
-	//if (InitGraphics() == false)
-	//	return false;
 	if (InitEntities() == false)
 		return false;
 	if (InitSystems() == false)
@@ -34,126 +33,142 @@ bool Application::Init()
 	return true;
 }
 
-//bool Application::Run()
-//{
-// ClearValue clrAndDepth[2];
-//	clrAndDepth[0].color = { {0, 0, 0, 1} };
-//	clrAndDepth[1].depthStencil = { 1.0f, 0u };
-//	// grab vsync selection
-//	bool vsync = gameConfig->at("Window").at("vsync").as<bool>();
-//	// set background color from settings
-//	const char* channels[] = { "red", "green", "blue" };
-//	for (int i = 0; i < std::size(channels); ++i) {
-//		clrAndDepth[0].color.float32[i] =
-//			gameConfig->at("BackGroundColor").at(channels[i]).as<float>();
-//	}
-//	// create an event handler to see if the window was closed early
-//	bool winClosed = false;
-//	GW::CORE::GEventResponder winHandler;
-//	winHandler.Create([&winClosed](GW::GEvent e) {
-//		GW::SYSTEM::GWindow::Events ev;
-//		if (+e.Read(ev) && ev == GW::SYSTEM::GWindow::Events::DESTROY)
-//			winClosed = true;
-//	});
-//	window.Register(winHandler);
-//	while (+window.ProcessWindowEvents())
-//	{
-//		if (winClosed == true)
-//			return true;
-//		if (+vulkan.StartFrame(2, clrAndDepth))
-//		{
-//			if (GameLoop() == false) {
-//				vulkan.EndFrame(vsync);
-//				return false;
-//			}
-//			if (-vulkan.EndFrame(vsync)) {
-//				// failing EndFrame is not always a critical error, see the GW docs for specifics
-//			}
-//		}
-//		else
-//			return false;
-//	}
-//	return true;
-//}
-
 bool Application::Run() {
 	leftMouse = false;
 	running = true;
-	GEventResponder msgs;
-	GW::SYSTEM::GLog log;
-	log.Create("output.txt");
-	auto lvl = std::make_shared<Level_Objects>();
-	auto lvl2 = std::make_shared<Level_Objects>();
-	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-	//lvl2->LoadMeshes("../Models/TestWorld/Level2/GameLevel.txt", "../Models/TestWorld/Level2/Models", log.Relinquish());
-	//lvl2->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
-	//lvl2->LoadMeshes("../Models/Level2/Level2.txt", "../Models/Level2/Level2Models", log.Relinquish());
-	lvl2->LoadMeshes("../Models/Level3/Level3.txt", "../Models/Level3/Level3Models", log.Relinquish());
 
-		msgs.Create([&](const GW::GEvent& e) {
-			GW::SYSTEM::GWindow::Events q;
-			if (+e.Read(q) && q == GWindow::Events::RESIZE)
-				clr[2] += 0.01f;
+	GEventResponder msgs;
+	log.Create("output.txt");
+
+	auto mainMenu = std::make_shared<Level_Objects>();
+	auto lvl1 = std::make_shared<Level_Objects>();
+	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
+
+	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
+
+	mainMenu->LoadMeshes(0, "../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
+
+	msgs.Create([&](const GW::GEvent& e) {
+		GW::SYSTEM::GWindow::Events q;
+		if (+e.Read(q) && q == GWindow::Events::RESIZE)
+			clr[2] += 0.01f;
 		});
+
 	win.Register(msgs);
 
 	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
-	{
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
-		RendererManager rendererManager(win, ogl, *gameConfig, *this, *lvl);
-		PlayerStats playerStats(*gameConfig);
-		auto& mainMenuMusic = musicTracks["MainMenu"];
-		mainMenuMusic.Play(true);
-		AddEntities(lvl2, game);
-		AddSystems(lvl2, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
-		while (+win.ProcessWindowEvents() && running == true)
-		{
-			lvl2->Update(game, lvl2);
+	gamePlayManager* gpManager;
+	PlayerStats* playerStats;
+	RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
 
-			if(!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
-				GameLoop();
+#if NEDEBUG
+	auto& mainMenuMusic = musicTracks["MainMenu"];
+	mainMenuMusic.Play(true);
+#endif
 
-			glClearColor(clr[0], clr[1], clr[2], clr[3]);
-			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			#ifdef NDEBUG
-				if (rendererManager.mainMenuHUD->render){
-					rendererManager.freecam = false;
-				}
-			#endif
+	while (+win.ProcessWindowEvents() && running == true)
+	{
+		currentLevel->Update(game, currentLevel);
 
-			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
-			rendererManager.Render();
+		if (!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
+			GameLoop();
 
-			//event Handling for the mainMenu - starts the game
-			if (rendererManager.mainMenuHUD->render) {
+		glClearColor(clr[0], clr[1], clr[2], clr[3]);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-				if (rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
-					leftMouse = true;
-					rendererManager.mainMenuHUD->toggleRender();
-					rendererManager.playerHUD->toggleRender();
-					rendererManager.changeLevel(*lvl2);
-				}
+#ifdef NDEBUG
+		if (rendererManager.mainMenuHUD->render) {
+			rendererManager.freecam = false;
+		}
+#endif
 
+
+		//Return Left Mouse state for re-use
+		if (leftMouse && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
+			leftMouse = false;
+		}
+
+		//event Handling for the mainMenu - starts the game
+		else if (rendererManager.mainMenuHUD->render && !rendererManager.controlsMenu->render) {
+
+			if (!leftMouse && rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
+				leftMouse = true;
+
+				lvl1->LoadMeshes(1, "../Models/TestWorld/Level3/GameLevel.txt", "../Models/TestWorld/Level3/Models", log.Relinquish());
+				currentLevel = lvl1;
+
+				playerStats = new PlayerStats(*gameConfig);
+				gpManager = new gamePlayManager(currentLevel, game);
+
+				gpManager->AddEntities();
+				gpManager->AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, playerStats, &rendererManager);
+
+				gpManager->updateEnemyCount(&rendererManager, 0);
+				rendererManager.mainMenuHUD->toggleRender();
+				rendererManager.playerHUD->toggleRender();
+				rendererManager.changeLevel(*currentLevel);
+				playerStats->updateHeartsBeforeDeath();
+				playerStats->updateScoreBeforeDeath();
 			}
 
-			//Return Left Mouse state for re-use
-			else if ((leftMouse) && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
-				leftMouse = false;
+		}
+
+		//event handling for pause menu - allows for restart
+		else if (rendererManager.pauseMenu->render) {
+
+			if (rendererManager.pauseMenu->restartPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
+				leftMouse = true;
+				gpManager->restartLevel(currentLevel, &rendererManager, playerStats, log);
+				rendererManager.pauseMenu->toggleRender();
+
 			}
+		}
+
+		//event handling for pause menu - allows for restart
+		else if (rendererManager.gameOverMenu->render) {
+
+			if (rendererManager.gameOverMenu->restartGameOverButton->HandleInputLeftMouseButton(gInput)) {
+				leftMouse = true;
+
+				//restarts game by setting current level to level1
+				if (rendererManager.gameOverMenu->youWinText->render) {
+					gpManager->restartGame(currentLevel, &rendererManager, playerStats, log);
+				}
+
+				//restarts just the level per usual
+				else {
+					gpManager->restartLevel(currentLevel, &rendererManager, playerStats, log);
+				}
+
+				rendererManager.gameOverMenu->toggleRender();
+
+			}
+		}
+
+
+
 
 			//LEVEL SWAP: Currently works by using 0 or 1
 			{
 				//use these to determine if flag is read
 				bool zero = false, one = false;
 
+				auto lvl3 = std::make_shared<Level_Objects>();
+
 				//Main Menu
 				if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
 					zero = true;
 
-					rendererManager.changeLevel(*lvl);
+					//rendererManager.changeLevel(*mainMenu);
+					//gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
+
+					rendererManager.gameOverMenu->youWinText->render =false;
+					rendererManager.gameOverMenu->gameOverText->render = true;
+					rendererManager.gameOverMenu->toggleRender();
+
 
 				}
 
@@ -165,7 +180,7 @@ bool Application::Run() {
 				if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
 					one = true;
 
-					rendererManager.changeLevel(*lvl2);
+					rendererManager.changeLevel(*lvl1);
 
 				}
 
@@ -175,13 +190,13 @@ bool Application::Run() {
 			}
 
 
+			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
+			rendererManager.Render();
 			ogl.UniversalSwapBuffers();
 
 		}
+		return 0;
 	}
-	return 0;
-
-}
 
 bool Application::Shutdown()
 {
@@ -190,8 +205,6 @@ bool Application::Shutdown()
 	//	return false;
 	//if (levelSystem.Shutdown() == false)
 	//	return false;
-	////if (vkRenderingSystem.Shutdown() == false)
-	//	//return false;
 	//if (physicsSystem.Shutdown() == false)
 	//	return false;
 	//if (bulletSystem.Shutdown() == false)
@@ -286,24 +299,6 @@ bool Application::LoadAudioResources()
 	return true;
 }
 
-//bool Application::InitGraphics()
-//{
-//#ifndef NDEBUG
-//	const char* debugLayers[] = {
-//		"VK_LAYER_KHRONOS_validation", // standard validation layer
-//		//"VK_LAYER_RENDERDOC_Capture" // add this if you have installed RenderDoc
-//	};
-//	if (+vulkan.Create(window, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT,
-//		sizeof(debugLayers) / sizeof(debugLayers[0]),
-//		debugLayers, 0, nullptr, 0, nullptr, false))
-//		return true;
-//#else
-//	if (+vulkan.Create(window, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
-//		return true;
-//#endif
-//	return false;
-//}
-
 bool Application::InitEntities()
 {
 	// Load bullet prefabs
@@ -327,8 +322,6 @@ bool Application::InitSystems()
 		return false;
 	if (levelSystem.Init(game, gameConfig, audioEngine) == false)
 		return false;
-	/*if (vkRenderingSystem.Init(game, gameConfig, vulkan, window) == false)
-		return false;*/
 	if (physicsSystem.Init(game, gameConfig) == false)
 		return false;
 	if (bulletSystem.Init(game, gameConfig) == false)
@@ -336,34 +329,14 @@ bool Application::InitSystems()
 	/*if (enemySystem.Init(game, gameConfig, eventPusher) == false)
 		return false;*/
 	}
-	//void Application::AddEntities(Level_Objects& lvl)
-	//{
-	//	for (auto& i : lvl.allObjectsInLevel)
-	//	{
-	//		auto e = game->entity(i.name);
-	//		e.set<DD::Name>({ i.name });
-	//
-	//
-	//	}
-	//	int count = 0;
-	//	auto f = game->filter<DD::Name>();
-	//
-	//	f.each([&count](DD::Name& n)
-	//		{
-	//			count++;
-	//		}
-	//	);
-	//
-	//	std::cout << count << std::endl;
-	//}
 
-	bool Application::GameLoop()
-	{
-		// compute delta time and pass to the ECS system
-		static auto start = std::chrono::steady_clock::now();
-		double elapsed = std::chrono::duration<double>(
-			std::chrono::steady_clock::now() - start).count();
-		start = std::chrono::steady_clock::now();
-		// let the ECS system run
-		return game->progress(static_cast<float>(elapsed));
-	}
+bool Application::GameLoop()
+{
+	// compute delta time and pass to the ECS system
+	static auto start = std::chrono::steady_clock::now();
+	double elapsed = std::chrono::duration<double>(
+		std::chrono::steady_clock::now() - start).count();
+	start = std::chrono::steady_clock::now();
+	// let the ECS system run
+	return game->progress(static_cast<float>(elapsed));
+}

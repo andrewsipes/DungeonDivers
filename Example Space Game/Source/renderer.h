@@ -10,7 +10,7 @@ class RendererManager
 	// proxy handles
 	GW::SYSTEM::GWindow win;
 	GW::GRAPHICS::GOpenGLSurface ogl;
-	GW::MATH::GMatrix gMatrixProxy;	
+	GW::MATH::GMatrix gMatrixProxy;
 	GW::INPUT::GController gController;
 	GW::INPUT::GInput gInput;
 
@@ -21,11 +21,6 @@ class RendererManager
 	bool reset = false;
 	GW::MATH::GVECTORF mainMenuCamPos;
 	GW::MATH::GVECTORF mainMenuLookAtPos;
-
-	//for ui
-	GW::MATH::GMATRIXF UIviewMatrix;
-	GW::MATH::GMATRIXF UIcameraMatrix;
-	GW::MATH::GMATRIXF UIorthoMatrix;
 
 	Application *app;
 	GameConfig* gameConfig;
@@ -54,13 +49,12 @@ public:
 	controlsMenuUi* controlsMenu;
 	gameOverUi* gameOverMenu;
 	std::vector <uiPanel*> panels;
-	
+
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, Level_Objects& Level)
 	{
-		
+
 		//passed arguments for initializing
-		//gInput = &_gInput;
 		gameConfig = &_gameConfig;
 		win = _win;
 		ogl = _ogl;
@@ -104,7 +98,7 @@ public:
 		//treasureMenu->toggleRender();
 		//controlsMenu->toggleRender();
 		//gameOverMenu->toggleRender();
-	
+
 		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 		//create inputs
@@ -118,11 +112,6 @@ public:
 
 		//initialize projection matrix based on FOV and near and far planes
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
-
-		//UI matricies - not currently used
-		UIorthoMatrix = initializeOrthoprojectionMatrix();
-		gMatrixProxy.IdentityF(UIcameraMatrix);
-		gMatrixProxy.InverseF(UIcameraMatrix, UIviewMatrix);
 	}
 
 	//initializes all panels
@@ -172,7 +161,7 @@ public:
 		panel->assign();
 		panel->arrange();
 		panel->start();
-		panel->UploadLevelToGPU(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+		panel->UploadLevelToGPU(cameraMatrix, viewMatrix, projectionMatrix);
 	}
 
 	//initializes a world matrix and sets it to identity
@@ -216,26 +205,6 @@ public:
 		return projMatrix;
 	}
 
-	//initializes an Orthoprojectionmatrix
-	GW::MATH::GMATRIXF initializeOrthoprojectionMatrix()
-	{
-		float _left = 0.0;
-		float _right = gameConfig->at("Window").at("width").as<int>();
-		float _bottom = 0.0;
-		float _top = gameConfig->at("Window").at("height").as<int>();
-		float _near = -1;
-		float _far = 1;
-
-		// Create the orthographic projection matrix
-		GW::MATH::GMATRIXF ortho = {
-			2 / (_right - _left),   0,                      0,                  -(_right + _left) / (_right - _left),
-			0,                      2 / (_top - _bottom),   0,                  -(_top + _bottom) / (_top - _bottom),
-			0,                      0,                      -2 / (_far - _near), -(_far + _near) / (_far - _near),
-			0,                      0,                      0,                  1
-		};
-
-		return ortho;
-	}
 	//Updates camera movement based on movement
 	void UpdateCamera(int windowWidth, int windowHeight)
 	{
@@ -317,8 +286,8 @@ public:
 				pitch = (FOV * mouseY) / windowHeight;
 				yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth;
 			}
-		
-		
+
+
 			//calculate translation
 			const float Camera_Speed = 10 * 0.5f;
 			float perFrameSpeed = Camera_Speed * updateTime.count();
@@ -332,10 +301,6 @@ public:
 			//check if mouse value is redundant - if so do nothing
 			if (mouse != GW::GReturn::REDUNDANT && mouse == GW::GReturn::SUCCESS)
 			{
-				// do nothing
-
-				//gMatrixProxy.RotationYawPitchRollF(-yaw, -pitch, 0.0f, rotationMatrix);
-
 				gMatrixProxy.RotateXLocalF(rotationMatrix, -pitch, rotationMatrix);
 				gMatrixProxy.RotateYGlobalF(rotationMatrix, -yaw, rotationMatrix);
 			}
@@ -353,9 +318,6 @@ public:
 			//apply translation to the camera
 			gMatrixProxy.TranslateLocalF(rotationMatrix, cameraTranslationVector, rotationMatrix);
 
-			//apply rotation 
-			//gMatrixProxy.MultiplyMatrixF(rotationMatrix, cameraMatrix, cameraMatrix);
-	
 		}
 
 		//Freeze the camera in main menu
@@ -363,7 +325,7 @@ public:
 		{
 			cameraMatrix = initializeCamView(mainMenuCamPos, mainMenuLookAtPos);
 		}
-		
+
 		else // not freecam
 		{
 			Model m;
@@ -378,7 +340,7 @@ public:
 
 				gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
 				gMatrixProxy.IdentityF(rotationMatrix);
-				auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y + 10, m.world.row4.z, 1 }, 
+				auto r = gMatrixProxy.LookAtRHF(GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y + 10, m.world.row4.z, 1 },
 												GW::MATH::GVECTORF{ m.world.row4.x, m.world.row4.y, m.world.row4.z + .0001f, 1 },
 												GW::MATH::GVECTORF{ 0, 1, 0, 0 }, rotationMatrix);
 				gMatrixProxy.InverseF(rotationMatrix, rotationMatrix);
@@ -391,7 +353,7 @@ public:
 		callTime = currTime;
 	}
 
-	//Event Handling for all buttons - manually place each button here and tag the lamda expression it should execute
+	//Event Handling for most buttons - manually place each button here and tag the lamda expression it should execute
 	void eventHandling() {
 
 		//Return Left Mouse state for re-use
@@ -418,14 +380,14 @@ public:
 		else if (pauseMenu->render){
 
 			if (!leftMouse && pauseMenu->controlsPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
-				
+
 				isPauseMenuRendered = true;
 				controlsMenu->render = true;
 				pauseMenu->render = false;
 
 			}
 
-			pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
+			//pauseMenu->restartPauseMenuButton->HandleInput(pauseMenu->restartPauseMenuButton, G_BUTTON_LEFT, gInput, turnOffRender);
 			pauseMenu->exitPauseMenuButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 			pauseMenu->resumePauseMenuButton->HandleInput(dynamic_cast<uiPanel*>(pauseMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
 
@@ -457,12 +419,12 @@ public:
 			gameOverMenu->exitGameOverButton->HandleInput(app, G_BUTTON_LEFT, gInput, shutdown);
 		}
 
-	
+
 		//TREASURE MENU
 		else if (treasureMenu->render){
 			treasureMenu->exitTreasureMenuButton->HandleInput(dynamic_cast<uiPanel*>(treasureMenu), G_BUTTON_LEFT, gInput, turnOffPanel);
 		}
-	
+
 		//KEYBINDS: Everything here should be checking if there was a key pressed and performing some action after
 		//CONTROLS:
 		//			TAB: toggles pause menu
@@ -490,44 +452,50 @@ public:
 
 		}
 
-		{	//TOGGLE PAUSE MENU
+		{	//TOGGLE TREASURE MENU
 			if (!t &&(GetAsyncKeyState(0x54) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
 					treasureMenu->render = true;
-					
+
 				}
 
 				else if (treasureMenu->render) {
 					treasureMenu->render = false;
 				}
 				t = true;
-				
+
 			}
 			else if (t && !(GetAsyncKeyState(0x54) & 0x8000)) {
 				t = false;
 			}
-			
+
 		}
 
 	}
 
 	//Render Loop for all objects (place Panels and Levels here);
-	void Render(){		
+	void Render(){
 		lvl->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
 		for (uiPanel* panel : panels){
 
 			if (panel == playerHUD && panel->render)
 			{
-				playerHUD->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+				playerHUD->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
 
 			else if (panel == gameOverMenu && panel->render)
 			{
-				gameOverMenu->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+				gameOverMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
+
+			else if (panel == treasureMenu && panel->render)
+			{
+				treasureMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
+			}
+
 			else if (panel->render){
-				panel->Render(UIcameraMatrix, UIviewMatrix, UIorthoMatrix);
+				panel->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
 		}
 
@@ -537,8 +505,17 @@ public:
 	//swaps the level in render manager
 	void changeLevel(Level_Objects& level) {
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD->updateLevelText(level.getid());
 		lvl = &level;
 	}
+
+	//re loads the current level
+	void reloadLevel(Level_Objects& level) {
+		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD->updateLevelText(level.getid());
+
+	}
+
 
 	~RendererManager() {
 		for (uiPanel* panel : panels)
@@ -550,234 +527,176 @@ public:
 
 };
 
+//Acts as intermediate between flecs systems and UI systems
+class gamePlayManager {
+
 struct Models { Model mod; };
 
-void AddEntities(std::shared_ptr <Level_Objects> Level, std::shared_ptr<flecs::world> game)
-{
-	for each (Model i in Level->allObjectsInLevel)
-	{
-		auto e = game->entity(i.name.c_str());
-		e.set<DD::Name>({ i.name });
-		e.set<DD::World>({ i.world });
-		//e.add<DD::World>();
-		e.set<Models>({ i });
+public:
+	std::shared_ptr <Level_Objects> Level;
+	std::shared_ptr<flecs::world> game;
 
-		if (i.name.substr(0, 5) == "alien")
-			e.add<DD::Enemy>();
+	gamePlayManager(std::shared_ptr <Level_Objects> _Level,
+	std::shared_ptr<flecs::world> _game){
 
-		if (i.name.substr(0, 9) != "RealFloor")
-			e.set<DD::Collidable>({ i.obb });
-
-
-		// Add debug output to verify OBBs are being added
-		//std::cout << "OBB added for entity: " << i.name << std::endl;
-
-		if (i.name == "MegaBee")
-		{
-			e.add<DD::Player>();
-		}
-
-		//if (i.name == "alien")
-		//{
-		//	e.add<DD::Enemy>();
-		//	e.add<DD::Health>();
-		//}
+		Level = _Level;
+		game = _game;
 	}
-}
+
+	//Updates PlayerStats and UI Score
+	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc, int score) {
+
+			ps.updateScore(score);
+			rm.playerHUD->updateHUDScore(ps.getScore());
+
+			if (ps.getScore() > (*gc).at("Player1").at("highscore").as<int>())
+			{
+				(*gc)["Player1"]["highscore"] = ps.getScore();
+				rm.playerHUD->updateHUDHighScore(ps.getScore());
+			}
+
+	}
+
+	//Updates Player HP and UI
+	void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps, int hearts) {
+
+		ps.updateHearts(hearts);
+		rm.playerHUD->updateHUDHearts(ps.getHearts());
 
 
-void Updatebullshit(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc) {
-	std::cout << "success!" << std::endl;
+	}
 
-		ps.updateScore(50);
-		rm.playerHUD->updateHUDScore(ps.getScore());
+	//updates HUD to state before level
+	void resetHUDonRestart(RendererManager* _rendererManager, PlayerStats* ps) {
+
+		ps->setScore(ps->getScoreBeforeDeath());
+		ps->setHearts(ps->getHeartsBeforeDeath());
+
+		_rendererManager->playerHUD->updateHUDScore(ps->getScore());
+		_rendererManager->playerHUD->updateHUDHearts(ps->getHearts());
+
+		updateEnemyCount(_rendererManager, 0);
+	}
+
+	//sets enemy text on player HUD by checking how many enemies have the enemy tag, put 0 in update if you want to refresh display only
+	void updateEnemyCount(RendererManager* _rendererManager, int update) {
+		auto f = game->filter<DD::Enemy>();
+		_rendererManager->playerHUD->updateEnemies(f.count(), update);
+	}
+
+	//removes all entities from the level and reloads the meshes based on id
+	void restartLevel(std::shared_ptr<Level_Objects> _currentLevel, RendererManager* _rendererManager, PlayerStats* ps, GW::SYSTEM::GLog _log) {
 
 
-		if (ps.getScore() > (*gc).at("Player1").at("highscore").as<int>())
-		{
-			(*gc)["Player1"]["highscore"] = ps.getScore();
-			rm.playerHUD->updateHUDHighScore(ps.getScore());
+		int currentLevelId = _currentLevel->getid();
+		RemoveEntities();
+
+		//update these per level id
+		switch (currentLevelId) {
+		case 1:
+			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+		case 2:
+			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+		case 3:
+			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+
 		}
-}
+
+		_rendererManager->reloadLevel(*_currentLevel);
+		AddEntities();
+		resetHUDonRestart(_rendererManager, ps);
+	}
+
+	//removes all entities from the level and reloads the meshes based on id
+	void restartGame(std::shared_ptr<Level_Objects> _lvl1, RendererManager* _rendererManager, PlayerStats* ps, GW::SYSTEM::GLog _log) {
+
+		RemoveEntities();
+
+		_lvl1->LoadMeshes(_lvl1->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+		_rendererManager->changeLevel(*_lvl1);
+
+		AddEntities();
+		resetHUDonRestart(_rendererManager, ps);
+	}
 
 
-void AddSystems(std::shared_ptr<Level_Objects> level,
-	std::shared_ptr<flecs::world> game,
-	std::shared_ptr<GameConfig> gameConfig,
-	GW::INPUT::GInput immediateInput,
-	GW::INPUT::GBufferedInput bufferedInput,
-	GW::INPUT::GController controllerInput,
-	GW::AUDIO::GAudio _audioEngine,
-	GW::CORE::GEventGenerator eventPusher, PlayerStats* ps, RendererManager* rm){
+	void RemoveEntities() {
 
-	flecs::system playerSystem;
+		game->defer_begin();
+		game->each([](flecs::entity e)
+			{
+				e.destruct();
+			});
+		game->defer_end();
+	}
 
-	std::shared_ptr<const GameConfig> readCfg = gameConfig;
-	float speed = (*readCfg).at("Player1").at("speed").as<float>();
-	float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
+	void AddEntities()
+	{
+		for each (Model i in Level->allObjectsInLevel)
+		{
+			auto e = game->entity(i.name.c_str());
+			e.set<DD::Name>({ i.name });
+			e.set<DD::World>({ i.world });
+			e.set<Models>({ i });
 
-	flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
-		.iter([immediateInput, game, level, _audioEngine, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
+			if (i.name.substr(0, 5) == "alien")
+				e.add<DD::Enemy>();
+
+			if (i.name.substr(0, 9) != "RealFloor")
+				e.set<DD::Collidable>({ i.obb });
+			if (i.name.substr(0, 5) == "Heart")
+				e.add<DD::Heart>();
+
+
+			// Add debug output to verify OBBs are being added
+			//std::cout << "OBB added for entity: " << i.name << std::endl;
+
+			if (i.name == "MegaBee")
+			{
+				e.add<DD::Player>();
+			}
+		}
+	}
+
+	void AddSystems(std::shared_ptr<Level_Objects> level,
+		std::shared_ptr<flecs::world> game,
+		std::shared_ptr<GameConfig> gameConfig,
+		GW::INPUT::GInput immediateInput,
+		GW::INPUT::GBufferedInput bufferedInput,
+		GW::INPUT::GController controllerInput,
+		GW::AUDIO::GAudio _audioEngine,
+		GW::CORE::GEventGenerator eventPusher, PlayerStats* ps, RendererManager* rm) {
+
+		flecs::system playerSystem;
+
+		std::shared_ptr<const GameConfig> readCfg = gameConfig;
+		float speed = (*readCfg).at("Player1").at("speed").as<float>();
+		float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
+
+
+		playerSystem = game->system<DD::Player, DD::World>("Player Move System")
+			.iter([immediateInput, speed, game, level, this, &rm, &ps, &gameConfig](flecs::iter it, DD::Player*, DD::World*)
 			{
 				for (auto i : it)
 				{
-					static bool U = false, D = false, L = false, R = false;
-					float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
-
+					float xaxis = 0, input = 0, zaxis = 0;
 					GW::INPUT::GInput t = immediateInput;
-					if (!U && (GetAsyncKeyState(VK_UP) & 0x8000))
-					{
-						shootUp = 1;
-						U = true;
-					}
-					else if (U && !(GetAsyncKeyState(VK_UP) & 0x8000))
-						U = false;
 
-					if (!D && (GetAsyncKeyState(VK_DOWN) & 0x8000))
-					{
-						shootDown = 1;
-						D = true;
-					}
-					else if (D && !(GetAsyncKeyState(VK_DOWN) & 0x8000))
-						D = false;
+					t.GetState(G_KEY_A, input); xaxis -= input;
+					t.GetState(G_KEY_D, input); xaxis += input;
+					t.GetState(G_KEY_S, input); zaxis -= input;
+					t.GetState(G_KEY_W, input); zaxis += input;
 
-					if (!L && (GetAsyncKeyState(VK_LEFT) & 0x8000))
-					{
-						shootLeft = 1;
-						L = true;
-					}
-					else if (L && !(GetAsyncKeyState(VK_LEFT) & 0x8000))
-						L = false;
 
-					if (!R && (GetAsyncKeyState(VK_RIGHT) & 0x8000))
-					{
-						shootRight = 1;
-						R = true;
-					}
-					else if (R && !(GetAsyncKeyState(VK_RIGHT) & 0x8000))
-						R = false;
+					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
+					auto e = game->lookup("MegaBee");
+					DD::World* edit = game->entity(e).get_mut<DD::World>();
 
-					int shootState = 0;
-
-					if (shootUp > 0)
-						shootState = 1;
-					if (shootLeft > 0)
-						shootState = 2;
-					if (shootRight > 0)
-						shootState = 3;
-					if (shootDown > 0)
-						shootState = 4;
-
-					int index = 0;
-					Model modelToDupe;
-					//GW::MATH::GMATRIXF world{};
-					for each (Model m in level->allObjectsInLevel)
-					{
-						if (m.name == "BeeStinger")
+					e.each<DD::CollidedWith>([&e, level, this, &rm, &ps, &gameConfig](flecs::entity hit)
 						{
-							modelToDupe = m;
-							//world = m.world;
-							break;
-						}
-						index++;
-					}
-
-					std::string count;
-					auto f = game->filter<DD::CountBullet>();
-					count = std::to_string(f.count());
-					/*std::cout << count << std::endl;*/
-					switch (shootState)
-					{
-					case 1:
-					{
-						auto tempEnt = game->entity(count.c_str());
-						tempEnt.add<DD::CountBullet>();
-
-						modelToDupe.world = world->value;
-						modelToDupe.name += count;
-						level->allObjectsInLevel.push_back(modelToDupe);
-						auto e = game->entity(modelToDupe.name.c_str());
-						e.set<Models>({ modelToDupe });
-						e.set<DD::Collidable>({ modelToDupe.obb });
-						e.set<DD::World>({ world->value });
-						e.set<DD::Name>({ modelToDupe.name });
-						e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
-						e.add<DD::Bullet>();
-
-						break;
-					}
-
-					case 2:
-					{
-						auto tempEnt = game->entity(count.c_str());
-						tempEnt.add<DD::CountBullet>();
-
-						modelToDupe.world = world->value;
-						modelToDupe.name += count;
-						level->allObjectsInLevel.push_back(modelToDupe);
-						auto e = game->entity(modelToDupe.name.c_str());
-						e.set<Models>({ modelToDupe });
-						e.set<DD::Collidable>({ modelToDupe.obb });
-						e.set<DD::World>({ world->value });
-						e.set<DD::Name>({ modelToDupe.name });
-						e.set<DD::BulletVel>({ GW::MATH::GVECTORF{-bullSpeed, 0, 0 } });
-						e.add<DD::Bullet>();
-						break;
-					}
-
-					case 3:
-					{
-						auto tempEnt = game->entity(count.c_str());
-						tempEnt.add<DD::CountBullet>();
-
-						modelToDupe.world = world->value;
-						modelToDupe.name += count;
-						level->allObjectsInLevel.push_back(modelToDupe);
-						auto e = game->entity(modelToDupe.name.c_str());
-						e.set<Models>({ modelToDupe });
-						e.set<DD::Collidable>({ modelToDupe.obb });
-						e.set<DD::World>({ world->value });
-						e.set<DD::Name>({ modelToDupe.name });
-						e.set<DD::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
-						e.add<DD::Bullet>();
-						break;
-					}
-
-					case 4:
-					{
-						auto tempEnt = game->entity(count.c_str());
-						tempEnt.add<DD::CountBullet>();
-
-						modelToDupe.world = world->value;
-						modelToDupe.name += count;
-						level->allObjectsInLevel.push_back(modelToDupe);
-						auto e = game->entity(modelToDupe.name.c_str());
-						e.set<Models>({ modelToDupe });
-						e.set<DD::Collidable>({ modelToDupe.obb });
-						e.set<DD::World>({ world->value });
-						e.set<DD::Name>({ modelToDupe.name });
-						e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0, -bullSpeed } });
-						e.add<DD::Bullet>();
-						break;
-					}
-
-					case 0:
-						break;
-					}
-				}
-			});
-
-	flecs::system bulletSystem = game->system<DD::Bullet>("Bullet System")
-		.each([level, rm, ps, &gameConfig](flecs::entity arrow, DD::Bullet)
-			{
-				// damage anything we come into contact with
-				arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig](flecs::entity hit)
-					{
-						if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>()))
-						{
-							Model m = hit.get<Models>()->mod;
-							if (hit.has <DD::Enemy>())
+							if (hit.has<DD::Heart>())
 							{
+								Model m = hit.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
 								if (found != level->allObjectsInLevel.end())
@@ -785,23 +704,226 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
-								Updatebullshit(*rm, *ps, gameConfig);
-							}
-							m = arrow.get<Models>()->mod;
-							auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+								UpdatePlayerHearts(*rm, *ps, 1);
 
-							if (found != level->allObjectsInLevel.end())
+							}
+
+							else if (hit.has<DD::Treasure>())
 							{
-								level->allObjectsInLevel.erase(found);
-								
-							}							
-							arrow.destruct();
-						}
-						
-					});
+								Model m = hit.get<Models>()->mod;
+								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+								if (found != level->allObjectsInLevel.end())
+								{
+									level->allObjectsInLevel.erase(found);
+								}
+								hit.destruct();
+
+								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
+								rm->treasureMenu->treasures[0]->text->toggleRender();
+								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
+							}
+							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
+							{
+								e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+							}
+					hit.remove<DD::CollidedWith>(e);
+					e.remove<DD::CollidedWith>(hit);
+						});
+					e.set<DD::LastWorld>({ e.get<DD::World>()->value });
+					GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+				}
 			});
 
-	flecs::system playerCollisionSystem = game->system<DD::Player>("Player Collision System")
+
+		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
+				{
+					for (auto i : it)
+					{
+						static bool U = false, D = false, L = false, R = false;
+						float input = 0, shootUp = 0, shootDown = 0, shootLeft = 0, shootRight = 0;
+
+						GW::INPUT::GInput t = immediateInput;
+						if (!U && (GetAsyncKeyState(VK_UP) & 0x8000))
+						{
+							shootUp = 1;
+							U = true;
+						}
+						else if (U && !(GetAsyncKeyState(VK_UP) & 0x8000))
+							U = false;
+
+						if (!D && (GetAsyncKeyState(VK_DOWN) & 0x8000))
+						{
+							shootDown = 1;
+							D = true;
+						}
+						else if (D && !(GetAsyncKeyState(VK_DOWN) & 0x8000))
+							D = false;
+
+						if (!L && (GetAsyncKeyState(VK_LEFT) & 0x8000))
+						{
+							shootLeft = 1;
+							L = true;
+						}
+						else if (L && !(GetAsyncKeyState(VK_LEFT) & 0x8000))
+							L = false;
+
+						if (!R && (GetAsyncKeyState(VK_RIGHT) & 0x8000))
+						{
+							shootRight = 1;
+							R = true;
+						}
+						else if (R && !(GetAsyncKeyState(VK_RIGHT) & 0x8000))
+							R = false;
+
+						int shootState = 0;
+
+						if (shootUp > 0)
+							shootState = 1;
+						if (shootLeft > 0)
+							shootState = 2;
+						if (shootRight > 0)
+							shootState = 3;
+						if (shootDown > 0)
+							shootState = 4;
+
+						int index = 0;
+						Model modelToDupe;
+						//GW::MATH::GMATRIXF world{};
+						for each (Model m in level->allObjectsInLevel)
+						{
+							if (m.name == "BeeStinger")
+							{
+								modelToDupe = m;
+								//world = m.world;
+								break;
+							}
+							index++;
+						}
+
+						std::string count;
+						auto f = game->filter<DD::CountBullet>();
+						count = std::to_string(f.count());
+						/*std::cout << count << std::endl;*/
+						switch (shootState)
+						{
+						case 1:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<DD::CountBullet>();
+
+							modelToDupe.world = world->value;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<DD::Collidable>({ modelToDupe.obb });
+							e.set<DD::World>({ world->value });
+							e.set<DD::Name>({ modelToDupe.name });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0, bullSpeed } });
+							e.add<DD::Bullet>();
+
+							break;
+						}
+
+						case 2:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<DD::CountBullet>();
+
+							modelToDupe.world = world->value;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<DD::Collidable>({ modelToDupe.obb });
+							e.set<DD::World>({ world->value });
+							e.set<DD::Name>({ modelToDupe.name });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{-bullSpeed, 0, 0 } });
+							e.add<DD::Bullet>();
+							break;
+						}
+
+						case 3:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<DD::CountBullet>();
+
+							modelToDupe.world = world->value;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<DD::Collidable>({ modelToDupe.obb });
+							e.set<DD::World>({ world->value });
+							e.set<DD::Name>({ modelToDupe.name });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{bullSpeed, 0, 0 } });
+							e.add<DD::Bullet>();
+							break;
+						}
+
+						case 4:
+						{
+							auto tempEnt = game->entity(count.c_str());
+							tempEnt.add<DD::CountBullet>();
+
+							modelToDupe.world = world->value;
+							modelToDupe.name += count;
+							level->allObjectsInLevel.push_back(modelToDupe);
+							auto e = game->entity(modelToDupe.name.c_str());
+							e.set<Models>({ modelToDupe });
+							e.set<DD::Collidable>({ modelToDupe.obb });
+							e.set<DD::World>({ world->value });
+							e.set<DD::Name>({ modelToDupe.name });
+							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0, -bullSpeed } });
+							e.add<DD::Bullet>();
+							break;
+						}
+
+						case 0:
+							break;
+						}
+					}
+				});
+
+		flecs::system bulletSystem = game->system<DD::Bullet>("Bullet System")
+			.each([level, rm, ps, &gameConfig, game, this](flecs::entity arrow, DD::Bullet)
+				{
+					// damage anything we come into contact with
+					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this](flecs::entity hit)
+						{
+							if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>()))
+							{
+								Model m = hit.get<Models>()->mod;
+								if (hit.has <DD::Enemy>())
+								{
+									auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+									if (found != level->allObjectsInLevel.end())
+									{
+										level->allObjectsInLevel.erase(found);
+									}
+									hit.destruct();
+									updateEnemyCount(rm, -1);
+									UpdatePlayerScore(*rm, *ps, gameConfig, 50); // update score if we hit an enemy
+
+								}
+								m = arrow.get<Models>()->mod;
+								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+								if (found != level->allObjectsInLevel.end())
+								{
+									level->allObjectsInLevel.erase(found);
+
+								}
+								arrow.destruct();
+							}
+
+						});
+				});
+
+	/*flecs::system playerCollisionSystem = game->system<DD::Player>("Player Collision System")
 		.each([level](flecs::entity pl, DD::Player)
 			{
 				pl.each<DD::CollidedWith>([&pl, level](flecs::entity hit)
@@ -809,15 +931,16 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 
 						if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 						{
-							//std::cout << hit.get<DD::Name>()->name << std::endl;
+							std::cout << hit.get<DD::Name>()->name << std::endl;
 
-							//pl.set<DD::World>({pl.get<DD::LastWorld>()->value});
-							hit.remove<DD::CollidedWith>();
+							pl.set<DD::World>({pl.get<DD::LastWorld>()->value});
 						}
-						//pl.remove<DD::CollidedWith>();
+						hit.remove<DD::CollidedWith>();
+						pl.remove<DD::CollidedWith>();
 					});
 
-			});
+			});*/
+
 	//flecs::system enemyCollisionSystem = game->system<DD::Enemy>("Enemy Collision System")
 	//	.each([level](flecs::entity pl, DD::Enemy)
 	//		{
@@ -826,7 +949,7 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 	//					if (!(hit.has<DD::Bullet>()))
 	//					{
 	//						hit.remove<DD::CollidedWith>();
-	//						
+	//
 	//					}
 	//					pl.destruct();
 	//				});
@@ -854,5 +977,7 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 				}
 			});
 
-}
+	}
 
+
+};

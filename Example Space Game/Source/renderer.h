@@ -2,6 +2,7 @@
 #include "./userInterface.h"
 #include <chrono>
 #include "playerStats.h"
+#include <map>
 
 // Creation, Rendering & Cleanup
 class RendererManager
@@ -616,7 +617,7 @@ void AddSystems(std::shared_ptr<Level_Objects> level,
 	float bullSpeed = (*readCfg).at("Lazers").at("speed").as<float>();
 
 	flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
-		.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
+		.iter([immediateInput, game, level, _audioEngine, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
 			{
 				for (auto i : it)
 				{

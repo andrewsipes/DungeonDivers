@@ -87,7 +87,9 @@ bool Application::Run() {
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
 	lvl->LoadMeshes("../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
 	//lvl2->LoadMeshes("../Models/TestWorld/Level2/GameLevel.txt", "../Models/TestWorld/Level2/Models", log.Relinquish());
-	lvl2->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
+	//lvl2->LoadMeshes("../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", log.Relinquish());
+	//lvl2->LoadMeshes("../Models/Level2/Level2.txt", "../Models/Level2/Level2Models", log.Relinquish());
+	lvl2->LoadMeshes("../Models/Level3/Level3.txt", "../Models/Level3/Level3Models", log.Relinquish());
 
 		msgs.Create([&](const GW::GEvent& e) {
 			GW::SYSTEM::GWindow::Events q;
@@ -209,7 +211,7 @@ bool Application::InitWindow()
 	int ystart = gameConfig->at("Window").at("ystart").as<int>();
 	std::string title = gameConfig->at("Window").at("title").as<std::string>();
 	// open window
-	if (+win.Create(xstart, ystart, width, height, GWindowStyle::WINDOWEDLOCKED) &&
+	if (+win.Create(xstart, ystart, width, height, GWindowStyle::WINDOWEDBORDERED) &&
 		+win.SetWindowName(title.c_str())) {
 		return true;
 	}

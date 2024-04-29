@@ -109,6 +109,7 @@ bool Application::Run() {
 				rendererManager.changeLevel(*currentLevel);
 				playerStats.updateHeartsBeforeDeath();
 				playerStats.updateScoreBeforeDeath();
+				rendererManager.playerHUD->startText->render = true;
 			}
 
 		}
@@ -151,10 +152,12 @@ bool Application::Run() {
 			switch (playerStats.treasures) {
 
 			case 3:
+				rendererManager.playerHUD->levelCompleteText->render = true;
 				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				break;
-			case 6: 
+			case 6:
+				rendererManager.playerHUD->levelCompleteText->render = true;
 				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				break;

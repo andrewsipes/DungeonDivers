@@ -784,6 +784,10 @@ public:
 					t.GetState(G_KEY_S, input); zaxis -= input;
 					t.GetState(G_KEY_W, input); zaxis += input;
 
+					if (rm->playerHUD->startText->render && (xaxis !=0 || zaxis !=0)) {
+						rm->playerHUD->startText->render = false;
+					}
+
 
 					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
 					auto e = game->lookup("MegaBee");

@@ -147,34 +147,36 @@ bool Application::Run() {
 
 		//NOT TESTED
 
-		if (gpManager.getTreasuresInLevel() <= 0) {
+		if (gpManager.getTreasuresInLevel() <= 0 && !rendererManager.gameOverMenu->render) {
 
 			switch (playerStats.treasures) {
 
 			case 3:
-				playerStats.updateHeartsBeforeDeath();
+				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
+				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+			/*	playerStats.updateHeartsBeforeDeath();
 				playerStats.updateScoreBeforeDeath();
 				gpManager.RemoveEntities();
 				currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
 				gpManager.Level = currentLevel;
 				gpManager.AddEntities();
-				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				gpManager.updateEnemyCount(&rendererManager, 0);
 				gpManager.updateTreasureCount(&rendererManager, 0);
-				rendererManager.changeLevel(*currentLevel);
+				rendererManager.changeLevel(*currentLevel);*/
 				break;
 			case 6: 
-				playerStats.updateHeartsBeforeDeath();
+				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
+				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+				/*playerStats.updateHeartsBeforeDeath();
 				playerStats.updateScoreBeforeDeath();
 				gpManager.RemoveEntities();
 				currentLevel->LoadMeshes(3, "../Level2.txt", "../Models/Level2", log.Relinquish());
 				gpManager.Level = currentLevel;
 				gpManager.AddEntities();
-				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				gpManager.updateEnemyCount(&rendererManager, 0);
 				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.changeLevel(*currentLevel);
-		
+		*/
 
 				break;
 			case 9:

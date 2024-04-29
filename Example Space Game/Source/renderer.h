@@ -552,6 +552,7 @@ public:
 		
 	}
 
+
 	//Updates PlayerStats and UI Score
 	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc, int score) {
 
@@ -626,6 +627,27 @@ public:
 
 		updateEnemyCount(_rendererManager, 0);
 		updateTreasureCount(_rendererManager, 0);
+	}
+
+	//loads the next level
+	void nextLevel(std::shared_ptr<Level_Objects> currentLevel, PlayerStats* ps, RendererManager* rm, GW::SYSTEM::GLog log) {
+
+		ps->updateHeartsBeforeDeath();	ps->updateScoreBeforeDeath();
+		RemoveEntities();
+		
+		switch (currentLevel->getid()) {
+		case 1:
+			currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
+			break;
+		case 2:
+			currentLevel->LoadMeshes(3, "../Level2.txt", "../Models/Level2", log.Relinquish());
+			break;
+		}
+		Level = currentLevel;
+		AddEntities();
+		updateEnemyCount(rm, 0);updateTreasureCount(rm, 0);
+		rm->changeLevel(*currentLevel);
+
 	}
 
 	//sets enemy text on player HUD by checking how many enemies have the enemy tag, put 0 in update if you want to refresh display only

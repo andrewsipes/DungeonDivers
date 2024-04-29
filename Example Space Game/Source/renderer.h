@@ -3,6 +3,8 @@
 #include <chrono>
 #include "playerStats.h"
 
+
+
 // Creation, Rendering & Cleanup
 class RendererManager
 {
@@ -199,7 +201,7 @@ public:
 		float aspectRatio;
 		_ogl.GetAspectRatio(aspectRatio);
 
-		GW::MATH::GMatrix::ProjectionOpenGLRHF(toRad(degrees), aspectRatio, _near, _far, projMatrix);
+		GW::MATH::GMatrix::ProjectionOpenGLRHF(D2R(degrees), aspectRatio, _near, _far, projMatrix);
 
 		return projMatrix;
 	}
@@ -267,7 +269,7 @@ public:
 
 				//calculate rotation
 				thumbspeed = G_PI * updateTime.count();
-				FOV = toRad(65.0f);
+				FOV = D2R(65.0f);
 				pitch = (FOV * mouseY) / windowHeight + rStickY * (-thumbspeed);
 				yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth + rStickX * thumbspeed;
 			}
@@ -281,7 +283,7 @@ public:
 
 				//calculate rotation
 				thumbspeed = G_PI * updateTime.count();
-				FOV = toRad(65.0f);
+				FOV = D2R(65.0f);
 				pitch = (FOV * mouseY) / windowHeight;
 				yaw = (FOV * windowWidth / windowHeight * mouseX) / windowWidth;
 			}
@@ -724,6 +726,28 @@ public:
 			});
 
 
+		flecs::system heartRotate = game->system<DD::Heart, DD::Name>("Rotate Heart")
+			.iter([level, game](flecs::iter it, DD::Heart*, DD::Name* name)
+				{
+					for (auto i : it)
+					{
+						auto e = game->lookup(name[i].name.c_str());
+						DD::World* edit = game->entity(e).get_mut<DD::World>();
+						GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(60) * it.delta_time(), edit->value);
+					}
+				});
+
+		flecs::system crystalRotate = game->system<DD::Treasure, DD::Name>("Rotate Crystal")
+			.iter([level, game](flecs::iter it, DD::Treasure*, DD::Name* name)
+				{
+					for (auto i : it)
+					{
+						auto e = game->lookup(name[i].name.c_str());
+						DD::World* edit = game->entity(e).get_mut<DD::World>();
+						GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(60) * it.delta_time(), edit->value);
+					}
+				});
+
 		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
 			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
 				{
@@ -881,7 +905,7 @@ public:
 					// damage anything we come into contact with
 					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this](flecs::entity hit)
 						{
-							if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>()))
+							if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>() || hit.has<DD::Heart>() || hit.has<DD::Treasure>()))
 							{
 								Model m = hit.get<Models>()->mod;
 								if (hit.has <DD::Enemy>())

@@ -487,6 +487,12 @@ public:
 			{
 				gameOverMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
+
+			else if (panel == treasureMenu && panel->render)
+			{
+				treasureMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
+			}
+
 			else if (panel->render){
 				panel->Render(cameraMatrix, viewMatrix, projectionMatrix);
 			}
@@ -537,9 +543,9 @@ public:
 	}
 
 	//Updates PlayerStats and UI Score
-	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc) {
+	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc, int score) {
 
-			ps.updateScore(50);
+			ps.updateScore(score);
 			rm.playerHUD->updateHUDScore(ps.getScore());
 
 			if (ps.getScore() > (*gc).at("Player1").at("highscore").as<int>())
@@ -668,7 +674,7 @@ public:
 
 
 		playerSystem = game->system<DD::Player, DD::World>("Player Move System")
-			.iter([immediateInput, speed, game, level, this, &rm, &ps](flecs::iter it, DD::Player*, DD::World*)
+			.iter([immediateInput, speed, game, level, this, &rm, &ps, &gameConfig](flecs::iter it, DD::Player*, DD::World*)
 			{
 				for (auto i : it)
 				{
@@ -685,7 +691,7 @@ public:
 					auto e = game->lookup("MegaBee");
 					DD::World* edit = game->entity(e).get_mut<DD::World>();
 
-					e.each<DD::CollidedWith>([&e, level, this, &rm, &ps](flecs::entity hit)
+					e.each<DD::CollidedWith>([&e, level, this, &rm, &ps, &gameConfig](flecs::entity hit)
 						{
 							if (hit.has<DD::Heart>())
 							{
@@ -697,8 +703,8 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
-								// INSERT HEART INCREASE STUFF HERE---------------------------
 								UpdatePlayerHearts(*rm, *ps, 1);
+								
 							}
 
 							else if (hit.has<DD::Treasure>())
@@ -711,7 +717,10 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
+								
 								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
+								rm->treasureMenu->treasures[0]->text->toggleRender();
+								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
 							}
 							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 							{
@@ -896,7 +905,7 @@ public:
 									}
 									hit.destruct();
 									updateEnemyCount(rm, -1);
-									UpdatePlayerScore(*rm, *ps, gameConfig); // update score if we hit an enemy
+									UpdatePlayerScore(*rm, *ps, gameConfig, 50); // update score if we hit an enemy
 									
 								}
 								m = arrow.get<Models>()->mod;

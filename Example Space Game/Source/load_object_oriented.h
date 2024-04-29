@@ -10,15 +10,9 @@
 #define userButtonDepth 0.3f
 #define uiModelDepth 0.4f
 #define worldDepth 0.6f
-
+#define D2R(a) (a*3.14159/180)
 //credit to stb image for their image uploader https://github.com/nothings/stb
 //credit to LearnOpenGL for the skybox tutorial and skybox images //credits to learnOpenGL https://learnopengl.com/Advanced-OpenGL/Cubemaps
-
-//converts degrees to radians
-float toRad(float degrees)
-{
-	return (degrees * 3.14159265358979323846 / 180);
-}
 
 // Used to print debug infomation from OpenGL, pulled straight from the official OpenGL wiki.
 void PrintLabeledDebugString(const char* label, const char* toPrint)

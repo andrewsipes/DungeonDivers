@@ -720,7 +720,42 @@ public:
 								hit.destruct();
 
 								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
-								rm->treasureMenu->treasures[0]->text->toggleRender();
+
+								if (m.name == "CrystalYellow") {
+									rm->treasureMenu->treasures[0]->text->render = true;
+								}
+
+								else if (m.name == "CrystalRed") {
+									rm->treasureMenu->treasures[4]->text->render = true;
+								}
+
+								else if (m.name == "CrystalBlue") {
+									rm->treasureMenu->treasures[3]->text->render = true;
+								}
+
+								else if (m.name == "CrystalOrange") {
+									rm->treasureMenu->treasures[2]->text->render = true;
+								}
+
+								else if (m.name == "CrystalCyan") {
+									rm->treasureMenu->treasures[6]->text->render = true;
+								}
+
+								else if (m.name == "CrystalMagenta") {
+									rm->treasureMenu->treasures[1]->text->render = true;
+								}
+
+								else if (m.name == "CrystalBlack") {
+									rm->treasureMenu->treasures[8]->text->render = true;
+								}
+
+								else if (m.name == "CrystalWhite") {
+									rm->treasureMenu->treasures[7]->text->render = true;
+								}
+								else if (m.name == "CrystalGreen") {
+									rm->treasureMenu->treasures[5]->text->render = true;
+								}
+
 								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
 							}
 							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))

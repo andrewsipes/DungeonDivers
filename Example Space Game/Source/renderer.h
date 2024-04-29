@@ -432,9 +432,6 @@ public:
 		//CONTROLS:
 		//			TAB: toggles pause menu
 		//			  T: toggles treasure menu
-		//
-		//
-		//
 
 		{	//TOGGLE PAUSE MENU
 			if (!tab && (GetAsyncKeyState(VK_TAB) & 0x8000)) {

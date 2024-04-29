@@ -132,7 +132,8 @@ bool Application::Run() {
 
 				//restarts game by setting current level to level1
 				if (rendererManager.gameOverMenu->youWinText->render) {
-					gpManager.restartGame(0, &rendererManager, &playerStats, gameConfig, log);
+					gpManager.restartGame(currentLevel, &rendererManager, &playerStats, gameConfig, log);
+					gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				}
 
 				//restarts just the level per usual
@@ -144,8 +145,6 @@ bool Application::Run() {
 
 			}
 		}
-
-		//NOT TESTED
 
 		if (gpManager.getTreasuresInLevel() <= 0 && !rendererManager.gameOverMenu->render) {
 

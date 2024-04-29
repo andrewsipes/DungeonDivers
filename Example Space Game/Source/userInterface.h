@@ -1600,7 +1600,6 @@ public:
 	void start() override {
 		
 		gameOverText->toggleRender();
-		//youWinText->toggleRender();
 		gameOverOverlay->toggleRender();
 		highScoreText->toggleRender();
 		scoreText->toggleRender();

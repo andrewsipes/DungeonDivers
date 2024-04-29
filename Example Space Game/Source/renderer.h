@@ -576,7 +576,7 @@ public:
 	}
 
 	//updates HUD to state before level
-	void resetHUDonRestart(RendererManager* _rendererManager, PlayerStats* ps) {
+	void resetHUDonRestartLevel(RendererManager* _rendererManager, PlayerStats* ps) {
 
 		ps->setScore(ps->getScoreBeforeDeath());
 		ps->setHearts(ps->getHeartsBeforeDeath());
@@ -587,10 +587,30 @@ public:
 		updateEnemyCount(_rendererManager, 0);
 	}
 
+	//updates HUD to state before level
+	void resetHUDonRestartGame(RendererManager* _rendererManager, PlayerStats* ps, std::shared_ptr <GameConfig> gameConfig) {
+
+		ps->setScore(gameConfig->at("Player1").at("score").as<int>());
+		ps->setHearts(gameConfig->at("Player1").at("hearts").as<int>());
+		ps->treasures = 0;
+
+		_rendererManager->playerHUD->updateHUDScore(ps->getScore());
+		_rendererManager->playerHUD->updateHUDHearts(ps->getHearts());
+
+		updateEnemyCount(_rendererManager, 0);
+		updateTreasureCount(_rendererManager, 0);
+	}
+
 	//sets enemy text on player HUD by checking how many enemies have the enemy tag, put 0 in update if you want to refresh display only
 	void updateEnemyCount(RendererManager* _rendererManager, int update) {
 		auto f = game->filter<DD::Enemy>();
 		_rendererManager->playerHUD->updateEnemies(f.count(), update);
+	}
+
+	//sets Treasure text on player HUD by checking how many are in the level
+	void updateTreasureCount(RendererManager* _rendererManager, int update) {
+		auto f = game->filter<DD::Treasure>();
+		_rendererManager->playerHUD->updateTreasure(f.count(), update);
 	}
 
 	//removes all entities from the level and reloads the meshes based on id
@@ -603,24 +623,24 @@ public:
 		//update these per level id
 		switch (currentLevelId) {
 		case 1:
-			_currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", _log.Relinquish());
+			_currentLevel->LoadMeshes(currentLevelId, "../Level1.txt", "../Models/Level1", _log.Relinquish());
 			break;
 		case 2:
-			_currentLevel->LoadMeshes(2,"../Level2.txt", "../Models/Level2", _log.Relinquish());
+			_currentLevel->LoadMeshes(currentLevelId,"../Level2.txt", "../Models/Level2", _log.Relinquish());
 			break;
 		case 3:
-			_currentLevel->LoadMeshes(3, "../Level3.txt", "../Models/Level3", _log.Relinquish());
+			_currentLevel->LoadMeshes(currentLevelId, "../Level3.txt", "../Models/Level3", _log.Relinquish());
 			break;
 
 		}
 
 		_rendererManager->reloadLevel(*_currentLevel);
 		AddEntities();
-		resetHUDonRestart(_rendererManager, ps);
+		resetHUDonRestartLevel(_rendererManager, ps);
 	}
 
 	//removes all entities from the level and reloads the meshes based on id
-	void restartGame(std::shared_ptr<Level_Objects> _lvl1, RendererManager* _rendererManager, PlayerStats* ps, GW::SYSTEM::GLog _log) {
+	void restartGame(std::shared_ptr<Level_Objects> _lvl1, RendererManager* _rendererManager, PlayerStats* _ps, std::shared_ptr <GameConfig> _gameConfig, GW::SYSTEM::GLog _log) {
 
 		RemoveEntities();
 
@@ -628,7 +648,7 @@ public:
 		_rendererManager->changeLevel(*_lvl1);
 
 		AddEntities();
-		resetHUDonRestart(_rendererManager, ps);
+		resetHUDonRestartGame(_rendererManager, _ps, _gameConfig);
 	}
 
 
@@ -697,7 +717,7 @@ public:
 
 
 		playerSystem = game->system<DD::Player, DD::World>("Player Move System")
-			.iter([immediateInput, speed, game, level, this, &rm, &ps, &gameConfig, &_audioEngine](flecs::iter it, DD::Player*, DD::World*)
+			.iter([immediateInput, speed, game, level, this, rm, ps, &gameConfig, &_audioEngine](flecs::iter it, DD::Player*, DD::World*)
 			{
 				for (auto i : it)
 				{
@@ -714,7 +734,7 @@ public:
 					auto e = game->lookup("MegaBee");
 					DD::World* edit = game->entity(e).get_mut<DD::World>();
 
-					e.each<DD::CollidedWith>([&e, level, this, &rm, &ps, &gameConfig, _audioEngine](flecs::entity hit)
+					e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
 						{
 							if (hit.has<DD::Heart>())
 							{
@@ -778,6 +798,7 @@ public:
 								}
 
 								ps->treasures++;
+								updateTreasureCount(rm, -1);
 								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
 							
 							}

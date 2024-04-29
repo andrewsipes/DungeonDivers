@@ -101,16 +101,14 @@ bool Application::Run() {
 			if (!leftMouse && rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
 
-				lvl1->LoadMeshes(1, "../Level2.txt", "../Models/Level2", log.Relinquish());
+				lvl1->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
 				currentLevel = lvl1;
-
-				//playerStats = new PlayerStats(*gameConfig);
-				//gpManager = new gamePlayManager(currentLevel, game);
 
 				gpManager.AddEntities();
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
 				gpManager.updateEnemyCount(&rendererManager, 0);
+				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
 				rendererManager.changeLevel(*currentLevel);
@@ -139,7 +137,7 @@ bool Application::Run() {
 
 				//restarts game by setting current level to level1
 				if (rendererManager.gameOverMenu->youWinText->render) {
-					gpManager.restartGame(currentLevel, &rendererManager, &playerStats, log);
+					gpManager.restartGame(currentLevel, &rendererManager, &playerStats, gameConfig, log);
 				}
 
 				//restarts just the level per usual
@@ -164,8 +162,9 @@ bool Application::Run() {
 				currentLevel = lvl2;
 				gpManager.AddEntities();
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+				gpManager.updateEnemyCount(&rendererManager, 0);
+				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.changeLevel(*currentLevel);
-
 				break;
 			case 6: 
 				gpManager.RemoveEntities();
@@ -173,6 +172,8 @@ bool Application::Run() {
 				currentLevel = lvl3;
 				gpManager.AddEntities();
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+				gpManager.updateEnemyCount(&rendererManager, 0);
+				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.changeLevel(*currentLevel);
 
 				break;

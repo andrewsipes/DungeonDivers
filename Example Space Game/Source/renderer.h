@@ -603,11 +603,14 @@ public:
 		//update these per level id
 		switch (currentLevelId) {
 		case 1:
-			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+			_currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", _log.Relinquish());
+			break;
 		case 2:
-			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+			_currentLevel->LoadMeshes(2,"../Level2.txt", "../Models/Level2", _log.Relinquish());
+			break;
 		case 3:
-			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+			_currentLevel->LoadMeshes(3, "../Level3.txt", "../Models/Level3", _log.Relinquish());
+			break;
 
 		}
 
@@ -725,8 +728,7 @@ public:
 								hit.destruct();
 								UpdatePlayerHearts(*rm, *ps, 1);
 
-								ps->treasures++;
-								
+														
 							}
 
 							else if (hit.has<DD::Treasure>())
@@ -775,8 +777,7 @@ public:
 									rm->treasureMenu->treasures[5]->text->render = true;
 								}
 
-
-
+								ps->treasures++;
 								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
 							
 							}

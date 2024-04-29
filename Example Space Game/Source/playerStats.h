@@ -14,6 +14,7 @@ private:
 
 public:
 	int treasures;
+
 	//some default values, we shouldn't use this
 	PlayerStats() {
 		score = 0000;
@@ -28,6 +29,7 @@ public:
 		hearts = gameConfig->at("Player1").at("hearts").as<int>();
 		maxHearts = gameConfig->at("Player1").at("maxhearts").as<int>();
 		maxScore = gameConfig->at("Player1").at("maxscore").as<int>();
+		treasures = 0;
 		heartsBeforeDeath = hearts;
 		scoreBeforeDeath = score;
 	}

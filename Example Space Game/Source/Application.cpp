@@ -66,22 +66,19 @@ bool Application::Run() {
 	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 
-	gamePlayManager* gpManager;
-	PlayerStats* playerStats;
+	gamePlayManager gpManager(lvl1, game);
+	PlayerStats playerStats(*gameConfig);
 	RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
 
 
-	//auto& mainMenuMusic = musicTracks["MainMenu"];
-	//auto& mainMenuMusic = musicTracks["MainMenu"];
-	//mainMenuMusic.Play(true);
-
-
+	auto& mainMenuMusic = musicTracks["MainMenu"];
+	mainMenuMusic.Play(true);
 
 	while (+win.ProcessWindowEvents() && running == true)
 	{
 		currentLevel->Update(game, currentLevel);
 
-		if (!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
+		if (!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered && !rendererManager.gameOverMenu->render)
 			GameLoop();
 
 		glClearColor(clr[0], clr[1], clr[2], clr[3]);
@@ -92,7 +89,6 @@ bool Application::Run() {
 			rendererManager.freecam = false;
 		}
 #endif
-
 
 		//Return Left Mouse state for re-use
 		if (leftMouse && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
@@ -108,18 +104,18 @@ bool Application::Run() {
 				lvl1->LoadMeshes(1, "../Level2.txt", "../Models/Level2", log.Relinquish());
 				currentLevel = lvl1;
 
-				playerStats = new PlayerStats(*gameConfig);
-				gpManager = new gamePlayManager(currentLevel, game);
+				//playerStats = new PlayerStats(*gameConfig);
+				//gpManager = new gamePlayManager(currentLevel, game);
 
-				gpManager->AddEntities();
-				gpManager->AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, playerStats, &rendererManager);
+				gpManager.AddEntities();
+				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
-				gpManager->updateEnemyCount(&rendererManager, 0);
+				gpManager.updateEnemyCount(&rendererManager, 0);
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
 				rendererManager.changeLevel(*currentLevel);
-				playerStats->updateHeartsBeforeDeath();
-				playerStats->updateScoreBeforeDeath();
+				playerStats.updateHeartsBeforeDeath();
+				playerStats.updateScoreBeforeDeath();
 			}
 
 		}
@@ -129,7 +125,7 @@ bool Application::Run() {
 
 			if (rendererManager.pauseMenu->restartPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
-				gpManager->restartLevel(currentLevel, &rendererManager, playerStats, log);
+				gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
 				rendererManager.pauseMenu->toggleRender();
 
 			}
@@ -143,12 +139,12 @@ bool Application::Run() {
 
 				//restarts game by setting current level to level1
 				if (rendererManager.gameOverMenu->youWinText->render) {
-					gpManager->restartGame(currentLevel, &rendererManager, playerStats, log);
+					gpManager.restartGame(currentLevel, &rendererManager, &playerStats, log);
 				}
 
 				//restarts just the level per usual
 				else {
-					gpManager->restartLevel(currentLevel, &rendererManager, playerStats, log);
+					gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
 				}
 
 				rendererManager.gameOverMenu->toggleRender();
@@ -156,71 +152,40 @@ bool Application::Run() {
 			}
 		}
 
-		//if (playerStats->treasures %3 == 0) {
+		//NOT TESTED
 
-		//	switch (playerStats->treasures) {
+		if (playerStats.treasures != 0 && playerStats.treasures %3 == 0) {
 
-		//	case 3: 
-		//		
-		//		lvl2->LoadMeshes(0, "../Level2.txt", "../Models/Level2", log.Relinquish());
-		//		//load this level
-		//		break;
-		//	case 6: 
-		//		//load this level
-		//		break;
-		//	case 9:
-		//		//you win
-		//		break;
-		//	default:
-		//		//do nothing
-		//		break;
-		//	}
-		//}
+			switch (playerStats.treasures) {
 
+			case 3:
+				gpManager.RemoveEntities();
+				lvl2->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
+				currentLevel = lvl2;
+				gpManager.AddEntities();
+				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+				rendererManager.changeLevel(*currentLevel);
 
-			//LEVEL SWAP: Currently works by using 0 or 1
-			{
-				//use these to determine if flag is read
-				bool zero = false, one = false;
+				break;
+			case 6: 
+				gpManager.RemoveEntities();
+				lvl3->LoadMeshes(3, "../Level3.txt", "../Models/Level3", log.Relinquish());
+				currentLevel = lvl3;
+				gpManager.AddEntities();
+				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+				rendererManager.changeLevel(*currentLevel);
 
-				auto lvl3 = std::make_shared<Level_Objects>();
-
-				//Main Menu
-				if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
-					zero = true;
-
-					//rendererManager.changeLevel(*mainMenu);
-					//gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
-
-					//rendererManager.gameOverMenu->youWinText->render =false;
-					//rendererManager.gameOverMenu->gameOverText->render = true;
-					//rendererManager.gameOverMenu->toggleRender();
-
-				
-					//GW::GReturn test2 = shoot.Play(false);
-					//GW::GReturn test3 = shoot.Resume();
-
-
-
-				}
-
-				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
-					zero = false;
-				}
-
-				//Level1
-				if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
-					one = true;
-
-					rendererManager.changeLevel(*lvl1);
-
-				}
-
-				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
-					one = false;
-				}
+				break;
+			case 9:
+				gpManager.RemoveEntities();
+				rendererManager.gameOverMenu->youWin(playerStats.getScore(), gameConfig->at("Player1").at("highscore").as<int>());
+				rendererManager.gameOverMenu->toggleRender();
+				break;
+			default:
+				//do nothing
+				break;
 			}
-
+		}
 
 			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
 			rendererManager.Render();

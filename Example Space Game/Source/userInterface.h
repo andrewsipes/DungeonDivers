@@ -1607,7 +1607,6 @@ public:
 		restartGameOverButton->toggleRender();
 		exitGameOverButton->toggleRender();
 
-		updateHUDScore(9999);
 		updateHUDHighScore(gameConfig->at("Player1").at("highscore").as<int>());
 	
 	}
@@ -1731,6 +1730,40 @@ public:
 
 	}
 
+	//Set conditions for winning the game 
+	void youWin(int score, int highscore) {
+
+		gameOverText->render = false;
+		youWinText->render = true;
+		updateHUDScore(score);
+
+		if (score > highscore) {
+			updateHUDScore(score);
+			(*gameConfig)["Player1"]["highscore"] = highscore;
+		}
+
+		else {
+			updateHUDScore(highscore);
+			(*gameConfig)["Player1"]["highscore"] = highscore;
+		}
+	}
+
+	//Set Conditions for losing the game
+	void youLose(int score, int highscore) {
+		gameOverText->render = true;
+		youWinText->render = false;
+		updateHUDScore(score);
+
+		if (score > highscore) {
+			updateHUDScore(score);
+			(*gameConfig)["Player1"]["highscore"] = highscore;
+		}
+
+		else {
+			updateHUDScore(highscore);
+			(*gameConfig)["Player1"]["highscore"] = highscore;
+		}
+	}
 
 };
 

@@ -794,7 +794,7 @@ public:
 					{
 						auto e = game->lookup(name[i].name.c_str());
 						DD::World* edit = game->entity(e).get_mut<DD::World>();
-						GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(60) * it.delta_time(), edit->value);
+						GW::MATH::GMatrix::RotateZLocalF(edit->value, D2R(60) * it.delta_time(), edit->value);
 					}
 				});
 
@@ -1016,7 +1016,6 @@ public:
 	//					}
 	//					pl.destruct();
 	//				});
-
 	//		});
 
 	flecs::system bulletMove = game->system<DD::BulletVel, DD::World, DD::Name, Models>("Bullet Move System")
@@ -1034,6 +1033,7 @@ public:
 						auto e = game->lookup(n[i].name.c_str());
 						DD::World* edit = game->entity(e).get_mut<DD::World>();
 						GW::MATH::GMatrix::TranslateLocalF(edit->value, moveVec, edit->value);
+						GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(1000)* it.delta_time(), edit->value);
 
 						level->allObjectsInLevel[index].world = edit->value;
 					}

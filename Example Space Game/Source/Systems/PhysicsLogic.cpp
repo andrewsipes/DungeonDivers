@@ -80,7 +80,10 @@ bool DD::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 					// the inner loop starts at the entity after you so you don't double check collisions
 					for (int j = i + 1; j < testCache.size(); ++j)
 					{
-						if (!(testCache[i].name.substr(0, 8) == "RealWall" && testCache[j].name.substr(0, 8) == "RealWall"))
+						if (!(testCache[i].name.substr(0, 8) == "RealWall" && testCache[j].name.substr(0, 8) == "RealWall") || 
+							!(testCache[i].name.substr(0, 8) == "Destruct" && testCache[j].name.substr(0, 8) == "RealWall") ||
+							!(testCache[i].name.substr(0, 8) == "RealWall" && testCache[j].name.substr(0, 8) == "Destruct") ||
+							!(testCache[i].name.substr(0, 8) == "Destruct" && testCache[j].name.substr(0, 8) == "Destruct"))
 						{
 							// test the two world space polygons for collision
 							// possibly make this cheaper by leaving one of them local and using an inverse matrix

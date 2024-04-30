@@ -92,7 +92,9 @@ bool Application::Run() {
 		}
 #endif
 		if (levelComplete && !(GetAsyncKeyState(VK_SPACE) & 0x8000)) {
+
 			levelComplete = false;
+
 		}
 
 		//Return Left Mouse state for re-use
@@ -138,6 +140,9 @@ bool Application::Run() {
 
 				//restarts game by setting current level to level1
 				if (rendererManager.gameOverMenu->youWinText->render) {
+					rendererManager.playerHUD->continueText->toggleRender();
+					rendererManager.playerHUD->levelCompleteText->toggleRender();
+					rendererManager.playerHUD->toggleRender();
 					gpManager.restartGame(currentLevel, &rendererManager, &playerStats, gameConfig, log);
 					gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				}
@@ -157,8 +162,10 @@ bool Application::Run() {
 			rendererManager.playerHUD->levelCompleteText->render = true;
 			rendererManager.playerHUD->continueText->render = true;
 
+
 			if (!levelComplete && (GetAsyncKeyState(VK_SPACE) & 0x8000)) {
 				levelComplete = true;
+
 			}
 
 		}
@@ -176,7 +183,8 @@ bool Application::Run() {
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				break;
 			case 9:
-				gpManager.RemoveEntities();
+				gpManager.RemoveEntities();	
+				rendererManager.playerHUD->toggleRender();
 				rendererManager.gameOverMenu->youWin(playerStats.getScore(), gameConfig->at("Player1").at("highscore").as<int>());
 				rendererManager.gameOverMenu->toggleRender();
 				break;

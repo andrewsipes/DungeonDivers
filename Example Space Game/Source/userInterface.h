@@ -1747,6 +1747,7 @@ public:
 			updateHUDHighScore(highscore);
 			(*gameConfig)["Player1"]["highscore"] = highscore;
 		}
+
 	}
 
 	//Set Conditions for losing the game

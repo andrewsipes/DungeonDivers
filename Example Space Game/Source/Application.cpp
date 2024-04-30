@@ -65,7 +65,7 @@ bool Application::Run() {
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 
 
-	currentLevel->LoadMeshes(1, "../Level2.txt", "../Models/Level2", log.Relinquish());
+	currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", log.Relinquish());
 	gamePlayManager gpManager(currentLevel, game);
 	PlayerStats playerStats(*gameConfig);
 	RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);

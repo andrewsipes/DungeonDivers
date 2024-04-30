@@ -640,7 +640,7 @@ public:
 			currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
 			break;
 		case 2:
-			currentLevel->LoadMeshes(3, "../Level2.txt", "../Models/Level2", log.Relinquish());
+			currentLevel->LoadMeshes(3, "../Level3.txt", "../Models/Level3", log.Relinquish());
 			break;
 		}
 		Level = currentLevel;
@@ -702,7 +702,7 @@ public:
 
 		RemoveEntities();
 
-		_lvl1->LoadMeshes(1, "../Level2.txt", "../Models/Level2", _log.Relinquish());
+		_lvl1->LoadMeshes(1, "../Level1.txt", "../Models/Level1", _log.Relinquish());
 		_rendererManager->changeLevel(*_lvl1);
 
 		AddEntities();

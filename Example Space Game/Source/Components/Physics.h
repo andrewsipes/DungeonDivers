@@ -15,6 +15,9 @@ namespace DD
 	struct World { GW::MATH::GMATRIXF value; };
 	struct LastWorld { GW::MATH::GMATRIXF value; };
 	struct BulletVel { GW::MATH::GVECTORF value; };
+	struct EnemyVel { GW::MATH::GVECTORF value; };
+	struct IFrame { float value; };
+	struct MoveCooldown { float value; };
 	struct State { GW::MATH::GVECTORF value; };
 
 	// Individual TAGs

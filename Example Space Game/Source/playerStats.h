@@ -13,10 +13,13 @@ private:
 	GameConfig* gameConfig;
 
 public:
+	int treasures, treasuresBeforeDeath;
+
 	//some default values, we shouldn't use this
 	PlayerStats() {
 		score = 0000;
 		hearts = 4;
+		treasures = 0;
 	}
 
 	//sets all required parementers when constructed
@@ -26,6 +29,7 @@ public:
 		hearts = gameConfig->at("Player1").at("hearts").as<int>();
 		maxHearts = gameConfig->at("Player1").at("maxhearts").as<int>();
 		maxScore = gameConfig->at("Player1").at("maxscore").as<int>();
+		treasures = 0;
 		heartsBeforeDeath = hearts;
 		scoreBeforeDeath = score;
 	}
@@ -56,6 +60,10 @@ public:
 	//for saving heath at the beginning of the level
 	void updateHeartsBeforeDeath(){
 		heartsBeforeDeath = hearts;
+	}
+
+	void updateTreasuresBeforeDeath() {
+		treasuresBeforeDeath = treasures;
 	}
 
 	//resets player after death

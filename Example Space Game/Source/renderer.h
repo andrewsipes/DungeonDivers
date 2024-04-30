@@ -6,6 +6,7 @@
 
 
 
+
 // Creation, Rendering & Cleanup
 class RendererManager
 {
@@ -429,9 +430,6 @@ public:
 		//CONTROLS:
 		//			TAB: toggles pause menu
 		//			  T: toggles treasure menu
-		//
-		//
-		//
 
 		{	//TOGGLE PAUSE MENU
 			if (!tab && (GetAsyncKeyState(VK_TAB) & 0x8000)) {
@@ -507,6 +505,7 @@ public:
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		playerHUD->updateLevelText(level.getid());
 		lvl = &level;
+		playerHUD->startText->render = true;
 	}
 
 	//re loads the current level
@@ -536,12 +535,19 @@ public:
 	std::shared_ptr <Level_Objects> Level;
 	std::shared_ptr<flecs::world> game;
 
+	//PUT SOUNDS HERE
+	GW::AUDIO::GMusic shoot;
+	GW::GReturn test;
+
 	gamePlayManager(std::shared_ptr <Level_Objects> _Level,
 	std::shared_ptr<flecs::world> _game){
 
 		Level = _Level;
 		game = _game;
+
+		
 	}
+
 
 	//Updates PlayerStats and UI Score
 	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc, int score) {
@@ -567,21 +573,95 @@ public:
 	}
 
 	//updates HUD to state before level
-	void resetHUDonRestart(RendererManager* _rendererManager, PlayerStats* ps) {
+	void resetHUDonRestartLevel(int id, RendererManager* _rendererManager, PlayerStats* ps) {
 
 		ps->setScore(ps->getScoreBeforeDeath());
 		ps->setHearts(ps->getHeartsBeforeDeath());
+		ps->treasures = ps->treasuresBeforeDeath;
 
 		_rendererManager->playerHUD->updateHUDScore(ps->getScore());
 		_rendererManager->playerHUD->updateHUDHearts(ps->getHearts());
 
 		updateEnemyCount(_rendererManager, 0);
+		updateTreasureCount(_rendererManager, 0);
+
+		//turn off treasures
+
+		switch (id) {
+		case 1:
+			//turn off treasure menu treasures
+			_rendererManager->treasureMenu->treasures[0]->text->render = false;
+			_rendererManager->treasureMenu->treasures[1]->text->render = false;
+			_rendererManager->treasureMenu->treasures[2]->text->render = false;
+			break;
+		case 2:
+			_rendererManager->treasureMenu->treasures[3]->text->render = false;
+			_rendererManager->treasureMenu->treasures[4]->text->render = false;
+			_rendererManager->treasureMenu->treasures[5]->text->render = false;
+			break;
+		case 3:
+			_rendererManager->treasureMenu->treasures[6]->text->render = false;
+			_rendererManager->treasureMenu->treasures[7]->text->render = false;
+			_rendererManager->treasureMenu->treasures[8]->text->render = false;
+			break;
+
+		}
+	}
+
+	//updates HUD to state before level
+	void resetHUDonRestartGame(RendererManager* _rendererManager, PlayerStats* ps, std::shared_ptr <GameConfig> gameConfig) {
+
+		ps->setScore(gameConfig->at("Player1").at("score").as<int>());
+		ps->setHearts(gameConfig->at("Player1").at("hearts").as<int>());
+		ps->treasures = 0;
+
+		_rendererManager->playerHUD->updateHUDScore(ps->getScore());
+		_rendererManager->playerHUD->updateHUDHearts(ps->getHearts());
+
+		for (userButton* treasure : _rendererManager->treasureMenu->treasures) {
+			treasure->text->render = false;
+		}
+
+		updateEnemyCount(_rendererManager, 0);
+		updateTreasureCount(_rendererManager, 0);
+	}
+
+	//loads the next level
+	void nextLevel(std::shared_ptr<Level_Objects> currentLevel, PlayerStats* ps, RendererManager* rm, GW::SYSTEM::GLog log) {
+
+		rm->playerHUD->levelCompleteText->render = false;
+		rm->playerHUD->continueText->render = false;
+
+		ps->updateHeartsBeforeDeath();	ps->updateScoreBeforeDeath(); ps->updateTreasuresBeforeDeath();
+		RemoveEntities();
+		
+		switch (currentLevel->getid()) {
+		case 1:
+			currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
+			break;
+		case 2:
+			currentLevel->LoadMeshes(3, "../Level2.txt", "../Models/Level2", log.Relinquish());
+			break;
+		}
+		Level = currentLevel;
+		AddEntities();
+		updateEnemyCount(rm, 0); updateTreasureCount(rm, 0);
+		rm->changeLevel(*currentLevel);
+
 	}
 
 	//sets enemy text on player HUD by checking how many enemies have the enemy tag, put 0 in update if you want to refresh display only
 	void updateEnemyCount(RendererManager* _rendererManager, int update) {
 		auto f = game->filter<DD::Enemy>();
 		_rendererManager->playerHUD->updateEnemies(f.count(), update);
+	}
+
+	//sets Treasure text on player HUD by checking how many are in the level
+	void updateTreasureCount(RendererManager* _rendererManager, int update) {
+		auto f = game->filter<DD::Treasure>();
+		_rendererManager->playerHUD->updateTreasure(f.count(), update);
+
+
 	}
 
 	//removes all entities from the level and reloads the meshes based on id
@@ -594,32 +674,42 @@ public:
 		//update these per level id
 		switch (currentLevelId) {
 		case 1:
-			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+			_currentLevel->LoadMeshes(currentLevelId, "../Level1.txt", "../Models/Level1", _log.Relinquish());
+			break;
 		case 2:
-			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+			_currentLevel->LoadMeshes(currentLevelId,"../Level2.txt", "../Models/Level2", _log.Relinquish());
+			break;
 		case 3:
-			_currentLevel->LoadMeshes(_currentLevel->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+			_currentLevel->LoadMeshes(currentLevelId, "../Level3.txt", "../Models/Level3", _log.Relinquish());
+			break;
 
 		}
 
 		_rendererManager->reloadLevel(*_currentLevel);
 		AddEntities();
-		resetHUDonRestart(_rendererManager, ps);
+		resetHUDonRestartLevel(currentLevelId, _rendererManager, ps);
+	}
+
+	//return number of treasures in level
+	int getTreasuresInLevel() {
+		auto f = game->filter<DD::Treasure>();
+		
+		return f.count();
 	}
 
 	//removes all entities from the level and reloads the meshes based on id
-	void restartGame(std::shared_ptr<Level_Objects> _lvl1, RendererManager* _rendererManager, PlayerStats* ps, GW::SYSTEM::GLog _log) {
+	void restartGame(std::shared_ptr<Level_Objects> _lvl1, RendererManager* _rendererManager, PlayerStats* _ps, std::shared_ptr <GameConfig> _gameConfig, GW::SYSTEM::GLog _log) {
 
 		RemoveEntities();
 
-		_lvl1->LoadMeshes(_lvl1->getid(), "../Models/enemytestlvl/GameLevel.txt", "../Models/enemytestlvl/Models", _log.Relinquish());
+		_lvl1->LoadMeshes(1, "../Level2.txt", "../Models/Level2", _log.Relinquish());
 		_rendererManager->changeLevel(*_lvl1);
 
 		AddEntities();
-		resetHUDonRestart(_rendererManager, ps);
+		resetHUDonRestartGame(_rendererManager, _ps, _gameConfig);
 	}
 
-
+	//remove entities from game
 	void RemoveEntities() {
 
 		game->defer_begin();
@@ -630,6 +720,7 @@ public:
 		game->defer_end();
 	}
 
+	//add entities to game
 	void AddEntities()
 	{
 		for each (Model i in Level->allObjectsInLevel)
@@ -663,6 +754,13 @@ public:
 		}
 	}
 
+	//EXAMPLE SOUND METHOD
+	void playSound(GW::AUDIO::GAudio& _audioEngine) {
+
+		GW::GReturn test = shoot.Create("../SoundFX/Player_Attack.wav", _audioEngine, 1.0f);
+		shoot.Play(false);
+	}
+
 	void AddSystems(std::shared_ptr<Level_Objects> level,
 		std::shared_ptr<flecs::world> game,
 		std::shared_ptr<GameConfig> gameConfig,
@@ -680,24 +778,29 @@ public:
 
 
 		playerSystem = game->system<DD::Player, DD::World>("Player Move System")
-			.iter([immediateInput, speed, game, level, this, &rm, &ps, &gameConfig](flecs::iter it, DD::Player*, DD::World*)
+			.iter([immediateInput, speed, game, level, this, rm, ps, &gameConfig, &_audioEngine](flecs::iter it, DD::Player*, DD::World*)
 			{
 				for (auto i : it)
 				{
 					float xaxis = 0, input = 0, zaxis = 0;
 					GW::INPUT::GInput t = immediateInput;
 
-					t.GetState(G_KEY_A, input); xaxis -= input;
-					t.GetState(G_KEY_D, input); xaxis += input;
-					t.GetState(G_KEY_S, input); zaxis -= input;
-					t.GetState(G_KEY_W, input); zaxis += input;
+					if (!rm->playerHUD->levelCompleteText->render) {
+						t.GetState(G_KEY_A, input); xaxis -= input;
+						t.GetState(G_KEY_D, input); xaxis += input;
+						t.GetState(G_KEY_S, input); zaxis -= input;
+						t.GetState(G_KEY_W, input); zaxis += input;
+					}
 
+					if (rm->playerHUD->startText->render && (xaxis !=0 || zaxis !=0)) {
+						rm->playerHUD->startText->render = false;
+					}
 
 					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
 					auto e = game->lookup("MegaBee");
 					DD::World* edit = game->entity(e).get_mut<DD::World>();
 
-					e.each<DD::CollidedWith>([&e, level, this, &rm, &ps, &gameConfig](flecs::entity hit)
+					e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
 						{
 							if (hit.has<DD::Heart>())
 							{
@@ -711,10 +814,12 @@ public:
 								hit.destruct();
 								UpdatePlayerHearts(*rm, *ps, 1);
 
+														
 							}
 
 							else if (hit.has<DD::Treasure>())
 							{
+								
 								Model m = hit.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
@@ -723,8 +828,6 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
-
-								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
 
 								if (m.name == "CrystalYellow") {
 									rm->treasureMenu->treasures[0]->text->render = true;
@@ -761,7 +864,11 @@ public:
 									rm->treasureMenu->treasures[5]->text->render = true;
 								}
 
+						
+								ps->treasures++;
+								updateTreasureCount(rm, -1);
 								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
+							
 							}
 							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 							{
@@ -799,7 +906,7 @@ public:
 				});
 
 		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
-			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
+			.iter([immediateInput, game, level, bullSpeed,&_audioEngine, this](flecs::iter it, DD::Player*, DD::World* world)
 				{
 					for (auto i : it)
 					{
@@ -888,6 +995,9 @@ public:
 							e.set<DD::Name>({ modelToDupe.name });
 							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0} });
 							e.add<DD::Bullet>();
+
+							//FOR RALF
+							playSound(_audioEngine);
 
 							break;
 						}

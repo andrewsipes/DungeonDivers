@@ -16,6 +16,8 @@ using namespace GW::AUDIO;
 bool Application::Init()
 {
 	eventPusher.Create();
+		GW::AUDIO::GSound shoot;
+					GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
 
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>();
@@ -36,14 +38,15 @@ bool Application::Init()
 }
 
 bool Application::Run() {
+	
 	leftMouse = false;
 	running = true;
+	levelComplete = false;
 
 	GEventResponder msgs;
 	log.Create("output.txt");
 
 	auto mainMenu = std::make_shared<Level_Objects>();
-	auto lvl1 = std::make_shared<Level_Objects>();
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
 
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
@@ -61,21 +64,23 @@ bool Application::Run() {
 	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 
-	gamePlayManager* gpManager;
-	PlayerStats* playerStats;
+
+	currentLevel->LoadMeshes(1, "../Level2.txt", "../Models/Level2", log.Relinquish());
+	gamePlayManager gpManager(currentLevel, game);
+	PlayerStats playerStats(*gameConfig);
 	RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
 
-#if NEDEBUG
+	gpManager.AddEntities();
+	gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+
 	auto& mainMenuMusic = musicTracks["MainMenu"];
 	mainMenuMusic.Play(true);
-#endif
-
 
 	while (+win.ProcessWindowEvents() && running == true)
 	{
 		currentLevel->Update(game, currentLevel);
 
-		if (!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered)
+		if (!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered && !rendererManager.gameOverMenu->render)
 			GameLoop();
 
 		glClearColor(clr[0], clr[1], clr[2], clr[3]);
@@ -86,12 +91,17 @@ bool Application::Run() {
 			rendererManager.freecam = false;
 		}
 #endif
+		if (levelComplete && !(GetAsyncKeyState(VK_SPACE) & 0x8000)) {
 
+			levelComplete = false;
+
+		}
 
 		//Return Left Mouse state for re-use
 		if (leftMouse && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
 			leftMouse = false;
 		}
+
 
 		//event Handling for the mainMenu - starts the game
 		else if (rendererManager.mainMenuHUD->render && !rendererManager.controlsMenu->render) {
@@ -99,21 +109,14 @@ bool Application::Run() {
 			if (!leftMouse && rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
 
-				lvl1->LoadMeshes(1, "../Level3.txt", "../Models/Level3", log.Relinquish());
-				currentLevel = lvl1;
-
-				playerStats = new PlayerStats(*gameConfig);
-				gpManager = new gamePlayManager(currentLevel, game);
-
-				gpManager->AddEntities();
-				gpManager->AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, playerStats, &rendererManager);
-
-				gpManager->updateEnemyCount(&rendererManager, 0);
+				gpManager.updateEnemyCount(&rendererManager, 0);
+				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
 				rendererManager.changeLevel(*currentLevel);
-				playerStats->updateHeartsBeforeDeath();
-				playerStats->updateScoreBeforeDeath();
+				playerStats.updateHeartsBeforeDeath();
+				playerStats.updateScoreBeforeDeath();
+				rendererManager.playerHUD->startText->render = true;
 			}
 
 		}
@@ -123,7 +126,7 @@ bool Application::Run() {
 
 			if (rendererManager.pauseMenu->restartPauseMenuButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
-				gpManager->restartLevel(currentLevel, &rendererManager, playerStats, log);
+				gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
 				rendererManager.pauseMenu->toggleRender();
 
 			}
@@ -137,12 +140,16 @@ bool Application::Run() {
 
 				//restarts game by setting current level to level1
 				if (rendererManager.gameOverMenu->youWinText->render) {
-					gpManager->restartGame(currentLevel, &rendererManager, playerStats, log);
+					rendererManager.playerHUD->continueText->toggleRender();
+					rendererManager.playerHUD->levelCompleteText->toggleRender();
+					rendererManager.playerHUD->toggleRender();
+					gpManager.restartGame(currentLevel, &rendererManager, &playerStats, gameConfig, log);
+					gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				}
 
 				//restarts just the level per usual
 				else {
-					gpManager->restartLevel(currentLevel, &rendererManager, playerStats, log);
+					gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
 				}
 
 				rendererManager.gameOverMenu->toggleRender();
@@ -150,47 +157,42 @@ bool Application::Run() {
 			}
 		}
 
+		if (gpManager.getTreasuresInLevel() <= 0) {
+
+			rendererManager.playerHUD->levelCompleteText->render = true;
+			rendererManager.playerHUD->continueText->render = true;
 
 
+			if (!levelComplete && (GetAsyncKeyState(VK_SPACE) & 0x8000)) {
+				levelComplete = true;
 
-			//LEVEL SWAP: Currently works by using 0 or 1
-			{
-				//use these to determine if flag is read
-				bool zero = false, one = false;
-
-				auto lvl3 = std::make_shared<Level_Objects>();
-
-				//Main Menu
-				if (!zero && (GetAsyncKeyState(0x30) & 0x8000)) {
-					zero = true;
-
-					//rendererManager.changeLevel(*mainMenu);
-					//gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
-
-					rendererManager.gameOverMenu->youWinText->render =false;
-					rendererManager.gameOverMenu->gameOverText->render = true;
-					rendererManager.gameOverMenu->toggleRender();
-
-
-				}
-
-				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
-					zero = false;
-				}
-
-				//Level1
-				if (!one && (GetAsyncKeyState(0x31) & 0x8000)) {
-					one = true;
-
-					rendererManager.changeLevel(*lvl1);
-
-				}
-
-				else if (zero && !(GetAsyncKeyState(0x30) & 0x8000)) {
-					one = false;
-				}
 			}
 
+		}
+
+		if (levelComplete && !rendererManager.gameOverMenu->render) {
+			
+			switch (playerStats.treasures) {
+
+			case 3:
+				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
+				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+				break;
+			case 6:
+				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
+				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+				break;
+			case 9:
+				gpManager.RemoveEntities();	
+				rendererManager.playerHUD->toggleRender();
+				rendererManager.gameOverMenu->youWin(playerStats.getScore(), gameConfig->at("Player1").at("highscore").as<int>());
+				rendererManager.gameOverMenu->toggleRender();
+				break;
+			default:
+				//do nothing
+				break;
+			}
+		}
 
 			rendererManager.UpdateCamera(gameConfig->at("Window").at("width").as<int>(), gameConfig->at("Window").at("height").as<int>());
 			rendererManager.Render();

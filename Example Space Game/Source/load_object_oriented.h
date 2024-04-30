@@ -548,7 +548,7 @@ private:
 public:
 	std::vector<Model> allObjectsInLevel;
 
-	bool getid(){
+	int getid(){
 		return id;
 	}
 

@@ -16,8 +16,6 @@ using namespace GW::AUDIO;
 bool Application::Init()
 {
 	eventPusher.Create();
-		GW::AUDIO::GSound shoot;
-					GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
 
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>();
@@ -38,7 +36,6 @@ bool Application::Init()
 }
 
 bool Application::Run() {
-	
 	leftMouse = false;
 	running = true;
 	levelComplete = false;
@@ -171,7 +168,7 @@ bool Application::Run() {
 		}
 
 		if (levelComplete && !rendererManager.gameOverMenu->render) {
-			
+
 			switch (playerStats.treasures) {
 
 			case 3:
@@ -183,7 +180,7 @@ bool Application::Run() {
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				break;
 			case 9:
-				gpManager.RemoveEntities();	
+				gpManager.RemoveEntities();
 				rendererManager.playerHUD->toggleRender();
 				rendererManager.gameOverMenu->youWin(playerStats.getScore(), gameConfig->at("Player1").at("highscore").as<int>());
 				rendererManager.gameOverMenu->toggleRender();

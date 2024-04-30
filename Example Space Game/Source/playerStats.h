@@ -2,7 +2,7 @@
 #include "./GameConfig.h"
 
 //here we track the playerStats like score and life
-//this is seperate from UI for game config reasons 
+//this is seperate from UI for game config reasons
 //and if additional stats that aren't related are needed
 
 class PlayerStats {
@@ -19,7 +19,6 @@ public:
 	PlayerStats() {
 		score = 0000;
 		hearts = 4;
-		treasures = 0;
 	}
 
 	//sets all required parementers when constructed

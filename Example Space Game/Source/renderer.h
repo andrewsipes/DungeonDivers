@@ -6,7 +6,6 @@
 
 
 
-
 // Creation, Rendering & Cleanup
 class RendererManager
 {
@@ -535,17 +534,11 @@ public:
 	std::shared_ptr <Level_Objects> Level;
 	std::shared_ptr<flecs::world> game;
 
-	//PUT SOUNDS HERE
-	GW::AUDIO::GMusic shoot;
-	GW::GReturn test;
-
 	gamePlayManager(std::shared_ptr <Level_Objects> _Level,
 	std::shared_ptr<flecs::world> _game){
 
 		Level = _Level;
 		game = _game;
-
-		
 	}
 
 
@@ -634,7 +627,7 @@ public:
 
 		ps->updateHeartsBeforeDeath();	ps->updateScoreBeforeDeath(); ps->updateTreasuresBeforeDeath();
 		RemoveEntities();
-		
+
 		switch (currentLevel->getid()) {
 		case 1:
 			currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
@@ -693,7 +686,7 @@ public:
 	//return number of treasures in level
 	int getTreasuresInLevel() {
 		auto f = game->filter<DD::Treasure>();
-		
+
 		return f.count();
 	}
 
@@ -754,13 +747,6 @@ public:
 		}
 	}
 
-	//EXAMPLE SOUND METHOD
-	void playSound(GW::AUDIO::GAudio& _audioEngine) {
-
-		GW::GReturn test = shoot.Create("../SoundFX/Player_Attack.wav", _audioEngine, 1.0f);
-		shoot.Play(false);
-	}
-
 	void AddSystems(std::shared_ptr<Level_Objects> level,
 		std::shared_ptr<flecs::world> game,
 		std::shared_ptr<GameConfig> gameConfig,
@@ -814,12 +800,12 @@ public:
 								hit.destruct();
 								UpdatePlayerHearts(*rm, *ps, 1);
 
-														
+
 							}
 
 							else if (hit.has<DD::Treasure>())
 							{
-								
+
 								Model m = hit.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
@@ -828,6 +814,8 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
+
+								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
 
 								if (m.name == "CrystalYellow") {
 									rm->treasureMenu->treasures[0]->text->render = true;
@@ -864,11 +852,10 @@ public:
 									rm->treasureMenu->treasures[5]->text->render = true;
 								}
 
-						
+
 								ps->treasures++;
 								updateTreasureCount(rm, -1);
 								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
-							
 							}
 							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
 							{
@@ -906,7 +893,7 @@ public:
 				});
 
 		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
-			.iter([immediateInput, game, level, bullSpeed,&_audioEngine, this](flecs::iter it, DD::Player*, DD::World* world)
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
 				{
 					for (auto i : it)
 					{
@@ -995,9 +982,6 @@ public:
 							e.set<DD::Name>({ modelToDupe.name });
 							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0} });
 							e.add<DD::Bullet>();
-
-							//FOR RALF
-							playSound(_audioEngine);
 
 							break;
 						}

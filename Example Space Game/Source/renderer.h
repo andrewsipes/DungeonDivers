@@ -3,8 +3,11 @@
 #include <chrono>
 #include "playerStats.h"
 #include <map>
+#include <thread>
 
-
+void LoadMainMenu(std::shared_ptr<Level_Objects> _lvl, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, GW::SYSTEM::GLog _log) {
+	_lvl->LoadMeshes(0, "../MainMenu.txt", "../Models/MainMenuModels", _log.Relinquish());	
+}
 
 // Creation, Rendering & Cleanup
 class RendererManager
@@ -28,7 +31,7 @@ class RendererManager
 	GameConfig* gameConfig;
 
 	//create level
-	Level_Objects* lvl;
+	std::shared_ptr<Level_Objects> lvl;
 
 	//Global variables for key inputs
 	bool tab;
@@ -51,18 +54,33 @@ public:
 	controlsMenuUi* controlsMenu;
 	gameOverUi* gameOverMenu;
 	std::vector <uiPanel*> panels;
+	loadingUi* loadScreen;
 
+	GW::SYSTEM::GLog log;
 
-	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, Level_Objects& Level)
+	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application)
 	{
+		lvl = std::make_shared<Level_Objects>();
 
 		//passed arguments for initializing
 		gameConfig = &_gameConfig;
 		win = _win;
 		ogl = _ogl;
 		app = &application;
-		lvl = &Level;
+		//lvl = &Level;
 
+		loadingUi* load = new loadingUi(*gameConfig);
+		loadScreen = load;
+		//LoadScreen
+		{
+			loadScreen->LoadMeshes("../load.txt", "../Models/loadScreen", log.Relinquish());
+			loadScreen->assign();
+			loadScreen->arrange();
+			loadScreen->start();
+			loadScreen->UploadLevelToGPU(cameraMatrix, viewMatrix, projectionMatrix);
+		}
+
+	
 		//sets default state for menu keybinds
 		tab = false;
 		t = false;
@@ -86,22 +104,12 @@ public:
 		//sets default state for freecam
 		freecam = true;
 
-		GW::SYSTEM::GLog log;
 
 		log.Create("output.txt");
 
 		//load ui Panels - this doesn't turn them on but simply lay out each UI for rendering later on.
 		initializePanels(log);
-
-		////PANELS/////
-		//pauseMenu->toggleRender();
 		mainMenuHUD->toggleRender();
-		//playerHUD->toggleRender();
-		//treasureMenu->toggleRender();
-		//controlsMenu->toggleRender();
-		//gameOverMenu->toggleRender();
-
-		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 		//create inputs
 		gController.Create();
@@ -114,6 +122,8 @@ public:
 
 		//initialize projection matrix based on FOV and near and far planes
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
+
+		std::thread(LoadMainMenu, lvl, ogl, cameraMatrix, viewMatrix, projectionMatrix, log).detach();
 	}
 
 	//initializes all panels
@@ -482,27 +492,42 @@ public:
 
 	//Render Loop for all objects (place Panels and Levels here);
 	void Render(){
-		lvl->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
-		for (uiPanel* panel : panels){
+		if (!lvl->meshesLoaded && !lvl->uploadedToGpu) {
+			loadScreen->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
-			if (panel == playerHUD && panel->render)
-			{
-				playerHUD->Render(cameraMatrix, viewMatrix, projectionMatrix);
-			}
+		}
 
-			else if (panel == gameOverMenu && panel->render)
-			{
-				gameOverMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
-			}
+		else if (lvl->meshesLoaded && !lvl->uploadedToGpu) {
+			lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+			loadScreen->Render(cameraMatrix, viewMatrix, projectionMatrix);
+		}
 
-			else if (panel == treasureMenu && panel->render)
-			{
-				treasureMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
-			}
 
-			else if (panel->render){
-				panel->Render(cameraMatrix, viewMatrix, projectionMatrix);
+		else if (lvl->meshesLoaded && lvl->uploadedToGpu) {
+
+			lvl->Render(cameraMatrix, viewMatrix, projectionMatrix);
+
+			for (uiPanel* panel : panels) {
+
+				if (panel == playerHUD && panel->render)
+				{
+					playerHUD->Render(cameraMatrix, viewMatrix, projectionMatrix);
+				}
+
+				else if (panel == gameOverMenu && panel->render)
+				{
+					gameOverMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
+				}
+
+				else if (panel == treasureMenu && panel->render)
+				{
+					treasureMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
+				}
+
+				else if (panel->render) {
+					panel->Render(cameraMatrix, viewMatrix, projectionMatrix);
+				}
 			}
 		}
 
@@ -510,17 +535,17 @@ public:
 	}
 
 	//swaps the level in render manager
-	void changeLevel(Level_Objects& level) {
-		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD->updateLevelText(level.getid());
-		lvl = &level;
+	void changeLevel(std::shared_ptr<Level_Objects> level) {
+		level->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD->updateLevelText(level->getid());
+		lvl = level;
 		playerHUD->startText->render = true;
 	}
 
 	//re loads the current level
-	void reloadLevel(Level_Objects& level) {
-		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD->updateLevelText(level.getid());
+	void reloadLevel(std::shared_ptr<Level_Objects> level) {
+		level->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD->updateLevelText(level->getid());
 
 	}
 
@@ -649,7 +674,7 @@ public:
 		Level = currentLevel;
 		AddEntities();
 		updateEnemyCount(rm, 0); updateTreasureCount(rm, 0);
-		rm->changeLevel(*currentLevel);
+		rm->changeLevel(currentLevel);
 
 	}
 
@@ -688,7 +713,7 @@ public:
 
 		}
 
-		_rendererManager->reloadLevel(*_currentLevel);
+		_rendererManager->reloadLevel(_currentLevel);
 		AddEntities();
 		resetHUDonRestartLevel(currentLevelId, _rendererManager, ps);
 	}
@@ -706,7 +731,7 @@ public:
 		RemoveEntities();
 
 		_lvl1->LoadMeshes(1, "../Level1.txt", "../Models/Level1", _log.Relinquish());
-		_rendererManager->changeLevel(*_lvl1);
+		_rendererManager->changeLevel(_lvl1);
 
 		AddEntities();
 		resetHUDonRestartGame(_rendererManager, _ps, _gameConfig);

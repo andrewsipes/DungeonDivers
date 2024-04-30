@@ -36,20 +36,10 @@ bool Application::Init()
 }
 
 bool Application::Run() {
-	leftMouse = false;
-	running = true;
-	levelComplete = false;
-
 	GEventResponder msgs;
-	log.Create("output.txt");
-
-	auto mainMenu = std::make_shared<Level_Objects>();
-	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
-
+	
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-
-	mainMenu->LoadMeshes(0, "../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-
+	
 	msgs.Create([&](const GW::GEvent& e) {
 		GW::SYSTEM::GWindow::Events q;
 		if (+e.Read(q) && q == GWindow::Events::RESIZE)
@@ -62,10 +52,19 @@ bool Application::Run() {
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 
 
+	RendererManager rendererManager(win, ogl, *gameConfig, *this);
+
+	leftMouse = false;
+	running = true;
+	levelComplete = false;
+
+	log.Create("output.txt");
+
+	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
+
 	currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", log.Relinquish());
 	gamePlayManager gpManager(currentLevel, game);
 	PlayerStats playerStats(*gameConfig);
-	RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
 
 	gpManager.AddEntities();
 	gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
@@ -110,7 +109,7 @@ bool Application::Run() {
 				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
-				rendererManager.changeLevel(*currentLevel);
+				rendererManager.changeLevel(currentLevel);
 				playerStats.updateHeartsBeforeDeath();
 				playerStats.updateScoreBeforeDeath();
 				rendererManager.playerHUD->startText->render = true;

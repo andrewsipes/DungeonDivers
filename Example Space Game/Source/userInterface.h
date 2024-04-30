@@ -128,6 +128,15 @@ public:
 
 	}
 
+	//same as load Defaults, but no alpha
+	void loadDefaultsNoAlpha() {
+
+		scale(-world.row1.x, world.row2.y);
+		translate({ -world.row4.x, world.row4.y });
+		rotateYAxis(180);
+
+	}
+
 	virtual void scale(float scaleX, float scaleY) {
 
 		//Retrived height and width of the window to scale properly
@@ -879,6 +888,32 @@ public:
 	}
 	virtual void start() {}
 
+};
+
+class loadingUi : public uiPanel {
+
+	uiModel* loadingText;
+
+public:
+	loadingUi(GameConfig& _gameConfig){
+
+		render = true;
+		gameConfig = &_gameConfig;
+	}
+
+	void assign() override {
+		loadingText = &allUiObjects[0];
+	}
+
+	void arrange() override {
+
+		loadingText->loadDefaultsNoAlpha();
+	}
+	void start() override {
+
+		loadingText->toggleRender();
+
+	}
 };
 
 //uiPanel but will house the individual components of the playerHUD

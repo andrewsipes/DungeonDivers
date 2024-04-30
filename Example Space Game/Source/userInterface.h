@@ -885,7 +885,7 @@ public:
 class playerUi : public uiPanel {
 
 public:
-	uiModel* levelText, * startText,* levelCompleteText, *enemyText, *treasureText, *scoreText, *highScoreText;
+	uiModel* levelText, * startText,* levelCompleteText, *enemyText, *treasureText, *scoreText, *highScoreText, *continueText;
 	std::vector<uiModel*> hearts, levelDigit, scoreDigit1, scoreDigit2, scoreDigit3, scoreDigit4, highScoreDigit1, highScoreDigit2, highScoreDigit3, highScoreDigit4, enemyDigit1, enemyDigit2, treasureDigit;
 
 	userButton* button;
@@ -1095,7 +1095,7 @@ public:
 		levelCompleteText = &allUiObjects[10];
 		enemyText = &allUiObjects[133];
 		treasureText = &allUiObjects[134];
-
+		continueText = &allUiObjects[135];
 
 		//assign hearts
 		for (int i = 0; i < 8; i++) {
@@ -1170,6 +1170,7 @@ public:
 		treasureText->loadDefaults();
 		scoreText->loadDefaults();
 		highScoreText->loadDefaults();
+		continueText->loadDefaults();
 
 		for (uiModel* heart : hearts) {
 			heart->loadDefaults();
@@ -1241,6 +1242,7 @@ public:
 		treasureDigit[0]->toggleRender();
 		highScoreText->toggleRender();
 		scoreText->toggleRender();
+
 	}
 };
 

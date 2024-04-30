@@ -41,6 +41,7 @@ bool Application::Run() {
 	
 	leftMouse = false;
 	running = true;
+	levelComplete = false;
 
 	GEventResponder msgs;
 	log.Create("output.txt");
@@ -90,11 +91,15 @@ bool Application::Run() {
 			rendererManager.freecam = false;
 		}
 #endif
+		if (levelComplete && !(GetAsyncKeyState(VK_SPACE) & 0x8000)) {
+			levelComplete = false;
+		}
 
 		//Return Left Mouse state for re-use
 		if (leftMouse && !(GetAsyncKeyState(VK_LBUTTON) & 0x8000)) {
 			leftMouse = false;
 		}
+
 
 		//event Handling for the mainMenu - starts the game
 		else if (rendererManager.mainMenuHUD->render && !rendererManager.controlsMenu->render) {
@@ -147,17 +152,26 @@ bool Application::Run() {
 			}
 		}
 
-		if (gpManager.getTreasuresInLevel() <= 0 && !rendererManager.gameOverMenu->render) {
+		if (gpManager.getTreasuresInLevel() <= 0) {
 
+			rendererManager.playerHUD->levelCompleteText->render = true;
+			rendererManager.playerHUD->continueText->render = true;
+
+			if (!levelComplete && (GetAsyncKeyState(VK_SPACE) & 0x8000)) {
+				levelComplete = true;
+			}
+
+		}
+
+		if (levelComplete && !rendererManager.gameOverMenu->render) {
+			
 			switch (playerStats.treasures) {
 
 			case 3:
-				rendererManager.playerHUD->levelCompleteText->render = true;
 				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				break;
 			case 6:
-				rendererManager.playerHUD->levelCompleteText->render = true;
 				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				break;

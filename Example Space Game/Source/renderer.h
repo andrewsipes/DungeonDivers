@@ -507,6 +507,7 @@ public:
 		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		playerHUD->updateLevelText(level.getid());
 		lvl = &level;
+		playerHUD->startText->render = true;
 	}
 
 	//re loads the current level
@@ -630,6 +631,9 @@ public:
 	//loads the next level
 	void nextLevel(std::shared_ptr<Level_Objects> currentLevel, PlayerStats* ps, RendererManager* rm, GW::SYSTEM::GLog log) {
 
+		rm->playerHUD->levelCompleteText->render = false;
+		rm->playerHUD->continueText->render = false;
+
 		ps->updateHeartsBeforeDeath();	ps->updateScoreBeforeDeath(); ps->updateTreasuresBeforeDeath();
 		RemoveEntities();
 		
@@ -658,6 +662,8 @@ public:
 	void updateTreasureCount(RendererManager* _rendererManager, int update) {
 		auto f = game->filter<DD::Treasure>();
 		_rendererManager->playerHUD->updateTreasure(f.count(), update);
+
+
 	}
 
 	//removes all entities from the level and reloads the meshes based on id
@@ -779,15 +785,16 @@ public:
 					float xaxis = 0, input = 0, zaxis = 0;
 					GW::INPUT::GInput t = immediateInput;
 
-					t.GetState(G_KEY_A, input); xaxis -= input;
-					t.GetState(G_KEY_D, input); xaxis += input;
-					t.GetState(G_KEY_S, input); zaxis -= input;
-					t.GetState(G_KEY_W, input); zaxis += input;
+					if (!rm->playerHUD->levelCompleteText->render) {
+						t.GetState(G_KEY_A, input); xaxis -= input;
+						t.GetState(G_KEY_D, input); xaxis += input;
+						t.GetState(G_KEY_S, input); zaxis -= input;
+						t.GetState(G_KEY_W, input); zaxis += input;
+					}
 
 					if (rm->playerHUD->startText->render && (xaxis !=0 || zaxis !=0)) {
 						rm->playerHUD->startText->render = false;
 					}
-
 
 					GW::MATH::GVECTORF v = { xaxis * it.delta_time() * speed, 0, zaxis * it.delta_time() * speed };
 					auto e = game->lookup("MegaBee");
@@ -812,6 +819,7 @@ public:
 
 							else if (hit.has<DD::Treasure>())
 							{
+								
 								Model m = hit.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
@@ -856,6 +864,7 @@ public:
 									rm->treasureMenu->treasures[5]->text->render = true;
 								}
 
+						
 								ps->treasures++;
 								updateTreasureCount(rm, -1);
 								UpdatePlayerScore(*rm, *ps, gameConfig, 150);

@@ -61,7 +61,7 @@ class Application
 
 public:
 	GW::SYSTEM::GLog log;
-	bool running;
+	bool running, levelComplete;
 	bool Init();
 	bool Run();
 	bool Shutdown();

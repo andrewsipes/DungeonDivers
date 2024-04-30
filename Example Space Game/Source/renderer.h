@@ -759,8 +759,12 @@ public:
 			e.set<DD::World>({ i.world });
 			e.set<Models>({ i });
 
-			if (i.name.substr(0, 5) == "alien")
+			if (i.name.substr(0, 5) == "alien") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
+			{
 				e.add<DD::Enemy>();
+				e.add<DD::BeholdEnemy>();
+				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
+			}
 
 			if (i.name.substr(0, 9) != "RealFloor")
 				e.set<DD::Collidable>({ i.obb });
@@ -893,7 +897,7 @@ public:
 								updateTreasureCount(rm, -1);
 								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
 							}
-							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>()))
+							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>() || hit.has<DD::AmDead>()))
 							{
 								e.set<DD::World>({ e.get<DD::LastWorld>()->value });
 							}
@@ -905,6 +909,294 @@ public:
 				}
 			});
 
+		flecs::system SpikyEnemyMoveSystem = game->system<DD::SpikeEnemy, DD::Name, DD::Enemy>("Spiky Boi Enemy Move System")
+			.iter([speed, game, level, this, rm, ps, &gameConfig, &_audioEngine](flecs::iter it, DD::SpikeEnemy*, DD::Name* n, DD::Enemy*)
+				{
+					for (auto i : it)
+					{
+			
+						auto e = game->lookup(n[i].name.c_str());
+						auto pl = game->lookup("MegaBee");
+						//distance from player to enemy
+						float distance = sqrt(	pow((e.get<DD::World>()->value.row4.x - pl.get<DD::World>()->value.row4.x), 2) + 
+												pow((e.get<DD::World>()->value.row4.z - pl.get<DD::World>()->value.row4.z), 2));
+
+						DD::World* edit = game->entity(e).get_mut<DD::World>();
+						if (distance >= 10)
+						{
+							//Random Movement Vector
+							if (!e.has<DD::MoveCooldown>())
+							{
+								float xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								float zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
+								e.set<DD::MoveCooldown>({ 4 }); // add a cooldown before the enemy can random move again
+								GW::MATH::GMATRIXF out;
+								// for some reason doesn't look in the direction that its going?? idk
+								GW::MATH::GMatrix::LookAtRHF(	GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
+																GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z },
+																GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
+								out.row4 = e.get<DD::World>()->value.row4;
+								edit->value = out;
+								GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
+								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
+
+							}
+						}
+						else if (distance < 10 && distance >= 2) // chase distance 
+						{
+							GW::MATH::GMATRIXF out;
+							// should be getting the enemy to look at the player, want to do this in 2D, but didn't find anything to let me do that..
+							// disregard last comment.. i think this works.. hopefully.. maybe?
+							GW::MATH::GMatrix::LookAtRHF(	GW::MATH::GVECTORF{	pl.get<DD::World>()->value.row4.x, 0, pl.get<DD::World>()->value.row4.z }, 
+															GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z }, 
+															GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
+							out.row4 = e.get<DD::World>()->value.row4;
+							edit->value = out;
+							GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
+							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
+							e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ -.05f,0,0} });
+						}
+						else // SPIIIIIN
+						{
+							GW::MATH::GMatrix::RotateYGlobalF(edit->value, D2R(2000) * it.delta_time(), edit->value);
+							e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ -.05f,0,0} });
+						}
+
+						GW::MATH::GVECTORF v = GW::MATH::GVECTORF{ e.get<DD::EnemyVel>()->value.x, 0 , e.get<DD::EnemyVel>()->value.z };
+			
+						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
+							{
+								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
+								{
+									hit.set<DD::IFrame>({ 2 });
+									UpdatePlayerHearts(*rm, *ps, -2);
+								}
+								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
+								{
+									e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+									e.set<DD::MoveCooldown>({-1});
+								}
+			
+								hit.remove<DD::CollidedWith>(e);
+								e.remove<DD::CollidedWith>(hit);
+							});
+						e.set<DD::LastWorld>({ e.get<DD::World>()->value });
+						GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+					}
+				});
+
+		flecs::system MushEnemyMoveSystem = game->system<DD::MushEnemy, DD::Name, DD::Enemy>("Mushroom Enemy Move System") // Base Movement system
+			.iter([speed, game, level, this, rm, ps, &gameConfig, &_audioEngine](flecs::iter it, DD::MushEnemy*, DD::Name* n, DD::Enemy*)
+				{
+					for (auto i : it)
+					{
+
+						auto e = game->lookup(n[i].name.c_str());
+						auto pl = game->lookup("MegaBee");
+						//distance from player to enemy
+						float distance = sqrt(pow((e.get<DD::World>()->value.row4.x - pl.get<DD::World>()->value.row4.x), 2) +
+							pow((e.get<DD::World>()->value.row4.z - pl.get<DD::World>()->value.row4.z), 2));
+
+						DD::World* edit = game->entity(e).get_mut<DD::World>();
+						if (distance >= 15)
+						{
+							//Random Movement Vector
+							if (!e.has<DD::MoveCooldown>())
+							{
+								float xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								float zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
+								e.set<DD::MoveCooldown>({ 4 }); // add a cooldown before the enemy can random move again
+								GW::MATH::GMATRIXF out;
+								// for some reason doesn't look in the direction that its going?? idk
+								GW::MATH::GMatrix::LookAtRHF(GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
+									GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z },
+									GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
+								out.row4 = e.get<DD::World>()->value.row4;
+								edit->value = out;
+								GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
+								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
+
+							}
+						}
+						else // chase distance 
+						{
+							GW::MATH::GMATRIXF out;
+							// should be getting the enemy to look at the player, want to do this in 2D, but didn't find anything to let me do that..
+							// disregard last comment.. i think this works.. hopefully.. maybe?
+							GW::MATH::GMatrix::LookAtRHF(GW::MATH::GVECTORF{ pl.get<DD::World>()->value.row4.x, 0, pl.get<DD::World>()->value.row4.z },
+								GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z },
+								GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
+							out.row4 = e.get<DD::World>()->value.row4;
+							edit->value = out;
+							GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
+							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
+							e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ -.05f,0,0} });
+						}
+
+						GW::MATH::GVECTORF v = GW::MATH::GVECTORF{ e.get<DD::EnemyVel>()->value.x, 0 , e.get<DD::EnemyVel>()->value.z };
+
+						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
+							{
+								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
+								{
+									hit.set<DD::IFrame>({ 2 });
+									UpdatePlayerHearts(*rm, *ps, -1);
+								}
+								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
+								{
+									e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+								}
+
+						hit.remove<DD::CollidedWith>(e);
+						e.remove<DD::CollidedWith>(hit);
+							});
+						e.set<DD::LastWorld>({ e.get<DD::World>()->value });
+						GW::MATH::GMatrix::TranslateLocalF(edit->value, v, edit->value);
+					}
+				});
+
+		flecs::system BeholdSystem = game->system<DD::BeholdEnemy, DD::Name, DD::Enemy>("Beholder Handleing System")
+			.iter([speed, game, level, this, rm, ps, &gameConfig, &_audioEngine](flecs::iter it, DD::BeholdEnemy*, DD::Name* n, DD::Enemy*)
+				{
+					for (auto i : it)
+					{
+
+						auto e = game->lookup(n[i].name.c_str());
+						auto pl = game->lookup("MegaBee");
+						//distance from player to enemy
+						float distance = sqrt(pow((e.get<DD::World>()->value.row4.x - pl.get<DD::World>()->value.row4.x), 2) +
+							pow((e.get<DD::World>()->value.row4.z - pl.get<DD::World>()->value.row4.z), 2));
+						DD::World* edit = game->entity(e).get_mut<DD::World>();
+
+						if (distance <= 15)
+							if (!e.has<DD::MoveCooldown>())
+							{
+								Model m;
+								m.name = "BeeStinger"; // change this
+								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+								if (found != level->allObjectsInLevel.end())
+								{
+									size_t index = found - level->allObjectsInLevel.begin();
+									m = level->allObjectsInLevel[index];
+								}
+
+								std::string count;
+								auto f = game->filter<DD::EnemyCountBullet>();
+								count = std::to_string(f.count());
+
+								auto tempEnt = game->entity(count.c_str());
+								tempEnt.add<DD::EnemyCountBullet>();
+
+								m.world = e.get<DD::World>()->value;
+								m.name += count;
+								auto bull = game->entity(m.name.c_str());
+								GW::MATH::GMatrix::RotateZLocalF(m.world, D2R(90), m.world);
+								level->allObjectsInLevel.push_back(m);
+
+								bull.set<Models>({ m });
+								bull.set<DD::Collidable>({ m.obb });
+								bull.set<DD::World>({ m.world });
+								bull.set<DD::Name>({ m.name });
+								bull.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0.5, 0} });
+								bull.add<DD::EnemyBullet>();
+
+								e.set<DD::MoveCooldown>({ 2 });
+
+							}
+						{
+							GW::MATH::GMATRIXF out;
+							// should be getting the enemy to look at the player, want to do this in 2D, but didn't find anything to let me do that..
+							// disregard last comment.. i think this works.. hopefully.. maybe?
+							GW::MATH::GMatrix::LookAtRHF(GW::MATH::GVECTORF{ pl.get<DD::World>()->value.row4.x, 0, pl.get<DD::World>()->value.row4.z },
+								GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z },
+								GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
+							out.row4 = e.get<DD::World>()->value.row4;
+							edit->value = out;
+							GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
+							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
+
+						}
+
+						e.each<DD::CollidedWith>([&e, level, game, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
+							{
+								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
+								{
+									hit.set<DD::IFrame>({ 2 });
+									UpdatePlayerHearts(*rm, *ps, -1);
+								}
+								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
+								{
+									e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+								}
+
+						hit.remove<DD::CollidedWith>(e);
+						e.remove<DD::CollidedWith>(hit);
+							});
+						e.set<DD::LastWorld>({ e.get<DD::World>()->value });
+					}
+				});
+
+		flecs::system handleSpinDead = game->system<DD::AmDead, DD::Name>("Spin to win System")
+			.iter([game, level](flecs::iter it, DD::AmDead* IF, DD::Name* name)
+				{
+					for (auto i : it)
+					{
+						auto e = game->lookup(name[i].name.c_str());
+						DD::AmDead* time = game->entity(e).get_mut<DD::AmDead>();
+						DD::World* edit = game->entity(e).get_mut<DD::World>();
+						GW::MATH::GMatrix::TranslateLocalF(edit->value, GW::MATH::GVECTORF{ 0, -1.5f * it.delta_time(), 0}, edit->value);
+						GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(700) * it.delta_time(), edit->value);
+						time->value -= it.delta_time();
+							
+
+						if (time->value <= 0)
+						{
+							Model m = e.get<Models>()->mod;
+							auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+
+							if (found != level->allObjectsInLevel.end())
+							{
+								level->allObjectsInLevel.erase(found);
+							}
+							e.destruct();
+						}
+					}
+				});
+
+		flecs::system handleIFrames = game->system<DD::IFrame, DD::Name>("Handle IFrames")
+			.iter([game](flecs::iter it, DD::IFrame* IF, DD::Name* name)
+				{
+					for (auto i : it)
+					{
+						auto e = game->lookup(name[i].name.c_str());
+						DD::IFrame* edit = game->entity(e).get_mut<DD::IFrame>();
+						edit->value -= it.delta_time();
+
+						if (edit->value <= 0)
+						{
+							e.remove<DD::IFrame>();
+						}
+					}
+				});
+
+		flecs::system movementCooldown = game->system<DD::MoveCooldown, DD::Name>("Movement Cooldown")
+			.iter([game](flecs::iter it, DD::MoveCooldown* IF, DD::Name* name)
+				{
+					for (auto i : it)
+					{
+						auto e = game->lookup(name[i].name.c_str());
+						DD::MoveCooldown* edit = game->entity(e).get_mut<DD::MoveCooldown>();
+						edit->value -= it.delta_time();
+
+						if (edit->value <= 0)
+						{
+							e.remove<DD::MoveCooldown>();
+						}
+					}
+				});
 
 		flecs::system heartRotate = game->system<DD::Heart, DD::Name>("Rotate Heart")
 			.iter([level, game](flecs::iter it, DD::Heart*, DD::Name* name)
@@ -1099,13 +1391,16 @@ public:
 								Model m = hit.get<Models>()->mod;
 								if (hit.has <DD::Enemy>())
 								{
-									auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
+									/*auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
 									if (found != level->allObjectsInLevel.end())
 									{
 										level->allObjectsInLevel.erase(found);
 									}
-									hit.destruct();
+									hit.destruct();*/
+									hit.remove<DD::Enemy>();
+									hit.set<DD::AmDead>({ 3 });
+
 									updateEnemyCount(rm, -1);
 									UpdatePlayerScore(*rm, *ps, gameConfig, 50); // update score if we hit an enemy
 
@@ -1134,41 +1429,55 @@ public:
 						});
 				});
 
-	//flecs::system enemyCollisionSystem = game->system<DD::Enemy>("Enemy Collision System")
-	//	.each([level](flecs::entity pl, DD::Enemy)
-	//		{
-	//			pl.each<DD::CollidedWith>([&pl, level](flecs::entity hit)
-	//				{
-	//					if (!(hit.has<DD::Bullet>()))
-	//					{
-	//						hit.remove<DD::CollidedWith>();
-	//
-	//					}
-	//					pl.destruct();
-	//				});
-	//		});
-
-	flecs::system bulletMove = game->system<DD::BulletVel, DD::World, DD::Name, Models>("Bullet Move System")
-		.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::BulletVel* v, DD::World* w, DD::Name* n, Models* m)
-			{
-				for (auto i : it)
+		flecs::system enemyBulletSystem = game->system<DD::EnemyBullet>("Enemy Bullet System")
+			.each([level, rm, ps, &gameConfig, game, this](flecs::entity arrow, DD::EnemyBullet)
 				{
-					auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m[i].mod);
+					// damage anything we come into contact with
+					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this](flecs::entity hit)
+						{
+							if (!(hit.has<DD::Enemy>() || hit.has<DD::EnemyBullet>() || hit.has<DD::Heart>() || hit.has<DD::Treasure>()))
+							{
+								Model m = hit.get<Models>()->mod;
+								if (hit.has <DD::Player>())
+								{
+									hit.set<DD::IFrame>({ 2 });
+									UpdatePlayerHearts(*rm, *ps, -1);
+								}
+								m = arrow.get<Models>()->mod;
+								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
-					if (found != level->allObjectsInLevel.end())
+								if (found != level->allObjectsInLevel.end())
+								{
+									level->allObjectsInLevel.erase(found);
+
+								}
+								arrow.destruct();
+							}
+
+						});
+				});
+
+		flecs::system bulletMove = game->system<DD::BulletVel, DD::World, DD::Name, Models>("Bullet Move System")
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::BulletVel* v, DD::World* w, DD::Name* n, Models* m)
+				{
+					for (auto i : it)
 					{
-						size_t index = found - level->allObjectsInLevel.begin();
+						auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m[i].mod);
 
-						GW::MATH::GVECTORF moveVec = { 0, v[i].value.y * it.delta_time() * bullSpeed, 0 };
-						auto e = game->lookup(n[i].name.c_str());
-						DD::World* edit = game->entity(e).get_mut<DD::World>();
-						GW::MATH::GMatrix::TranslateLocalF(edit->value, moveVec, edit->value);
-						GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(1000)* it.delta_time(), edit->value);
+						if (found != level->allObjectsInLevel.end())
+						{
+							size_t index = found - level->allObjectsInLevel.begin();
 
-						level->allObjectsInLevel[index].world = edit->value;
+							GW::MATH::GVECTORF moveVec = { 0, v[i].value.y * it.delta_time() * bullSpeed, 0 };
+							auto e = game->lookup(n[i].name.c_str());
+							DD::World* edit = game->entity(e).get_mut<DD::World>();
+							GW::MATH::GMatrix::TranslateLocalF(edit->value, moveVec, edit->value);
+							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(1000)* it.delta_time(), edit->value);
+
+							level->allObjectsInLevel[index].world = edit->value;
+						}
 					}
-				}
-			});
+				});
 
 	}
 

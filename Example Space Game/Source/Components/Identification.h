@@ -7,8 +7,14 @@ namespace DD
 {
 	struct Player {};
 	struct Bullet {};
-	struct CountBullet{};
+	struct EnemyBullet {};
+	struct CountBullet {};
+	struct EnemyCountBullet {};
 	struct Enemy {};
+	struct MushEnemy {};
+	struct SpikeEnemy {};
+	struct BeholdEnemy {};
+	struct AmDead { float value; };
 	struct Lives {};
 	struct Treasure {};
 	struct Heart {};

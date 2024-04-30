@@ -12,6 +12,7 @@ using namespace SYSTEM;
 using namespace GRAPHICS;
 using namespace GW::AUDIO;
 
+loadingUi* load;
 
 bool Application::Init()
 {
@@ -21,6 +22,15 @@ bool Application::Init()
 	gameConfig = std::make_shared<GameConfig>();
 	// create the ECS system
 	game = std::make_shared<flecs::world>();
+
+	load = new loadingUi(*gameConfig);
+	load->LoadMeshes("../load.txt", "../Models/loadScreen", log.Relinquish());
+	load->assign();
+	load->arrange();
+	load->start();
+
+	
+
 	// init all other systems
 	if (InitWindow() == false)
 		return false;
@@ -51,8 +61,9 @@ bool Application::Run() {
 	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 
+	ogl.UniversalSwapBuffers();
 
-	RendererManager rendererManager(win, ogl, *gameConfig, *this);
+	RendererManager rendererManager(win, ogl, *gameConfig, *this, load);
 
 	leftMouse = false;
 	running = true;

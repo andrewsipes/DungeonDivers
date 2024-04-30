@@ -550,6 +550,7 @@ private:
 public:
 	bool meshesLoaded;
 	bool uploadedToGpu;
+	bool loading = false;
 
 	std::vector<Model> allObjectsInLevel;
 
@@ -560,6 +561,7 @@ public:
 	// Imports the default level txt format and creates a Model from each .h2b
 	bool virtual LoadMeshes(int level_id, const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log)
 	{
+		loading = true;
 		meshesLoaded = false;
 		//Default light stuff, should be removed later if not used
 		{

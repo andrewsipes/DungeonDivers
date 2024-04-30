@@ -58,8 +58,10 @@ public:
 
 	GW::SYSTEM::GLog log;
 
-	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application)
+	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, loadingUi* load)
 	{
+	
+
 		lvl = std::make_shared<Level_Objects>();
 
 		//passed arguments for initializing
@@ -67,20 +69,11 @@ public:
 		win = _win;
 		ogl = _ogl;
 		app = &application;
-		//lvl = &Level;
 
-		loadingUi* load = new loadingUi(*gameConfig);
+
 		loadScreen = load;
-		//LoadScreen
-		{
-			loadScreen->LoadMeshes("../load.txt", "../Models/loadScreen", log.Relinquish());
-			loadScreen->assign();
-			loadScreen->arrange();
-			loadScreen->start();
-			loadScreen->UploadLevelToGPU(cameraMatrix, viewMatrix, projectionMatrix);
-		}
-
-	
+		loadScreen->UploadLevelToGPU(cameraMatrix, viewMatrix, projectionMatrix);
+			
 		//sets default state for menu keybinds
 		tab = false;
 		t = false;
@@ -123,7 +116,8 @@ public:
 		//initialize projection matrix based on FOV and near and far planes
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
 
-		std::thread(LoadMainMenu, lvl, ogl, cameraMatrix, viewMatrix, projectionMatrix, log).detach();
+
+		
 	}
 
 	//initializes all panels
@@ -491,11 +485,14 @@ public:
 	}
 
 	//Render Loop for all objects (place Panels and Levels here);
-	void Render(){
+	void Render() {
+
 
 		if (!lvl->meshesLoaded && !lvl->uploadedToGpu) {
 			loadScreen->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
+			if(!lvl->loading)
+				std::thread(LoadMainMenu, lvl, ogl, cameraMatrix, viewMatrix, projectionMatrix, log).detach();
 		}
 
 		else if (lvl->meshesLoaded && !lvl->uploadedToGpu) {
@@ -533,6 +530,8 @@ public:
 
 		eventHandling();
 	}
+
+
 
 	//swaps the level in render manager
 	void changeLevel(std::shared_ptr<Level_Objects> level) {

@@ -733,7 +733,7 @@ public:
 			if (i.name.substr(0, 5) == "alien") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
 				e.add<DD::Enemy>();
-				e.add<DD::BeholdEnemy>();
+				e.add<DD::SpikeEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
 			}
 
@@ -1020,6 +1020,7 @@ public:
 								{
 									hit.set<DD::IFrame>({ 2 });
 									UpdatePlayerHearts(*rm, *ps, -1);
+
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
@@ -1083,7 +1084,7 @@ public:
 								e.set<DD::MoveCooldown>({ 2 });
 
 							}
-						{
+						
 							GW::MATH::GMATRIXF out;
 							// should be getting the enemy to look at the player, want to do this in 2D, but didn't find anything to let me do that..
 							// disregard last comment.. i think this works.. hopefully.. maybe?
@@ -1095,7 +1096,7 @@ public:
 							GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
 							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
 
-						}
+						
 
 						e.each<DD::CollidedWith>([&e, level, game, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
 							{

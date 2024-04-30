@@ -852,7 +852,7 @@ public:
 			auto entity = game->lookup(m.name.c_str());
 			auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
-			if (found != level->allObjectsInLevel.end())
+			if (found != level->allObjectsInLevel.end() && entity.is_alive())
 			{
 				size_t index = found - level->allObjectsInLevel.begin();
 				level->allObjectsInLevel[index].world = entity.get<DD::World>()->value;

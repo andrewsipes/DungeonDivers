@@ -536,7 +536,11 @@ public:
 	std::shared_ptr<flecs::world> game;
 
 	//PUT SOUNDS HERE
-	GW::AUDIO::GMusic shoot;
+	GW::AUDIO::GSound playerShoot;
+	GW::AUDIO::GSound playerHeart;
+	GW::AUDIO::GSound playerTreasure;
+	GW::AUDIO::GSound enemyDeath;
+	GW::AUDIO::GSound wallsDestroy;
 	GW::GReturn test;
 
 	gamePlayManager(std::shared_ptr <Level_Objects> _Level,
@@ -755,11 +759,36 @@ public:
 	}
 
 	//EXAMPLE SOUND METHOD
-	void playSound(GW::AUDIO::GAudio& _audioEngine) {
+	void playerShootSound(GW::AUDIO::GAudio& _audioEngine) {
 
-		GW::GReturn test = shoot.Create("../SoundFX/Player_Attack.wav", _audioEngine, 1.0f);
-		shoot.Play(false);
+		GW::GReturn test = playerShoot.Create("../SoundFX/Player_Attack.wav", _audioEngine, 0.002f);
+		playerShoot.Play();
 	}
+
+	void playerHeartSound(GW::AUDIO::GAudio _audioEngine)
+	{
+		GW::GReturn test = playerHeart.Create("../SoundFX/Heart_Pickup.wav", _audioEngine, 0.02f);
+		playerHeart.Play();
+	}
+
+	void playerTreasureSound(GW::AUDIO::GAudio _audioEngine)
+	{
+		GW::GReturn test = playerTreasure.Create("../SoundFX/Treasure_Metal.wav", _audioEngine, 0.02f);
+		playerTreasure.Play();
+	}
+
+	void enemyDeathSound(GW::AUDIO::GAudio _audioEngine)
+	{
+		GW::GReturn test = enemyDeath.Create("../SoundFX/Enemy_1_Death.wav", _audioEngine, 0.01f);
+		enemyDeath.Play();
+	}
+
+	void wallsDestroySound(GW::AUDIO::GAudio _audioEngine)
+	{
+		GW::GReturn test = wallsDestroy.Create("../SoundFX/Walls_Destroy.wav", _audioEngine, 0.01f);
+		wallsDestroy.Play();
+	}
+
 
 	void AddSystems(std::shared_ptr<Level_Objects> level,
 		std::shared_ptr<flecs::world> game,
@@ -802,6 +831,7 @@ public:
 
 					e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
 						{
+							//Heart Collision
 							if (hit.has<DD::Heart>())
 							{
 								Model m = hit.get<Models>()->mod;
@@ -812,11 +842,12 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
+								playerHeartSound(_audioEngine);
 								UpdatePlayerHearts(*rm, *ps, 1);
 
 														
 							}
-
+							//Treasure Collision
 							else if (hit.has<DD::Treasure>())
 							{
 								
@@ -828,6 +859,7 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
+								playerTreasureSound(_audioEngine);
 
 								if (m.name == "CrystalYellow") {
 									rm->treasureMenu->treasures[0]->text->render = true;
@@ -906,7 +938,7 @@ public:
 				});
 
 		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
-			.iter([immediateInput, game, level, bullSpeed,&_audioEngine, this](flecs::iter it, DD::Player*, DD::World* world)
+			.iter([immediateInput, game, level, bullSpeed, &_audioEngine, this](flecs::iter it, DD::Player*, DD::World* world)
 				{
 					for (auto i : it)
 					{
@@ -995,9 +1027,7 @@ public:
 							e.set<DD::Name>({ modelToDupe.name });
 							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0} });
 							e.add<DD::Bullet>();
-
-							//FOR RALF
-							playSound(_audioEngine);
+							playerShootSound(_audioEngine);
 
 							break;
 						}
@@ -1019,6 +1049,7 @@ public:
 							e.set<DD::Name>({ modelToDupe.name });
 							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0 } });
 							e.add<DD::Bullet>();
+							playerShootSound(_audioEngine);
 							break;
 						}
 
@@ -1039,6 +1070,7 @@ public:
 							e.set<DD::Name>({ modelToDupe.name });
 							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0 } });
 							e.add<DD::Bullet>();
+							playerShootSound(_audioEngine);
 							break;
 						}
 
@@ -1059,6 +1091,7 @@ public:
 							e.set<DD::Name>({ modelToDupe.name });
 							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0 } });
 							e.add<DD::Bullet>();
+							playerShootSound(_audioEngine);
 							break;
 						}
 
@@ -1069,10 +1102,10 @@ public:
 				});
 
 		flecs::system bulletSystem = game->system<DD::Bullet>("Bullet System")
-			.each([level, rm, ps, &gameConfig, game, this](flecs::entity arrow, DD::Bullet)
+			.each([level, rm, ps, &gameConfig, game, this, &_audioEngine](flecs::entity arrow, DD::Bullet)
 				{
 					// damage anything we come into contact with
-					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this](flecs::entity hit)
+					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this, _audioEngine](flecs::entity hit)
 						{
 							if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>() || hit.has<DD::Heart>() || hit.has<DD::Treasure>()))
 							{
@@ -1086,6 +1119,7 @@ public:
 										level->allObjectsInLevel.erase(found);
 									}
 									hit.destruct();
+									enemyDeathSound(_audioEngine);
 									updateEnemyCount(rm, -1);
 									UpdatePlayerScore(*rm, *ps, gameConfig, 50); // update score if we hit an enemy
 
@@ -1099,6 +1133,7 @@ public:
 										level->allObjectsInLevel.erase(found);
 									}
 									hit.destruct();
+									wallsDestroySound(_audioEngine);
 								}
 								m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);

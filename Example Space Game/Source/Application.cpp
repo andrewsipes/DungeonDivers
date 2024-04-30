@@ -12,12 +12,12 @@ using namespace SYSTEM;
 using namespace GRAPHICS;
 using namespace GW::AUDIO;
 
+int currentLevelNumber = 0;
+std::map<std::string, GW::AUDIO::GSound> musicTracks;
 
 bool Application::Init()
 {
-	eventPusher.Create();
-		GW::AUDIO::GSound shoot;
-					GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
+
 
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>();
@@ -76,6 +76,7 @@ bool Application::Run() {
 	auto& mainMenuMusic = musicTracks["MainMenu"];
 	mainMenuMusic.Play(true);
 
+
 	while (+win.ProcessWindowEvents() && running == true)
 	{
 		currentLevel->Update(game, currentLevel);
@@ -114,6 +115,9 @@ bool Application::Run() {
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
 				rendererManager.changeLevel(*currentLevel);
+				//Attempting to stop the main menu music and start level 1 music, but only the main menu stops
+				//mainMenuMusic.Stop();
+				//currentLevelNumber = 1;
 				playerStats.updateHeartsBeforeDeath();
 				playerStats.updateScoreBeforeDeath();
 				rendererManager.playerHUD->startText->render = true;
@@ -176,11 +180,13 @@ bool Application::Run() {
 
 			case 3:
 				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
-				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);		
+				currentLevelNumber = 2;
 				break;
 			case 6:
 				gpManager.nextLevel(currentLevel, &playerStats, &rendererManager, log);
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
+				currentLevelNumber = 3;
 				break;
 			case 9:
 				gpManager.RemoveEntities();	
@@ -191,6 +197,13 @@ bool Application::Run() {
 			default:
 				//do nothing
 				break;
+			}
+			//Music counter which works with the LoadAudio musicTrack container
+			std::string levelMusic = "Level" + std::to_string(currentLevelNumber);
+			auto musicIter = musicTracks.find(levelMusic);
+			if (musicIter != musicTracks.end()) {
+				auto& levelMusicTrack = musicIter->second;
+				levelMusicTrack.Play(true);
 			}
 		}
 
@@ -281,22 +294,22 @@ bool Application::LoadAudioResources()
 		return false;
 	}
 
-	//Load up the SFX
-	if (!loadAudio(soundEffects, "PlayerShoot", "../SoundFX/Player_Attack.wav", 0.2f) ||
-		!loadAudio(soundEffects, "PlayerDamage", "../SoundFX/Player_Death.wav", 0.2f) ||
-		!loadAudio(soundEffects, "EnemyDeath1", "../SoundFX/Enemy_1_Death.wav", 0.2f) ||
-		!loadAudio(soundEffects, "EnemyDeath2", "../SoundFX/Enemy_2_Death.wav", 0.2f) ||
-		!loadAudio(soundEffects, "EnemyDeath3", "../SoundFX/Enemy_3_Death.wav", 0.2f) ||
-		!loadAudio(soundEffects, "TreasureMetal", "../SoundFX/Treasure_Metal.wav", 0.2f) ||
-		!loadAudio(soundEffects, "TreasurePaper", "../SoundFX/Treasure_Paper.wav", 0.2f) ||
-		!loadAudio(soundEffects, "UIAccept", "../SoundFX/UI_Menu_Accept.wav", 0.2f) ||
-		!loadAudio(soundEffects, "UIScroll", "../SoundFX/UI_Menu_Scroll.wav", 0.2f) ||
-		!loadAudio(soundEffects, "UIClick", "../SoundFX/UI_Click.wav", 0.2f) ||
-		!loadAudio(soundEffects, "LevelTransition", "../SoundFX/Level_Transition.wav", 0.2f))
+	////Load up the SFX
+	//if (!loadAudio(soundEffects, "PlayerShoot", "../SoundFX/Player_Attack.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "PlayerDamage", "../SoundFX/Player_Death.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "EnemyDeath1", "../SoundFX/Enemy_1_Death.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "EnemyDeath2", "../SoundFX/Enemy_2_Death.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "EnemyDeath3", "../SoundFX/Enemy_3_Death.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "TreasureMetal", "../SoundFX/Treasure_Metal.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "TreasurePaper", "../SoundFX/Treasure_Paper.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "UIAccept", "../SoundFX/UI_Menu_Accept.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "UIScroll", "../SoundFX/UI_Menu_Scroll.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "UIClick", "../SoundFX/UI_Click.wav", 0.2f) ||
+	//	!loadAudio(soundEffects, "LevelTransition", "../SoundFX/Level_Transition.wav", 0.2f))
 
-	{
-		return false;
-	}
+	//{
+	//	return false;
+	//}
 #ifndef NDEBUG
 	std::cout << "All music and sfx loaded!" << std::endl;
 #endif

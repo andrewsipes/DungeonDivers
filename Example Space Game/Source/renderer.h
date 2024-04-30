@@ -531,8 +531,6 @@ public:
 		eventHandling();
 	}
 
-
-
 	//swaps the level in render manager
 	void changeLevel(std::shared_ptr<Level_Objects> level) {
 		level->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
@@ -591,11 +589,15 @@ public:
 	}
 
 	//Updates Player HP and UI
-	void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps, int hearts) {
+	void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc, int hearts) {
 
 		ps.updateHearts(hearts);
 		rm.playerHUD->updateHUDHearts(ps.getHearts());
 
+		if (ps.getHearts() <= 0) {
+			
+			rm.gameOverMenu->youLose(ps.getScore(), gc->at("Player1").at("highscore").as<int>());
+		}
 
 	}
 
@@ -832,7 +834,7 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
-								UpdatePlayerHearts(*rm, *ps, 1);
+								UpdatePlayerHearts(*rm, *ps, gameConfig, 1);
 
 
 							}

@@ -587,8 +587,8 @@ public:
 	bool uploadedToGpu;
 	bool loading = false;
 
-	float time = .1f;
-	bool shakeTime = false;
+	float sTime;
+	bool shake;
 
 	std::vector<Model> allObjectsInLevel;
 
@@ -601,6 +601,7 @@ public:
 	{
 		loading = true;
 		meshesLoaded = false;
+		shake = false;
 
 		//Default light stuff, should be removed later if not used
 		{
@@ -884,7 +885,7 @@ public:
 	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allObjectsInLevel) {
-			e.DrawModel(_camera, _view, _projection, sunLight, LIGHTDATA, shakeTime, time);
+			e.DrawModel(_camera, _view, _projection, sunLight, LIGHTDATA, shake, sTime);
 		}
 	}
 
@@ -916,21 +917,26 @@ public:
 		
 	}
 
-	void postProcessing() {
+	void postProcessing(float* time, float timeReset) {
 		static std::chrono::high_resolution_clock::time_point previousTime = std::chrono::high_resolution_clock::now();
 		auto currentTime = std::chrono::high_resolution_clock::now();
 
 		std::chrono::duration<float> dt = currentTime - previousTime;
 
-		if (shakeTime && time > 0.0f) {
+		sTime = *time;
+
+
+		if (shake && *time > 0.0f) {
 			std::cout << "shaking!!!" << std::endl;
-			time -= dt.count();
+			*time -= dt.count();
+
 		}
 
-		else if (time <= 0.0f) {
+		else if (*time <= 0.0f) {
 			std::cout << "shake reset" << std::endl;
-			time = .1f;
-			shakeTime = false;
+			*time = timeReset;
+			shake = false;
+
 		}
 
 		previousTime = currentTime;

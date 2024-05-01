@@ -488,16 +488,6 @@ public:
 	//Render Loop for all objects (place Panels and Levels here);
 	void Render() {
 
-
-		if (!lvl->shakeTime && GetAsyncKeyState(VK_SPACE) & 0x8000) {
-
-			lvl->shakeTime = true;
-		}
-
-		//else if (shakeTest && !(GetAsyncKeyState(VK_SPACE) & 0x8000)) {
-		//	shakeTest = false;
-		//}
-
 		if (!lvl->meshesLoaded && !lvl->uploadedToGpu) {
 			loadScreen->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
@@ -617,7 +607,7 @@ public:
 		}
 
 		if (hearts < 0 && !rm.gameOverMenu->render) {
-			Level->shakeTime = true;
+			Level->shake = true;
 			std::cout << "bool flipped" << std::endl;
 		}
 

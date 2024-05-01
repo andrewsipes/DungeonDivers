@@ -91,10 +91,14 @@ bool Application::Run() {
 	mainMenuMusic.Play(true);
 
 
+	float timeReset = gameConfig->at("PostProcessing").at("shakeTime").as<float>();
+	float time = gameConfig->at("PostProcessing").at("shakeTime").as<float>();
+
+
 	while (+win.ProcessWindowEvents() && running == true)
 	{
 		currentLevel->Update(game, currentLevel);
-		currentLevel->postProcessing();
+		currentLevel->postProcessing(&time, timeReset);
 
 		if (!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered && !rendererManager.gameOverMenu->render)
 			GameLoop();

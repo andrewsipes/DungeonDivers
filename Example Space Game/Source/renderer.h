@@ -773,6 +773,18 @@ public:
 				e.add<DD::BeholdEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
 			}
+			if (i.name.substr(0, 7) == "mushmen") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
+			{
+				e.add<DD::Enemy>();
+				e.add<DD::MushEnemy>();
+				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
+			}
+			if (i.name.substr(0, 8) == "spikyboy") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
+			{
+				e.add<DD::Enemy>();
+				e.add<DD::SpikeEnemy>();
+				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
+			}
 
 			if (i.name.substr(0, 9) != "RealFloor")
 				e.set<DD::Collidable>({ i.obb });

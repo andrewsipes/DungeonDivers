@@ -748,9 +748,6 @@ public:
 		game->each([](flecs::entity e, DD::BulletVel) {
 			e.destruct();
 			});
-		game->defer_end();
-
-		game->defer_begin();
 		game->each([](flecs::entity e){
 				e.destruct();
 			});
@@ -767,16 +764,19 @@ public:
 			auto e = game->entity(i.name.c_str());
 			e.set<DD::Name>({ i.name });
 			e.set<Models>({ i });
-			GW::MATH::GMATRIXF edit = i.world;
+			e.set<DD::World>({ i.world });
+			e.set<DD::LastWorld>({ i.world });
 			
 			if (i.name.substr(0, 5) == "alien") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
+				e.set<DD::OGPos>({ i.world });
 				e.add<DD::Enemy>();
 				e.add<DD::BeholdEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
 			}
 			if (i.name.substr(0, 7) == "mushman") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
+				e.set<DD::OGPos>({ i.world });
 				e.add<DD::Enemy>();
 				e.add<DD::MushEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
@@ -784,12 +784,12 @@ public:
 			}
 			if (i.name.substr(0, 8) == "spikyboy") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
+				e.set<DD::OGPos>({ i.world });
 				e.add<DD::Enemy>();
 				e.add<DD::SpikeEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
 				//GW::MATH::GMatrix::RotateYGlobalF(edit, D2R(147), edit);
 			}
-			e.set<DD::World>({ edit });
 
 			if (i.name.substr(0, 9) != "RealFloor")
 				e.set<DD::Collidable>({ i.obb });
@@ -875,7 +875,7 @@ public:
 					float xaxis = 0, input = 0, zaxis = 0;
 					GW::INPUT::GInput t = immediateInput;
 
-					if (!rm->playerHUD->levelCompleteText->render) {
+					if (!rm->playerHUD->levelCompleteText->render && level->meshesLoaded && level->uploadedToGpu) {
 						t.GetState(G_KEY_A, input); xaxis -= input;
 						t.GetState(G_KEY_D, input); xaxis += input;
 						t.GetState(G_KEY_S, input); zaxis -= input;
@@ -976,6 +976,7 @@ public:
 				}
 			});
 
+
 		flecs::system SpikyEnemyMoveSystem = game->system<DD::SpikeEnemy, DD::Name, DD::Enemy>("Spiky Boi Enemy Move System")
 			.iter([speed, game, level, this, rm, ps, &gameConfig, &_audioEngine](flecs::iter it, DD::SpikeEnemy*, DD::Name* n, DD::Enemy*)
 				{
@@ -989,28 +990,31 @@ public:
 												pow((e.get<DD::World>()->value.row4.z - pl.get<DD::World>()->value.row4.z), 2));
 
 						DD::World* edit = game->entity(e).get_mut<DD::World>();
-						if (distance >= 10)
+						if (distance >= 20)
 						{
 							//Random Movement Vector
 							if (!e.has<DD::MoveCooldown>())
 							{
-								xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
-								zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								if (level->meshesLoaded && level->uploadedToGpu)
+								{
+									//xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									//zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								}
 								e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
 								e.set<DD::MoveCooldown>({ 4 }); // add a cooldown before the enemy can random move again
-								GW::MATH::GMATRIXF out;
+								//GW::MATH::GMATRIXF out;
 								// for some reason doesn't look in the direction that its going?? idk
-								GW::MATH::GMatrix::LookAtRHF(	GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
+								/*GW::MATH::GMatrix::LookAtRHF(	GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
 																GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z },
 																GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
 								out.row4 = e.get<DD::World>()->value.row4;
 								edit->value = out;
 								GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
-								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
+								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);*/
 
 							}
 						}
-						else if (distance < 10 && distance >= 2) // chase distance
+						else if (distance < 15 && distance >= 2) // chase distance
 						{
 							GW::MATH::GMATRIXF out;
 							// should be getting the enemy to look at the player, want to do this in 2D, but didn't find anything to let me do that..
@@ -1032,7 +1036,7 @@ public:
 
 						GW::MATH::GVECTORF v = GW::MATH::GVECTORF{ e.get<DD::EnemyVel>()->value.x, 0 , e.get<DD::EnemyVel>()->value.z };
 
-						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
+						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, speed, it](flecs::entity hit)
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
@@ -1041,7 +1045,11 @@ public:
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
+
 									e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+									float xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									float zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
 									e.set<DD::MoveCooldown>({-1});
 								}
 
@@ -1071,20 +1079,23 @@ public:
 							//Random Movement Vector
 							if (!e.has<DD::MoveCooldown>())
 							{
-								xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
-								zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								if (level->meshesLoaded && level->uploadedToGpu)
+								{
+									//xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									//zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								}
 
 								e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
 								e.set<DD::MoveCooldown>({ 4 }); // add a cooldown before the enemy can random move again
 								GW::MATH::GMATRIXF out;
 								// for some reason doesn't look in the direction that its going?? idk
-								GW::MATH::GMatrix::LookAtRHF(GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
+								/*GW::MATH::GMatrix::LookAtRHF(GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
 									GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z },
 									GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
 								out.row4 = e.get<DD::World>()->value.row4;
 								edit->value = out;
 								GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
-								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
+								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);*/
 
 							}
 						}
@@ -1105,7 +1116,7 @@ public:
 
 						GW::MATH::GVECTORF v = GW::MATH::GVECTORF{ e.get<DD::EnemyVel>()->value.x, 0 , e.get<DD::EnemyVel>()->value.z };
 
-						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
+						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, speed, it](flecs::entity hit)
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
@@ -1115,6 +1126,10 @@ public:
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
 									e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+									float xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									float zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
+									e.set<DD::MoveCooldown>({ -1 });
 								}
 
 						hit.remove<DD::CollidedWith>(e);

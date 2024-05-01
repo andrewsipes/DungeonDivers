@@ -207,7 +207,7 @@ bool Application::Run() {
 				Level3Music.Play(true);
 				break;
 			case 9:
-				gpManager.RemoveEntities();
+				//gpManager.RemoveEntities();
 				rendererManager.playerHUD->toggleRender();
 				VictoryMusic.Play(false);
 				rendererManager.gameOverMenu->youWin(playerStats.getScore(), gameConfig->at("Player1").at("highscore").as<int>());

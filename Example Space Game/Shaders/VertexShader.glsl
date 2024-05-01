@@ -70,9 +70,7 @@ void main()
             
         }
 
-        else{
-            gl_Position = ubo.pMatrix * ubo.vMatrix * ubo.wMatrix * vec4(pos,1);
-        }
+      
 
     coords = pos;
 

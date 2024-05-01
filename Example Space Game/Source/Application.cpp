@@ -69,12 +69,12 @@ bool Application::Run() {
 	log.Create("output.txt");
 
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
-	currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", log.Relinquish());
 
 	gamePlayManager gpManager(currentLevel, game);
 	PlayerStats playerStats(*gameConfig);
 
-	while(!gpManager.AddEntities());
+	currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", log.Relinquish());
+	gpManager.AddEntities();
 	gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
 	//Music Declaration and play main menu

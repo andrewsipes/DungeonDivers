@@ -7532,7 +7532,7 @@ typedef struct _OBJ_MATERIAL_
 const OBJ_MATERIAL BeeStinger_materials[1] =
 {
 	{
-		{{ 0.158966f, 0.021587f, 0.808233f },
+		{{ 0.264456f, 0.264456f, 0.264456f },
 		1.000000f,
 		{ 0.500000f, 0.500000f, 0.500000f },
 		250.000000f,

@@ -764,27 +764,30 @@ public:
 		{
 			auto e = game->entity(i.name.c_str());
 			e.set<DD::Name>({ i.name });
-			e.set<DD::World>({ i.world });
 			e.set<Models>({ i });
-
+			GW::MATH::GMATRIXF edit = i.world;
+			
 			if (i.name.substr(0, 5) == "alien") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
 				e.add<DD::Enemy>();
 				e.add<DD::BeholdEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
 			}
-			if (i.name.substr(0, 7) == "mushmen") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
+			if (i.name.substr(0, 7) == "mushman") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
 				e.add<DD::Enemy>();
 				e.add<DD::MushEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
+				//GW::MATH::GMatrix::RotateYLocalF(edit, D2R(90), edit);
 			}
 			if (i.name.substr(0, 8) == "spikyboy") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
 				e.add<DD::Enemy>();
 				e.add<DD::SpikeEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
+				//GW::MATH::GMatrix::RotateYGlobalF(edit, D2R(147), edit);
 			}
+			e.set<DD::World>({ edit });
 
 			if (i.name.substr(0, 9) != "RealFloor")
 				e.set<DD::Collidable>({ i.obb });
@@ -970,7 +973,7 @@ public:
 				{
 					for (auto i : it)
 					{
-			
+						float xaxis = 0; float zaxis = 0;
 						auto e = game->lookup(n[i].name.c_str());
 						auto pl = game->lookup("MegaBee");
 						//distance from player to enemy
@@ -983,8 +986,8 @@ public:
 							//Random Movement Vector
 							if (!e.has<DD::MoveCooldown>())
 							{
-								float xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
-								float zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
 								e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
 								e.set<DD::MoveCooldown>({ 4 }); // add a cooldown before the enemy can random move again
 								GW::MATH::GMATRIXF out;
@@ -1053,15 +1056,15 @@ public:
 						//distance from player to enemy
 						float distance = sqrt(pow((e.get<DD::World>()->value.row4.x - pl.get<DD::World>()->value.row4.x), 2) +
 							pow((e.get<DD::World>()->value.row4.z - pl.get<DD::World>()->value.row4.z), 2));
-
+						float xaxis = 0; float zaxis = 0;
 						DD::World* edit = game->entity(e).get_mut<DD::World>();
 						if (distance >= 15)
 						{
 							//Random Movement Vector
 							if (!e.has<DD::MoveCooldown>())
 							{
-								float xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
-								float zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
 								e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
 								e.set<DD::MoveCooldown>({ 4 }); // add a cooldown before the enemy can random move again
 								GW::MATH::GMATRIXF out;
@@ -1156,10 +1159,10 @@ public:
 								bull.set<DD::Collidable>({ m.obb });
 								bull.set<DD::World>({ m.world });
 								bull.set<DD::Name>({ m.name });
-								bull.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 0.5, 0} });
+								bull.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, 4, 0} });
 								bull.add<DD::EnemyBullet>();
 
-								e.set<DD::MoveCooldown>({ 2 });
+								e.set<DD::MoveCooldown>({ .7 });
 
 							}
 						
@@ -1450,13 +1453,6 @@ public:
 								Model m = hit.get<Models>()->mod;
 								if (hit.has <DD::Enemy>())
 								{
-									/*auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
-
-									if (found != level->allObjectsInLevel.end())
-									{
-										level->allObjectsInLevel.erase(found);
-									}
-									hit.destruct();*/
 									hit.remove<DD::Enemy>();
 									hit.set<DD::AmDead>({ 3 });
 									enemyDeathSound(_audioEngine);
@@ -1478,7 +1474,7 @@ public:
 								m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
-								if (found != level->allObjectsInLevel.end())
+								if (found != level->allObjectsInLevel.end() && arrow.is_alive())
 								{
 									level->allObjectsInLevel.erase(found);
 
@@ -1506,7 +1502,7 @@ public:
 								m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
-								if (found != level->allObjectsInLevel.end())
+								if (found != level->allObjectsInLevel.end() && arrow.is_alive())
 								{
 									level->allObjectsInLevel.erase(found);
 

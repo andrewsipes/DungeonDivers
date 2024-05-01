@@ -74,7 +74,7 @@ bool Application::Run() {
 	gamePlayManager gpManager(currentLevel, game);
 	PlayerStats playerStats(*gameConfig);
 
-	gpManager.AddEntities();
+	while(!gpManager.AddEntities());
 	gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
 	//Music Declaration and play main menu
@@ -96,7 +96,8 @@ bool Application::Run() {
 		currentLevel->Update(game, currentLevel);
 		currentLevel->postProcessing(&time, timeReset);
 
-		if (!rendererManager.mainMenuHUD->render &&!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered && !rendererManager.gameOverMenu->render)
+		if (!rendererManager.playerHUD->levelCompleteText->render &&!rendererManager.mainMenuHUD->render &&
+			!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered && !rendererManager.gameOverMenu->render)
 			GameLoop();
 
 		glClearColor(clr[0], clr[1], clr[2], clr[3]);
@@ -125,12 +126,14 @@ bool Application::Run() {
 			if (!leftMouse && rendererManager.mainMenuHUD->startButton->HandleInputLeftMouseButton(gInput)) {
 				leftMouse = true;
 
+				gpManager.updateEnemyCount(&rendererManager, 0);
 				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
 				mainMenuMusic.Stop();
 				rendererManager.changeLevel(currentLevel);
 				Level1Music.Play(true);
+
 				playerStats.updateHeartsBeforeDeath();
 				playerStats.updateScoreBeforeDeath();
 				rendererManager.playerHUD->startText->render = true;

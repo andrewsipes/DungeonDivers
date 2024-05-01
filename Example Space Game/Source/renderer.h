@@ -543,6 +543,7 @@ public:
 		level->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		playerHUD->updateLevelText(level->getid());
 		playerHUD->startText->render = true;
+	
 	}
 
 
@@ -675,18 +676,18 @@ public:
 		rm->playerHUD->continueText->render = false;
 
 		ps->updateHeartsBeforeDeath();	ps->updateScoreBeforeDeath(); ps->updateTreasuresBeforeDeath();
-		RemoveEntities();
+		while (!RemoveEntities()) {};
 
 		switch (currentLevel->getid()) {
 		case 1:
-			currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
+			while(!currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish()));
 			break;
 		case 2:
-			currentLevel->LoadMeshes(3, "../Level3.txt", "../Models/Level3", log.Relinquish());
+			while(!currentLevel->LoadMeshes(3, "../Level3.txt", "../Models/Level3", log.Relinquish()));
 			break;
 		}
 		Level = currentLevel;
-		AddEntities();
+		while(!AddEntities());
 		updateEnemyCount(rm, 0); updateTreasureCount(rm, 0);
 		rm->changeLevel(currentLevel);
 
@@ -711,24 +712,24 @@ public:
 
 
 		int currentLevelId = _currentLevel->getid();
-		RemoveEntities();
+		while (!RemoveEntities()) {};
 
 		//update these per level id
 		switch (currentLevelId) {
 		case 1:
-			_currentLevel->LoadMeshes(currentLevelId, "../Level1.txt", "../Models/Level1", _log.Relinquish());
+			while (!_currentLevel->LoadMeshes(currentLevelId, "../Level1.txt", "../Models/Level1", _log.Relinquish())) {};
 			break;
 		case 2:
-			_currentLevel->LoadMeshes(currentLevelId,"../Level2.txt", "../Models/Level2", _log.Relinquish());
+			while (!_currentLevel->LoadMeshes(currentLevelId,"../Level2.txt", "../Models/Level2", _log.Relinquish()));
 			break;
 		case 3:
-			_currentLevel->LoadMeshes(currentLevelId, "../Level3.txt", "../Models/Level3", _log.Relinquish());
+			while (!_currentLevel->LoadMeshes(currentLevelId, "../Level3.txt", "../Models/Level3", _log.Relinquish()));
 			break;
 
 		}
 
+		while(!AddEntities());
 		_rendererManager->reloadLevel(_currentLevel);
-		AddEntities();
 		resetHUDonRestartLevel(currentLevelId, _rendererManager, ps);
 	}
 
@@ -739,31 +740,27 @@ public:
 		return f.count();
 	}
 
-	//removes all entities from the level and reloads the meshes based on id
-	void restartGame(std::shared_ptr<Level_Objects> _lvl1, RendererManager* _rendererManager, PlayerStats* _ps, std::shared_ptr <GameConfig> _gameConfig, GW::SYSTEM::GLog _log) {
-
-		RemoveEntities();
-
-		_lvl1->LoadMeshes(1, "../Level1.txt", "../Models/Level1", _log.Relinquish());
-		_rendererManager->reloadLevel(_lvl1);
-
-		AddEntities();
-		resetHUDonRestartGame(_rendererManager, _ps, _gameConfig);
-	}
 
 	//remove entities from game
-	void RemoveEntities() {
+	bool RemoveEntities() {
 
 		game->defer_begin();
-		game->each([](flecs::entity e)
-			{
+		game->each([](flecs::entity e, DD::BulletVel) {
+			e.destruct();
+			});
+		game->defer_end();
+
+		game->defer_begin();
+		game->each([](flecs::entity e){
 				e.destruct();
 			});
 		game->defer_end();
+
+		return 1;
 	}
 
 	//add entities to game
-	void AddEntities()
+	bool AddEntities()
 	{
 		for each (Model i in Level->allObjectsInLevel)
 		{
@@ -813,6 +810,8 @@ public:
 				e.add<DD::Player>();
 			}
 		}
+
+		return 1;
 	}
 
 	//Sound Methods

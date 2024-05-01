@@ -570,6 +570,7 @@ public:
 	GW::AUDIO::GSound playerShoot;
 	GW::AUDIO::GSound playerHeart;
 	GW::AUDIO::GSound playerTreasure;
+	GW::AUDIO::GSound playerDamage;
 	GW::AUDIO::GSound enemyDeath;
 	GW::AUDIO::GSound wallsDestroy;
 	GW::GReturn test;
@@ -795,7 +796,7 @@ public:
 		}
 	}
 
-	//EXAMPLE SOUND METHOD
+	//Sound Methods
 	void playerShootSound(GW::AUDIO::GAudio& _audioEngine) {
 
 		GW::GReturn test = playerShoot.Create("../SoundFX/Player_Attack.wav", _audioEngine, 0.002f);
@@ -814,6 +815,11 @@ public:
 		playerTreasure.Play();
 	}
 
+	void playerDamageSound(GW::AUDIO::GAudio _audioEngine) {
+
+		GW::GReturn test = playerDamage.Create("../SoundFX/Player_Damage.wav", _audioEngine, 0.002f);
+		playerDamage.Play();
+	}
 	void enemyDeathSound(GW::AUDIO::GAudio _audioEngine)
 	{
 		GW::GReturn test = enemyDeath.Create("../SoundFX/Enemy_1_Death.wav", _audioEngine, 0.01f);
@@ -1478,10 +1484,10 @@ public:
 				});
 
 		flecs::system enemyBulletSystem = game->system<DD::EnemyBullet>("Enemy Bullet System")
-			.each([level, rm, ps, &gameConfig, game, this](flecs::entity arrow, DD::EnemyBullet)
+			.each([level, rm, ps, &gameConfig, game, this, &_audioEngine](flecs::entity arrow, DD::EnemyBullet)
 				{
 					// damage anything we come into contact with
-					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this](flecs::entity hit)
+					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this, _audioEngine](flecs::entity hit)
 						{
 							if (!(hit.has<DD::Enemy>() || hit.has<DD::EnemyBullet>() || hit.has<DD::Heart>() || hit.has<DD::Treasure>()))
 							{
@@ -1489,6 +1495,7 @@ public:
 								if (hit.has <DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
+									playerDamageSound(_audioEngine);
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
 								m = arrow.get<Models>()->mod;

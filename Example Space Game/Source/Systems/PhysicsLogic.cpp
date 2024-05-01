@@ -96,7 +96,7 @@ bool DD::PhysicsLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<c
 								testCache[j].owner.add<CollidedWith>(testCache[i].owner);
 							
 								#ifndef NDEBUG
-								std::cout << "Collision Detected between:  1: " << testCache[i].owner.get<Name>()->name << "    2. " << testCache[j].owner.get<Name>()->name << std::endl;
+								//std::cout << "Collision Detected between:  1: " << testCache[i].owner.get<Name>()->name << "    2. " << testCache[j].owner.get<Name>()->name << std::endl;
 								#endif
 							}
 						}

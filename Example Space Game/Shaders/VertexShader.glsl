@@ -48,6 +48,8 @@ out vec3 worldPos;
 out vec3 coords;
 
 uniform bool isUi;
+uniform bool shake;
+uniform float time;
 
 void main()
 {
@@ -59,8 +61,17 @@ void main()
 
     else {
 
+  
+
     gl_Position = ubo.pMatrix * ubo.vMatrix * ubo.wMatrix * vec4(pos,1);
     
+    if (shake)
+    {
+        float strength = 0.1;
+        gl_Position.x = gl_Position.x + cos(time * 10.0) * strength;        
+        gl_Position.z =  gl_Position.z + cos(time * 15.0) * strength;        
+    }
+
     coords = pos;
 
     //Get World Position

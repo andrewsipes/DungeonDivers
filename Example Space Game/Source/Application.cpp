@@ -79,8 +79,8 @@ bool Application::Run() {
 	log.Create("output.txt");
 
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
-
 	currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", log.Relinquish());
+
 	gamePlayManager gpManager(currentLevel, game);
 	PlayerStats playerStats(*gameConfig);
 
@@ -100,7 +100,7 @@ bool Application::Run() {
 		currentLevel->Update(game, currentLevel);
 		currentLevel->postProcessing(&time, timeReset);
 
-		if (!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered && !rendererManager.gameOverMenu->render)
+		if (!rendererManager.mainMenuHUD->render &&!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered && !rendererManager.gameOverMenu->render)
 			GameLoop();
 
 		glClearColor(clr[0], clr[1], clr[2], clr[3]);

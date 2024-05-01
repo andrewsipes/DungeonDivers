@@ -1264,7 +1264,7 @@ public:
 				});
 
 		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
-			.iter([immediateInput, game, level, bullSpeed, &_audioEngine](flecs::iter it, DD::Player*, DD::World* world)
+			.iter([immediateInput, game, level, bullSpeed, &_audioEngine, this](flecs::iter it, DD::Player*, DD::World* world)
 				{
 					for (auto i : it)
 					{

@@ -18,11 +18,11 @@ std::map<std::string, GW::AUDIO::GSound> musicTracks;
 
 bool Application::Init()
 {
-	eventPusher.Create();
-		GW::AUDIO::GSound shoot;
-					GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
-		GW::AUDIO::GSound shoot;
-					GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
+	//eventPusher.Create();
+	//	GW::AUDIO::GSound shoot;
+	//				GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
+	//	GW::AUDIO::GSound shoot;
+	//				GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
 
 
 	// load all game settigns
@@ -126,12 +126,12 @@ bool Application::Run() {
 
 				
 				//Attempting to stop the main menu music and start level 1 music, but only the main menu stops
-				//mainMenuMusic.Stop();
-				//currentLevelNumber = 1;
 				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
-				rendererManager.changeLevel(*currentLevel);
+				mainMenuMusic.Stop();
+				rendererManager.changeLevel(currentLevel);
+				currentLevelNumber = 1;
 				playerStats.updateHeartsBeforeDeath();
 				playerStats.updateScoreBeforeDeath();
 				rendererManager.playerHUD->startText->render = true;

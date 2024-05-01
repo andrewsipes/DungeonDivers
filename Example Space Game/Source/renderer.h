@@ -733,7 +733,7 @@ public:
 			if (i.name.substr(0, 5) == "alien") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
 				e.add<DD::Enemy>();
-				e.add<DD::SpikeEnemy>();
+				e.add<DD::BeholdEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
 			}
 
@@ -1052,7 +1052,7 @@ public:
 							if (!e.has<DD::MoveCooldown>())
 							{
 								Model m;
-								m.name = "BeeStinger"; // change this
+								m.name = "Meteor"; 
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
 								if (found != level->allObjectsInLevel.end())

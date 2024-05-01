@@ -435,7 +435,7 @@ public:
 		//			  T: toggles treasure menu
 
 		{	//TOGGLE PAUSE MENU
-			if (!tab && !gameOverMenu->render && !treasureMenu->render && (GetAsyncKeyState(VK_TAB) & 0x8000)) {
+			if (!tab && !playerHUD->levelCompleteText->render && !gameOverMenu->render && !treasureMenu->render && (GetAsyncKeyState(VK_TAB) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
 
 					if (playerHUD->startText->render) {
@@ -459,7 +459,7 @@ public:
 		}
 
 		{	//TOGGLE TREASURE MENU
-			if (!t && !gameOverMenu->render && !pauseMenu->render &&(GetAsyncKeyState(0x54) & 0x8000)) {
+			if (!t && !playerHUD->levelCompleteText->render && !gameOverMenu->render && !pauseMenu->render &&(GetAsyncKeyState(0x54) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
 
 					if (playerHUD->startText->render) {

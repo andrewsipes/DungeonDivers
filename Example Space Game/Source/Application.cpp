@@ -18,13 +18,6 @@ std::map<std::string, GW::AUDIO::GSound> musicTracks;
 
 bool Application::Init()
 {
-	//eventPusher.Create();
-	//	GW::AUDIO::GSound shoot;
-	//				GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
-	//	GW::AUDIO::GSound shoot;
-	//				GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
-
-
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>();
 	// create the ECS system
@@ -35,8 +28,6 @@ bool Application::Init()
 	load->assign();
 	load->arrange();
 	load->start();
-
-	
 
 	// init all other systems
 	if (InitWindow() == false)

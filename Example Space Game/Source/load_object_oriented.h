@@ -251,9 +251,9 @@ public:
 			//Draw meshes - iterates through the meshes and materials to draw them individually.
 			for (int j = 0; j < cpuModel.meshCount; j++) {
 				updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _projection, _sLight);
-				if (_shake == true) {
+				/*if (_shake == true) {
 					std::cout << "Shake is true" << std::endl;
-				}
+				}*/
 				SetUpPipeline(_shake, time);
 				glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
 			}
@@ -535,7 +535,7 @@ public:
 			if (!data)
 			{
 				//output an error and continue running if no data found.
-				std::cout << "[ERROR]: CUBE TEXTURE NOT FOUND" << std::endl;
+				//std::cout << "[ERROR]: CUBE TEXTURE NOT FOUND" << std::endl;
 
 				return;
 			}

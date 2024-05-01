@@ -1419,7 +1419,7 @@ public:
 							if (!(hit.has<DD::Enemy>() || hit.has<DD::EnemyBullet>() || hit.has<DD::Heart>() || hit.has<DD::Treasure>()))
 							{
 								Model m = hit.get<Models>()->mod;
-								if (hit.has <DD::Player>())
+								if (hit.has <DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
 									UpdatePlayerHearts(*rm, *ps, -1);

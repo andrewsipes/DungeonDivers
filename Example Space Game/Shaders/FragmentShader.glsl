@@ -51,6 +51,9 @@ out vec4 Pixel;
 uniform bool isUi;
 uniform float alpha;
 
+uniform bool shake;
+uniform float time;
+
 void main() 
 {   
    if (isSkybox) {
@@ -139,6 +142,14 @@ void main()
 
        // ----- FINAL -----
 
+
        Pixel = vec4(totalColor + ambientColor, 1.0);
+
+         if (shake){
+          Pixel = vec4(Pixel.x * 0.3, Pixel.y * .6, Pixel.z * 0.2, 1.0);
+
+        }
+
+
     }
 }

@@ -17,6 +17,11 @@ std::map<std::string, GW::AUDIO::GSound> musicTracks;
 
 bool Application::Init()
 {
+	//	GW::AUDIO::GSound shoot;
+	//				GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
+	//	GW::AUDIO::GSound shoot;
+	//				GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
+
 
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>();
@@ -70,8 +75,8 @@ bool Application::Run() {
 	log.Create("output.txt");
 
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
-
 	currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", log.Relinquish());
+
 	gamePlayManager gpManager(currentLevel, game);
 	PlayerStats playerStats(*gameConfig);
 
@@ -88,11 +93,16 @@ bool Application::Run() {
 	mainMenuMusic.Play(true);
 
 
+	float timeReset = gameConfig->at("PostProcessing").at("shakeTime").as<float>();
+	float time = gameConfig->at("PostProcessing").at("shakeTime").as<float>();
+
+
 	while (+win.ProcessWindowEvents() && running == true)
 	{
 		currentLevel->Update(game, currentLevel);
+		currentLevel->postProcessing(&time, timeReset);
 
-		if (!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered && !rendererManager.gameOverMenu->render)
+		if (!rendererManager.mainMenuHUD->render &&!rendererManager.pauseMenu->render && !rendererManager.isPauseMenuRendered && !rendererManager.gameOverMenu->render)
 			GameLoop();
 
 		glClearColor(clr[0], clr[1], clr[2], clr[3]);
@@ -246,7 +256,7 @@ bool Application::InitWindow()
 	int ystart = gameConfig->at("Window").at("ystart").as<int>();
 	std::string title = gameConfig->at("Window").at("title").as<std::string>();
 	// open window
-	if (+win.Create(xstart, ystart, width, height, GWindowStyle::WINDOWEDBORDERED) &&
+	if (+win.Create(xstart, ystart, width, height, GWindowStyle::WINDOWEDLOCKED) &&
 		+win.SetWindowName(title.c_str())) {
 		return true;
 	}

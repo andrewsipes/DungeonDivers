@@ -39,6 +39,7 @@ class RendererManager
 	bool leftMouse;
 
 
+
 public:
 
 	//globals to track is mainmenu or pause hud was enabled
@@ -487,7 +488,6 @@ public:
 	//Render Loop for all objects (place Panels and Levels here);
 	void Render() {
 
-
 		if (!lvl->meshesLoaded && !lvl->uploadedToGpu) {
 			loadScreen->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
@@ -499,7 +499,6 @@ public:
 			lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 			loadScreen->Render(cameraMatrix, viewMatrix, projectionMatrix);
 		}
-
 
 		else if (lvl->meshesLoaded && lvl->uploadedToGpu) {
 
@@ -606,6 +605,11 @@ public:
 		if (ps.getHearts() <= 0) {
 			
 			rm.gameOverMenu->youLose(ps.getScore(), gc->at("Player1").at("highscore").as<int>());
+		}
+
+		if (hearts < 0 && !rm.gameOverMenu->render) {
+			Level->shake = true;
+			//std::cout << "bool flipped" << std::endl;
 		}
 
 	}
@@ -905,7 +909,6 @@ public:
 								hit.destruct();
 								playerTreasureSound(_audioEngine);
 
-								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
 
 								if (m.name == "CrystalYellow") {
 									rm->treasureMenu->treasures[0]->text->render = true;
@@ -1175,6 +1178,7 @@ public:
 								{
 									hit.set<DD::IFrame>({ 2 });
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
+					
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
@@ -1456,6 +1460,7 @@ public:
 									enemyDeathSound(_audioEngine);
 									updateEnemyCount(rm, -1);
 									UpdatePlayerScore(*rm, *ps, gameConfig, 50); // update score if we hit an enemy
+							
 
 								}
 								else if (hit.has<DD::Destruct>())

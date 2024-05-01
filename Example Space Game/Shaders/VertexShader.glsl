@@ -56,21 +56,23 @@ void main()
     if (isUi){
 
         gl_Position = vec4(pos,1);
-        //gl_Position = vec4(pos,1);
+
     }
 
     else {
 
-  
-
     gl_Position = ubo.pMatrix * ubo.vMatrix * ubo.wMatrix * vec4(pos,1);
     
-    if (shake)
-    {
-        float strength = 0.1;
-        gl_Position.x = gl_Position.x + cos(time * 10.0) * strength;        
-        gl_Position.z =  gl_Position.z + cos(time * 15.0) * strength;        
-    }
+        if (shake){
+            float strength = 0.18;
+            gl_Position.x = gl_Position.x + cos(time * 10.0) * strength;        
+            gl_Position.z =  gl_Position.z + cos(time * 15.0) * strength;
+            
+        }
+
+        else{
+            gl_Position = ubo.pMatrix * ubo.vMatrix * ubo.wMatrix * vec4(pos,1);
+        }
 
     coords = pos;
 

@@ -494,11 +494,10 @@ public:
 		glBindVertexArray(vertexArray);
 		SetVertexAttributes();
 
-		if (_shake) {
-			std::cout << "sending to shader " << std::endl;
-			glUniform1f(glGetUniformLocation(shaderExecutable, "time"), _time);
-			glUniform1i(glGetUniformLocation(shaderExecutable, "shake"), _shake);
-		}
+		//std::cout << "sending to shader " << std::endl;
+		glUniform1f(glGetUniformLocation(shaderExecutable, "time"), _time);
+		glUniform1i(glGetUniformLocation(shaderExecutable, "shake"), _shake);
+	
 
 
 		if (name == "skyBox")
@@ -927,13 +926,13 @@ public:
 
 
 		if (shake && *time > 0.0f) {
-			std::cout << "shaking!!!" << std::endl;
+			//std::cout << "shaking!!!" << std::endl;
 			*time -= dt.count();
 
 		}
 
 		else if (*time <= 0.0f) {
-			std::cout << "shake reset" << std::endl;
+			//std::cout << "shake reset" << std::endl;
 			*time = timeReset;
 			shake = false;
 

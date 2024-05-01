@@ -142,6 +142,16 @@ void main()
 
        // ----- FINAL -----
 
+
        Pixel = vec4(totalColor + ambientColor, 1.0);
+
+         if (shake){
+          Pixel = vec4(Pixel.x * 0.299, Pixel.y * .6094, Pixel.z * 0.0820, 1.0);
+        }
+
+        else{
+          Pixel = vec4(totalColor + ambientColor, 1.0);
+        }
+
     }
 }

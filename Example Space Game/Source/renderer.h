@@ -608,7 +608,7 @@ public:
 
 		if (hearts < 0 && !rm.gameOverMenu->render) {
 			Level->shake = true;
-			std::cout << "bool flipped" << std::endl;
+			//std::cout << "bool flipped" << std::endl;
 		}
 
 	}

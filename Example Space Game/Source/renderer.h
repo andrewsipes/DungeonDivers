@@ -1074,6 +1074,7 @@ public:
 							{
 								xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
 								zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+
 								e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
 								e.set<DD::MoveCooldown>({ 4 }); // add a cooldown before the enemy can random move again
 								GW::MATH::GMATRIXF out;
@@ -1215,7 +1216,7 @@ public:
 						auto e = game->lookup(name[i].name.c_str());
 						DD::AmDead* time = game->entity(e).get_mut<DD::AmDead>();
 						DD::World* edit = game->entity(e).get_mut<DD::World>();
-						GW::MATH::GMatrix::TranslateLocalF(edit->value, GW::MATH::GVECTORF{ 0, -1.5f * it.delta_time(), 0}, edit->value);
+						GW::MATH::GMatrix::TranslateLocalF(edit->value, GW::MATH::GVECTORF{ 0, -3 * it.delta_time(), 0}, edit->value);
 						GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(700) * it.delta_time(), edit->value);
 						time->value -= it.delta_time();
 
@@ -1464,7 +1465,7 @@ public:
 								if (hit.has <DD::Enemy>())
 								{
 									hit.remove<DD::Enemy>();
-									hit.set<DD::AmDead>({ 3 });
+									hit.set<DD::AmDead>({ 1.5 });
 									enemyDeathSound(_audioEngine);
 									updateEnemyCount(rm, -1);
 									UpdatePlayerScore(*rm, *ps, gameConfig, 50); // update score if we hit an enemy

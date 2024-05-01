@@ -150,7 +150,7 @@ bool Application::Run() {
 					rendererManager.playerHUD->continueText->toggleRender();
 					rendererManager.playerHUD->levelCompleteText->toggleRender();
 					rendererManager.playerHUD->toggleRender();
-					gpManager.restartGame(currentLevel, &rendererManager, &playerStats, gameConfig, log);
+					gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
 					gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				}
 

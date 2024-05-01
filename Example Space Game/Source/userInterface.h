@@ -1771,6 +1771,8 @@ public:
 
 		gameOverText->render = false;
 		youWinText->render = true;
+		restartGameOverButton->toggleRender();
+
 		updateHUDScore(score);
 
 		if (score > highscore) {
@@ -1792,14 +1794,16 @@ public:
 		updateHUDScore(score);
 
 		if (score > highscore) {
-			updateHUDScore(score);
+			updateHUDHighScore(score);
 			(*gameConfig)["Player1"]["highscore"] = highscore;
 		}
 
 		else {
-			updateHUDScore(highscore);
+			updateHUDHighScore(highscore);
 			(*gameConfig)["Player1"]["highscore"] = highscore;
 		}
+
+		this->toggleRender();
 	}
 
 };

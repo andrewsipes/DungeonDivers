@@ -543,7 +543,7 @@ public:
 	void reloadLevel(std::shared_ptr<Level_Objects> level) {
 		level->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		playerHUD->updateLevelText(level->getid());
-
+		playerHUD->startText->render = true;
 	}
 
 
@@ -732,7 +732,7 @@ public:
 		RemoveEntities();
 
 		_lvl1->LoadMeshes(1, "../Level1.txt", "../Models/Level1", _log.Relinquish());
-		_rendererManager->changeLevel(_lvl1);
+		_rendererManager->reloadLevel(_lvl1);
 
 		AddEntities();
 		resetHUDonRestartGame(_rendererManager, _ps, _gameConfig);
@@ -970,7 +970,7 @@ public:
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
-									UpdatePlayerHearts(*rm, *ps, -2);
+									UpdatePlayerHearts(*rm, *ps, gameConfig, -2);
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
@@ -1042,7 +1042,7 @@ public:
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
-									UpdatePlayerHearts(*rm, *ps, -1);
+									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
@@ -1106,7 +1106,7 @@ public:
 								e.set<DD::MoveCooldown>({ 2 });
 
 							}
-						{
+						
 							GW::MATH::GMATRIXF out;
 							// should be getting the enemy to look at the player, want to do this in 2D, but didn't find anything to let me do that..
 							// disregard last comment.. i think this works.. hopefully.. maybe?
@@ -1118,14 +1118,13 @@ public:
 							GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
 							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
 
-						}
-
+				
 						e.each<DD::CollidedWith>([&e, level, game, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
-									UpdatePlayerHearts(*rm, *ps, -1);
+									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
@@ -1441,7 +1440,7 @@ public:
 								if (hit.has <DD::Player>())
 								{
 									hit.set<DD::IFrame>({ 2 });
-									UpdatePlayerHearts(*rm, *ps, -1);
+									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
 								m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);

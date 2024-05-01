@@ -12,17 +12,25 @@ using namespace SYSTEM;
 using namespace GRAPHICS;
 using namespace GW::AUDIO;
 
+loadingUi* load;
 
 bool Application::Init()
 {
 	eventPusher.Create();
-		GW::AUDIO::GSound shoot;
-					GW::GReturn test = shoot.Create("../SoundFX/UI_Click.wav", audioEngine, 1.0f);
 
 	// load all game settigns
 	gameConfig = std::make_shared<GameConfig>();
 	// create the ECS system
 	game = std::make_shared<flecs::world>();
+
+	load = new loadingUi(*gameConfig);
+	load->LoadMeshes("../load.txt", "../Models/loadScreen", log.Relinquish());
+	load->assign();
+	load->arrange();
+	load->start();
+
+	
+
 	// init all other systems
 	if (InitWindow() == false)
 		return false;
@@ -38,21 +46,10 @@ bool Application::Init()
 }
 
 bool Application::Run() {
-	
-	leftMouse = false;
-	running = true;
-	levelComplete = false;
-
 	GEventResponder msgs;
-	log.Create("output.txt");
-
-	auto mainMenu = std::make_shared<Level_Objects>();
-	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
-
+	
 	float clr[] = { gameConfig->at("BackGroundColor").at("red").as<float>(), gameConfig->at("BackGroundColor").at("blue").as<float>(), gameConfig->at("BackGroundColor").at("green").as<float>(), 1 }; // Buffer
-
-	mainMenu->LoadMeshes(0, "../MainMenu.txt", "../Models/MainMenuModels", log.Relinquish());
-
+	
 	msgs.Create([&](const GW::GEvent& e) {
 		GW::SYSTEM::GWindow::Events q;
 		if (+e.Read(q) && q == GWindow::Events::RESIZE)
@@ -64,11 +61,21 @@ bool Application::Run() {
 	if (+ogl.Create(win, GW::GRAPHICS::DEPTH_BUFFER_SUPPORT))
 		QueryOGLExtensionFunctions(ogl); // Link Needed OpenGL API functions
 
+	ogl.UniversalSwapBuffers();
+
+	RendererManager rendererManager(win, ogl, *gameConfig, *this, load);
+
+	leftMouse = false;
+	running = true;
+	levelComplete = false;
+
+	log.Create("output.txt");
+
+	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
 
 	currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", log.Relinquish());
 	gamePlayManager gpManager(currentLevel, game);
 	PlayerStats playerStats(*gameConfig);
-	RendererManager rendererManager(win, ogl, *gameConfig, *this, *mainMenu);
 
 	gpManager.AddEntities();
 	gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
@@ -113,7 +120,7 @@ bool Application::Run() {
 				gpManager.updateTreasureCount(&rendererManager, 0);
 				rendererManager.mainMenuHUD->toggleRender();
 				rendererManager.playerHUD->toggleRender();
-				rendererManager.changeLevel(*currentLevel);
+				rendererManager.changeLevel(currentLevel);
 				playerStats.updateHeartsBeforeDeath();
 				playerStats.updateScoreBeforeDeath();
 				rendererManager.playerHUD->startText->render = true;
@@ -143,7 +150,7 @@ bool Application::Run() {
 					rendererManager.playerHUD->continueText->toggleRender();
 					rendererManager.playerHUD->levelCompleteText->toggleRender();
 					rendererManager.playerHUD->toggleRender();
-					gpManager.restartGame(currentLevel, &rendererManager, &playerStats, gameConfig, log);
+					gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
 					gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				}
 
@@ -171,7 +178,7 @@ bool Application::Run() {
 		}
 
 		if (levelComplete && !rendererManager.gameOverMenu->render) {
-			
+
 			switch (playerStats.treasures) {
 
 			case 3:
@@ -183,7 +190,7 @@ bool Application::Run() {
 				gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 				break;
 			case 9:
-				gpManager.RemoveEntities();	
+				gpManager.RemoveEntities();
 				rendererManager.playerHUD->toggleRender();
 				rendererManager.gameOverMenu->youWin(playerStats.getScore(), gameConfig->at("Player1").at("highscore").as<int>());
 				rendererManager.gameOverMenu->toggleRender();

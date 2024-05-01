@@ -535,6 +535,7 @@ class Level_Objects
 private:
 	int id;
 
+
 	//sunLight stuff
 	SUNLIGHT_DATA sunLight;
 	GW::MATH::GVECTORF sunLightDir;
@@ -545,7 +546,12 @@ private:
 	std::vector<LIGHT_DATA> LIGHTDATA;	//this vector uses the structure for lighting in the lbo, we use this to hold the necessary data until moved
 	std::vector<Light> lights;			//this vector will show all the data pulled from the textfile
 
+
 public:
+	bool meshesLoaded;
+	bool uploadedToGpu;
+	bool loading = false;
+
 	std::vector<Model> allObjectsInLevel;
 
 	int getid(){
@@ -555,6 +561,8 @@ public:
 	// Imports the default level txt format and creates a Model from each .h2b
 	bool virtual LoadMeshes(int level_id, const char* gameLevelPath, const char* h2bFolderPath, GW::SYSTEM::GLog log)
 	{
+		loading = true;
+		meshesLoaded = false;
 		//Default light stuff, should be removed later if not used
 		{
 			sunLightDir = { 1.0f, -1.0f, 2.0f, 0.0f };
@@ -817,14 +825,20 @@ public:
 		log.LogCategorized("MESSAGE", "Game Level File Reading Complete.");
 		// level loaded into CPU ram
 		log.LogCategorized("EVENT", "GAME LEVEL WAS LOADED TO CPU [OBJECT ORIENTED]");
+
+		meshesLoaded = true;
+
 	}
 
 	// Upload the CPU level to GPU
 	void UploadLevelToGPU(GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
+		uploadedToGpu = false;
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allObjectsInLevel) {
 			e.UploadModelData2GPU(_ogl, _camera, _view, _projection, sunLight, LIGHTDATA);
 		}
+
+		uploadedToGpu = true;
 	}
 
 	// Draws all objects in the level

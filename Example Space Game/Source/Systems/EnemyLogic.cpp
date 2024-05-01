@@ -54,7 +54,8 @@ bool DD::EnemyLogic::Init(std::shared_ptr<flecs::world> _game, std::weak_ptr<con
 	//				DD::PLAY_EVENT_DATA x;
 	//				GW::GEvent explode;
 	//				explode.Write(DD::PLAY_EVENT::ENEMY_DESTROYED, x);
-	//				eventPusher.Push(explode);
+	//				
+	// .Push(explode);
 	//			}
 	//		});
 

@@ -3,9 +3,11 @@
 #include <chrono>
 #include "playerStats.h"
 #include <map>
+#include <thread>
 
-
-
+void LoadMainMenu(std::shared_ptr<Level_Objects> _lvl, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, GW::SYSTEM::GLog _log) {
+	_lvl->LoadMeshes(0, "../MainMenu.txt", "../Models/MainMenuModels", _log.Relinquish());	
+}
 
 // Creation, Rendering & Cleanup
 class RendererManager
@@ -29,7 +31,7 @@ class RendererManager
 	GameConfig* gameConfig;
 
 	//create level
-	Level_Objects* lvl;
+	std::shared_ptr<Level_Objects> lvl;
 
 	//Global variables for key inputs
 	bool tab;
@@ -52,18 +54,26 @@ public:
 	controlsMenuUi* controlsMenu;
 	gameOverUi* gameOverMenu;
 	std::vector <uiPanel*> panels;
+	loadingUi* loadScreen;
 
+	GW::SYSTEM::GLog log;
 
-	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, Level_Objects& Level)
+	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, loadingUi* load)
 	{
+	
+
+		lvl = std::make_shared<Level_Objects>();
 
 		//passed arguments for initializing
 		gameConfig = &_gameConfig;
 		win = _win;
 		ogl = _ogl;
 		app = &application;
-		lvl = &Level;
 
+
+		loadScreen = load;
+		loadScreen->UploadLevelToGPU(cameraMatrix, viewMatrix, projectionMatrix);
+			
 		//sets default state for menu keybinds
 		tab = false;
 		t = false;
@@ -87,22 +97,12 @@ public:
 		//sets default state for freecam
 		freecam = true;
 
-		GW::SYSTEM::GLog log;
 
 		log.Create("output.txt");
 
 		//load ui Panels - this doesn't turn them on but simply lay out each UI for rendering later on.
 		initializePanels(log);
-
-		////PANELS/////
-		//pauseMenu->toggleRender();
 		mainMenuHUD->toggleRender();
-		//playerHUD->toggleRender();
-		//treasureMenu->toggleRender();
-		//controlsMenu->toggleRender();
-		//gameOverMenu->toggleRender();
-
-		lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 
 		//create inputs
 		gController.Create();
@@ -115,6 +115,9 @@ public:
 
 		//initialize projection matrix based on FOV and near and far planes
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
+
+
+		
 	}
 
 	//initializes all panels
@@ -432,8 +435,13 @@ public:
 		//			  T: toggles treasure menu
 
 		{	//TOGGLE PAUSE MENU
-			if (!tab && (GetAsyncKeyState(VK_TAB) & 0x8000)) {
+			if (!tab && !playerHUD->levelCompleteText->render && !gameOverMenu->render && !treasureMenu->render && (GetAsyncKeyState(VK_TAB) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
+
+					if (playerHUD->startText->render) {
+						playerHUD->startText->toggleRender();
+					}
+
 					pauseMenu->render = true;
 
 				}
@@ -451,8 +459,13 @@ public:
 		}
 
 		{	//TOGGLE TREASURE MENU
-			if (!t &&(GetAsyncKeyState(0x54) & 0x8000)) {
+			if (!t && !playerHUD->levelCompleteText->render && !gameOverMenu->render && !pauseMenu->render &&(GetAsyncKeyState(0x54) & 0x8000)) {
 				if (!pauseMenu->render && !mainMenuHUD->render && !treasureMenu->render && !controlsMenu->render) {
+
+					if (playerHUD->startText->render) {
+						playerHUD->startText->toggleRender();
+					}
+
 					treasureMenu->render = true;
 
 				}
@@ -472,28 +485,46 @@ public:
 	}
 
 	//Render Loop for all objects (place Panels and Levels here);
-	void Render(){
-		lvl->Render(cameraMatrix, viewMatrix, projectionMatrix);
+	void Render() {
 
-		for (uiPanel* panel : panels){
 
-			if (panel == playerHUD && panel->render)
-			{
-				playerHUD->Render(cameraMatrix, viewMatrix, projectionMatrix);
-			}
+		if (!lvl->meshesLoaded && !lvl->uploadedToGpu) {
+			loadScreen->Render(cameraMatrix, viewMatrix, projectionMatrix);
 
-			else if (panel == gameOverMenu && panel->render)
-			{
-				gameOverMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
-			}
+			if(!lvl->loading)
+				std::thread(LoadMainMenu, lvl, ogl, cameraMatrix, viewMatrix, projectionMatrix, log).detach();
+		}
 
-			else if (panel == treasureMenu && panel->render)
-			{
-				treasureMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
-			}
+		else if (lvl->meshesLoaded && !lvl->uploadedToGpu) {
+			lvl->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+			loadScreen->Render(cameraMatrix, viewMatrix, projectionMatrix);
+		}
 
-			else if (panel->render){
-				panel->Render(cameraMatrix, viewMatrix, projectionMatrix);
+
+		else if (lvl->meshesLoaded && lvl->uploadedToGpu) {
+
+			lvl->Render(cameraMatrix, viewMatrix, projectionMatrix);
+
+			for (uiPanel* panel : panels) {
+
+				if (panel == playerHUD && panel->render)
+				{
+					playerHUD->Render(cameraMatrix, viewMatrix, projectionMatrix);
+				}
+
+				else if (panel == gameOverMenu && panel->render)
+				{
+					gameOverMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
+				}
+
+				else if (panel == treasureMenu && panel->render)
+				{
+					treasureMenu->Render(cameraMatrix, viewMatrix, projectionMatrix);
+				}
+
+				else if (panel->render) {
+					panel->Render(cameraMatrix, viewMatrix, projectionMatrix);
+				}
 			}
 		}
 
@@ -501,18 +532,18 @@ public:
 	}
 
 	//swaps the level in render manager
-	void changeLevel(Level_Objects& level) {
-		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD->updateLevelText(level.getid());
-		lvl = &level;
+	void changeLevel(std::shared_ptr<Level_Objects> level) {
+		level->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD->updateLevelText(level->getid());
+		lvl = level;
 		playerHUD->startText->render = true;
 	}
 
 	//re loads the current level
-	void reloadLevel(Level_Objects& level) {
-		level.UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
-		playerHUD->updateLevelText(level.getid());
-
+	void reloadLevel(std::shared_ptr<Level_Objects> level) {
+		level->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
+		playerHUD->updateLevelText(level->getid());
+		playerHUD->startText->render = true;
 	}
 
 
@@ -535,17 +566,11 @@ public:
 	std::shared_ptr <Level_Objects> Level;
 	std::shared_ptr<flecs::world> game;
 
-	//PUT SOUNDS HERE
-	GW::AUDIO::GMusic shoot;
-	GW::GReturn test;
-
 	gamePlayManager(std::shared_ptr <Level_Objects> _Level,
 	std::shared_ptr<flecs::world> _game){
 
 		Level = _Level;
 		game = _game;
-
-		
 	}
 
 
@@ -564,11 +589,15 @@ public:
 	}
 
 	//Updates Player HP and UI
-	void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps, int hearts) {
+	void UpdatePlayerHearts(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc, int hearts) {
 
 		ps.updateHearts(hearts);
 		rm.playerHUD->updateHUDHearts(ps.getHearts());
 
+		if (ps.getHearts() <= 0) {
+			
+			rm.gameOverMenu->youLose(ps.getScore(), gc->at("Player1").at("highscore").as<int>());
+		}
 
 	}
 
@@ -634,7 +663,7 @@ public:
 
 		ps->updateHeartsBeforeDeath();	ps->updateScoreBeforeDeath(); ps->updateTreasuresBeforeDeath();
 		RemoveEntities();
-		
+
 		switch (currentLevel->getid()) {
 		case 1:
 			currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
@@ -646,7 +675,7 @@ public:
 		Level = currentLevel;
 		AddEntities();
 		updateEnemyCount(rm, 0); updateTreasureCount(rm, 0);
-		rm->changeLevel(*currentLevel);
+		rm->changeLevel(currentLevel);
 
 	}
 
@@ -685,7 +714,7 @@ public:
 
 		}
 
-		_rendererManager->reloadLevel(*_currentLevel);
+		_rendererManager->reloadLevel(_currentLevel);
 		AddEntities();
 		resetHUDonRestartLevel(currentLevelId, _rendererManager, ps);
 	}
@@ -693,7 +722,7 @@ public:
 	//return number of treasures in level
 	int getTreasuresInLevel() {
 		auto f = game->filter<DD::Treasure>();
-		
+
 		return f.count();
 	}
 
@@ -703,7 +732,7 @@ public:
 		RemoveEntities();
 
 		_lvl1->LoadMeshes(1, "../Level1.txt", "../Models/Level1", _log.Relinquish());
-		_rendererManager->changeLevel(*_lvl1);
+		_rendererManager->reloadLevel(_lvl1);
 
 		AddEntities();
 		resetHUDonRestartGame(_rendererManager, _ps, _gameConfig);
@@ -758,13 +787,6 @@ public:
 		}
 	}
 
-	//EXAMPLE SOUND METHOD
-	void playSound(GW::AUDIO::GAudio& _audioEngine) {
-
-		GW::GReturn test = shoot.Create("../SoundFX/Player_Attack.wav", _audioEngine, 1.0f);
-		shoot.Play(false);
-	}
-
 	void AddSystems(std::shared_ptr<Level_Objects> level,
 		std::shared_ptr<flecs::world> game,
 		std::shared_ptr<GameConfig> gameConfig,
@@ -816,14 +838,14 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
-								UpdatePlayerHearts(*rm, *ps, 1);
+								UpdatePlayerHearts(*rm, *ps, gameConfig, 1);
 
-														
+
 							}
 
 							else if (hit.has<DD::Treasure>())
 							{
-								
+
 								Model m = hit.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
@@ -832,6 +854,8 @@ public:
 									level->allObjectsInLevel.erase(found);
 								}
 								hit.destruct();
+
+								//INSERT TREASURE HANDLING STUFF HERE -------------------------------
 
 								if (m.name == "CrystalYellow") {
 									rm->treasureMenu->treasures[0]->text->render = true;
@@ -868,11 +892,10 @@ public:
 									rm->treasureMenu->treasures[5]->text->render = true;
 								}
 
-						
+
 								ps->treasures++;
 								updateTreasureCount(rm, -1);
 								UpdatePlayerScore(*rm, *ps, gameConfig, 150);
-							
 							}
 							else if (!(hit.has<DD::Bullet>() || hit.has<DD::Enemy>() || hit.has<DD::AmDead>()))
 							{
@@ -947,7 +970,7 @@ public:
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
-									UpdatePlayerHearts(*rm, *ps, -2);
+									UpdatePlayerHearts(*rm, *ps, gameConfig, -2);
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
@@ -1019,8 +1042,7 @@ public:
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
-									UpdatePlayerHearts(*rm, *ps, -1);
-
+									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
@@ -1096,14 +1118,13 @@ public:
 							GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
 							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
 
-						
-
+				
 						e.each<DD::CollidedWith>([&e, level, game, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
-									UpdatePlayerHearts(*rm, *ps, -1);
+									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
@@ -1199,7 +1220,7 @@ public:
 				});
 
 		flecs::system playerShootSystem = game->system<DD::Player, DD::World>("Player Shoot System")
-			.iter([immediateInput, game, level, bullSpeed,&_audioEngine, this](flecs::iter it, DD::Player*, DD::World* world)
+			.iter([immediateInput, game, level, bullSpeed](flecs::iter it, DD::Player*, DD::World* world)
 				{
 					for (auto i : it)
 					{
@@ -1288,9 +1309,6 @@ public:
 							e.set<DD::Name>({ modelToDupe.name });
 							e.set<DD::BulletVel>({ GW::MATH::GVECTORF{0, bullSpeed, 0} });
 							e.add<DD::Bullet>();
-
-							//FOR RALF
-							playSound(_audioEngine);
 
 							break;
 						}
@@ -1422,7 +1440,7 @@ public:
 								if (hit.has <DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
-									UpdatePlayerHearts(*rm, *ps, -1);
+									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
 								m = arrow.get<Models>()->mod;
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);

@@ -615,7 +615,9 @@ public:
 			playGameOverMusic();
 
 			for (uiPanel* panel : rm.panels) {
-				panel->render = false;
+
+				if(!(panel == rm.playerHUD))
+					panel->render = false;
 			}
 
 			rm.gameOverMenu->youLose(ps.getScore(), gc->at("Player1").at("highscore").as<int>());
@@ -723,7 +725,7 @@ public:
 	//removes all entities from the level and reloads the meshes based on id
 	void restartLevel(std::shared_ptr<Level_Objects> _currentLevel, RendererManager* _rendererManager, PlayerStats* ps, GW::SYSTEM::GLog _log) {
 
-
+		
 		int currentLevelId = _currentLevel->getid();
 		RemoveEntities();
 

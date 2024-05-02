@@ -166,7 +166,7 @@ bool Application::Run() {
 				leftMouse = true;
 
 				//restarts game by setting current level to level1
-				if (rendererManager.gameOverMenu->youWinText->render) {
+				if (rendererManager.gameOverMenu->youWinText->render) {				
 					rendererManager.playerHUD->continueText->toggleRender();
 					rendererManager.playerHUD->levelCompleteText->toggleRender();
 					rendererManager.playerHUD->toggleRender();

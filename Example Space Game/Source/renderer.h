@@ -1032,12 +1032,12 @@ public:
 							edit->value = out;
 							GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
 							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
-							e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ -.05f,0,0} });
+							e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{  -3 * it.delta_time(),0,0} });
 						}
 						else // SPIIIIIN
 						{
 							GW::MATH::GMatrix::RotateYGlobalF(edit->value, D2R(2000) * it.delta_time(), edit->value);
-							e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ -.05f,0,0} });
+							e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{  -3 * it.delta_time(),0,0} });
 						}
 
 						GW::MATH::GVECTORF v = GW::MATH::GVECTORF{ e.get<DD::EnemyVel>()->value.x, 0 , e.get<DD::EnemyVel>()->value.z };
@@ -1049,7 +1049,7 @@ public:
 									hit.set<DD::IFrame>({ 0.7 });
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -2);
 								}
-								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
+								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>() || hit.has<DD::Enemy>() || hit.has<DD::EnemyBullet>() || hit.has<DD::AmDead>()))
 								{
 
 									e.set<DD::World>({ e.get<DD::LastWorld>()->value });
@@ -1117,7 +1117,7 @@ public:
 							edit->value = out;
 							GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
 							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
-							e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ -.05f,0,0} });
+							e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ -3 * it.delta_time(),0,0}});
 						}
 
 						GW::MATH::GVECTORF v = GW::MATH::GVECTORF{ e.get<DD::EnemyVel>()->value.x, 0 , e.get<DD::EnemyVel>()->value.z };
@@ -1129,7 +1129,7 @@ public:
 									hit.set<DD::IFrame>({ 0.7 });
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
-								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
+								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>() || hit.has<DD::Enemy>() || hit.has<DD::EnemyBullet>() || hit.has<DD::AmDead>()))
 								{
 									e.set<DD::World>({ e.get<DD::LastWorld>()->value });
 									float xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
@@ -1479,7 +1479,7 @@ public:
 					// damage anything we come into contact with
 					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this, _audioEngine](flecs::entity hit)
 						{
-							if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>() || hit.has<DD::Heart>() || hit.has<DD::Treasure>()))
+							if (!(hit.has<DD::Player>() || hit.has<DD::Bullet>() || hit.has<DD::Heart>() || hit.has<DD::Treasure>() || hit.has<DD::AmDead>()))
 							{
 								Model m = hit.get<Models>()->mod;
 								if (hit.has <DD::Enemy>())
@@ -1567,8 +1567,5 @@ public:
 						}
 					}
 				});
-
 	}
-
-
 };

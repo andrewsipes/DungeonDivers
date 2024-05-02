@@ -983,7 +983,6 @@ public:
 				}
 			});
 
-
 		flecs::system SpikyEnemyMoveSystem = game->system<DD::SpikeEnemy, DD::Name, DD::Enemy>("Spiky Boi Enemy Move System")
 			.iter([speed, game, level, this, rm, ps, &gameConfig, &_audioEngine](flecs::iter it, DD::SpikeEnemy*, DD::Name* n, DD::Enemy*)
 				{
@@ -1047,7 +1046,7 @@ public:
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
-									hit.set<DD::IFrame>({ 2 });
+									hit.set<DD::IFrame>({ 0.7 });
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -2);
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
@@ -1127,7 +1126,7 @@ public:
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
-									hit.set<DD::IFrame>({ 2 });
+									hit.set<DD::IFrame>({ 0.7 });
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
@@ -1213,7 +1212,7 @@ public:
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
-									hit.set<DD::IFrame>({ 2 });
+									hit.set<DD::IFrame>({ 0.7 });
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 
 								}
@@ -1529,7 +1528,7 @@ public:
 								Model m = hit.get<Models>()->mod;
 								if (hit.has <DD::Player>() && !hit.has<DD::IFrame>())
 								{
-									hit.set<DD::IFrame>({ 2 });
+									hit.set<DD::IFrame>({ 0.7 });
 									playerDamageSound(_audioEngine);
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}

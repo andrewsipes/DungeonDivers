@@ -51,6 +51,9 @@ out vec4 Pixel;
 uniform bool isUi;
 uniform float alpha;
 
+uniform bool shake;
+uniform float time;
+
 void main() 
 {   
    if (isSkybox) {

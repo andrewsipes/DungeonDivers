@@ -5,6 +5,8 @@
 #include "../Source/Components/Identification.h"
 #include "../Source/Components/Gameplay.h"
 
+#include <chrono>
+
 //Depth of UI rendering
 #define userButtonTextDepth 0.0f
 #define userButtonDepth 0.3f
@@ -142,7 +144,6 @@ public:
 	GLuint vertexShader;
 	GLuint fragmentShader;
 	GLuint shaderExecutable;
-
 	std::string modelFile; // path to .h2b file
 
 	// *NEW* object aligned bounding box data: // LBN, LTN, LTF, LBF, RBN, RTN, RTF, RBF
@@ -216,7 +217,7 @@ public:
 		return true;
 	}
 
-	virtual bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights) {
+	virtual bool DrawModel(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, SUNLIGHT_DATA _sLight, const std::vector <LIGHT_DATA>& _lights, bool &_shake, float time) {
 		//keeps objects from clipping into ui
 		glDepthRange(worldDepth, 1);
 
@@ -234,18 +235,26 @@ public:
 		updateLightBufferObject(_lights);
 		updateVertexBufferObject(cpuModel.vertices.data(), cpuModel.vertexCount * sizeof(H2B::VERTEX));
 
+
+
 		//draw using elements instead for skybox
 		if (name == "skyBox") {
+
 			SetUpPipeline();
 			glDrawElements(GL_TRIANGLES, 36 * 2, GL_UNSIGNED_INT, 0); // we need to double the # of indices since we are using triangles since the mesh's index count
 			// doesn't draw all triangles
 		}
 
+		
 		else {
+
 			//Draw meshes - iterates through the meshes and materials to draw them individually.
 			for (int j = 0; j < cpuModel.meshCount; j++) {
 				updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _projection, _sLight);
-				SetUpPipeline();
+				if (_shake == true) {
+					std::cout << "Shake is true" << std::endl;
+				}
+				SetUpPipeline(_shake, time);
 				glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
 			}
 		}
@@ -286,6 +295,9 @@ public:
 		CompileVertexShader();
 		CompileFragmentShader();
 		CreateExecutableShaderProgram();
+
+		
+
 
 		//if we encounter the skybox model, then we need to bidn the texture for the cube.
 		if (name == "skyBox")
@@ -467,12 +479,35 @@ public:
 		glBindVertexArray(vertexArray);
 		SetVertexAttributes();
 
+
 		if (name == "skyBox")
 		{
 			bool isSkybox = true;
 			glUniform1i(glGetUniformLocation(shaderExecutable, "isSkybox"), isSkybox);
 			glUniform1i(glGetUniformLocation(shaderExecutable, "skybox"), 0);
 		}
+
+	}
+
+	 void SetUpPipeline(bool& _shake, float _time) {
+		glUseProgram(shaderExecutable);
+		glBindVertexArray(vertexArray);
+		SetVertexAttributes();
+
+		if (_shake) {
+			std::cout << "sending to shader " << std::endl;
+			glUniform1f(glGetUniformLocation(shaderExecutable, "time"), _time);
+			glUniform1i(glGetUniformLocation(shaderExecutable, "shake"), _shake);
+		}
+
+
+		if (name == "skyBox")
+		{
+			bool isSkybox = true;
+			glUniform1i(glGetUniformLocation(shaderExecutable, "isSkybox"), isSkybox);
+			glUniform1i(glGetUniformLocation(shaderExecutable, "skybox"), 0);
+		}
+
 	}
 
 	void SetVertexAttributes()
@@ -552,6 +587,9 @@ public:
 	bool uploadedToGpu;
 	bool loading = false;
 
+	float sTime;
+	bool shake;
+
 	std::vector<Model> allObjectsInLevel;
 
 	int getid(){
@@ -563,6 +601,8 @@ public:
 	{
 		loading = true;
 		meshesLoaded = false;
+		shake = false;
+
 		//Default light stuff, should be removed later if not used
 		{
 			sunLightDir = { 1.0f, -1.0f, 2.0f, 0.0f };
@@ -845,7 +885,7 @@ public:
 	void Render(GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection) {
 		// iterate over each model and tell it to draw itself
 		for (auto& e : allObjectsInLevel) {
-			e.DrawModel(_camera, _view, _projection, sunLight, LIGHTDATA);
+			e.DrawModel(_camera, _view, _projection, sunLight, LIGHTDATA, shake, sTime);
 		}
 	}
 
@@ -861,6 +901,7 @@ public:
 
 	void Update(std::shared_ptr<flecs::world> game, std::shared_ptr<Level_Objects> level)
 	{
+
 		for each (Model m in level->allObjectsInLevel)
 		{
 			auto entity = game->lookup(m.name.c_str());
@@ -872,6 +913,33 @@ public:
 				level->allObjectsInLevel[index].world = entity.get<DD::World>()->value;
 			}
 		}
+
+		
+	}
+
+	void postProcessing(float* time, float timeReset) {
+		static std::chrono::high_resolution_clock::time_point previousTime = std::chrono::high_resolution_clock::now();
+		auto currentTime = std::chrono::high_resolution_clock::now();
+
+		std::chrono::duration<float> dt = currentTime - previousTime;
+
+		sTime = *time;
+
+
+		if (shake && *time > 0.0f) {
+			std::cout << "shaking!!!" << std::endl;
+			*time -= dt.count();
+
+		}
+
+		else if (*time <= 0.0f) {
+			std::cout << "shake reset" << std::endl;
+			*time = timeReset;
+			shake = false;
+
+		}
+
+		previousTime = currentTime;
 	}
 
 

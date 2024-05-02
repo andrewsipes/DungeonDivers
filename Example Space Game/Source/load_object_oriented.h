@@ -251,9 +251,9 @@ public:
 			//Draw meshes - iterates through the meshes and materials to draw them individually.
 			for (int j = 0; j < cpuModel.meshCount; j++) {
 				updateUniformBufferObject(cpuModel.materials[cpuModel.meshes[j].materialIndex], _camera, _view, _projection, _sLight);
-				if (_shake == true) {
+				/*if (_shake == true) {
 					std::cout << "Shake is true" << std::endl;
-				}
+				}*/
 				SetUpPipeline(_shake, time);
 				glDrawElements(GL_TRIANGLES, cpuModel.meshes[j].drawInfo.indexCount, GL_UNSIGNED_INT, (void*)(cpuModel.meshes[j].drawInfo.indexOffset * sizeof(cpuModel.indices[0])));
 			}
@@ -494,11 +494,10 @@ public:
 		glBindVertexArray(vertexArray);
 		SetVertexAttributes();
 
-		if (_shake) {
-			std::cout << "sending to shader " << std::endl;
-			glUniform1f(glGetUniformLocation(shaderExecutable, "time"), _time);
-			glUniform1i(glGetUniformLocation(shaderExecutable, "shake"), _shake);
-		}
+		//std::cout << "sending to shader " << std::endl;
+		glUniform1f(glGetUniformLocation(shaderExecutable, "time"), _time);
+		glUniform1i(glGetUniformLocation(shaderExecutable, "shake"), _shake);
+	
 
 
 		if (name == "skyBox")
@@ -536,7 +535,7 @@ public:
 			if (!data)
 			{
 				//output an error and continue running if no data found.
-				std::cout << "[ERROR]: CUBE TEXTURE NOT FOUND" << std::endl;
+				//std::cout << "[ERROR]: CUBE TEXTURE NOT FOUND" << std::endl;
 
 				return;
 			}
@@ -907,7 +906,7 @@ public:
 			auto entity = game->lookup(m.name.c_str());
 			auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
-			if (found != level->allObjectsInLevel.end() && entity.is_alive())
+			if (found != level->allObjectsInLevel.end())
 			{
 				size_t index = found - level->allObjectsInLevel.begin();
 				level->allObjectsInLevel[index].world = entity.get<DD::World>()->value;
@@ -927,13 +926,13 @@ public:
 
 
 		if (shake && *time > 0.0f) {
-			std::cout << "shaking!!!" << std::endl;
+			//std::cout << "shaking!!!" << std::endl;
 			*time -= dt.count();
 
 		}
 
 		else if (*time <= 0.0f) {
-			std::cout << "shake reset" << std::endl;
+			//std::cout << "shake reset" << std::endl;
 			*time = timeReset;
 			shake = false;
 

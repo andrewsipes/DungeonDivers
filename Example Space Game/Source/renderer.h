@@ -6,7 +6,7 @@
 #include <thread>
 
 void LoadMainMenu(std::shared_ptr<Level_Objects> _lvl, GW::GRAPHICS::GOpenGLSurface _ogl, GW::MATH::GMATRIXF _camera, GW::MATH::GMATRIXF _view, GW::MATH::GMATRIXF _projection, GW::SYSTEM::GLog _log) {
-	_lvl->LoadMeshes(0, "../MainMenu.txt", "../Models/MainMenuModels", _log.Relinquish());	
+	_lvl->LoadMeshes(0, "../MainMenu.txt", "../Models/MainMenuModels", _log.Relinquish());
 }
 
 // Creation, Rendering & Cleanup
@@ -61,7 +61,7 @@ public:
 
 	RendererManager(GW::SYSTEM::GWindow _win, GW::GRAPHICS::GOpenGLSurface _ogl, GameConfig& _gameConfig, Application &application, loadingUi* load)
 	{
-	
+
 
 		lvl = std::make_shared<Level_Objects>();
 
@@ -74,7 +74,7 @@ public:
 
 		loadScreen = load;
 		loadScreen->UploadLevelToGPU(cameraMatrix, viewMatrix, projectionMatrix);
-			
+
 		//sets default state for menu keybinds
 		tab = false;
 		t = false;
@@ -118,7 +118,7 @@ public:
 		projectionMatrix = initializeProjectionMatrix(_ogl, 65.0f, 0.1f, 100.0f);
 
 
-		
+
 	}
 
 	//initializes all panels
@@ -543,6 +543,7 @@ public:
 		level->UploadLevelToGPU(ogl, cameraMatrix, viewMatrix, projectionMatrix);
 		playerHUD->updateLevelText(level->getid());
 		playerHUD->startText->render = true;
+	
 	}
 
 
@@ -566,20 +567,31 @@ public:
 	std::shared_ptr<flecs::world> game;
 
 	//PUT SOUNDS HERE
+	std::vector <GW::AUDIO::GMusic> allmusic;
 	GW::AUDIO::GSound playerShoot;
 	GW::AUDIO::GSound playerHeart;
 	GW::AUDIO::GSound playerTreasure;
+	GW::AUDIO::GSound playerDamage;
 	GW::AUDIO::GSound enemyDeath;
 	GW::AUDIO::GSound wallsDestroy;
 	GW::GReturn test;
 
 	gamePlayManager(std::shared_ptr <Level_Objects> _Level,
-	std::shared_ptr<flecs::world> _game){
+	std::shared_ptr<flecs::world> _game, std::vector <GW::AUDIO::GMusic>& _allmusic){
 
+		allmusic = _allmusic;
 		Level = _Level;
 		game = _game;
 	}
 
+	void playGameOverMusic() {
+
+		for (GW::AUDIO::GMusic& track : allmusic) {
+			track.Stop();
+		}
+
+		allmusic[5].Play();
+	}
 
 	//Updates PlayerStats and UI Score
 	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc, int score) {
@@ -602,13 +614,13 @@ public:
 		rm.playerHUD->updateHUDHearts(ps.getHearts());
 
 		if (ps.getHearts() <= 0) {
-			
+			playGameOverMusic();
 			rm.gameOverMenu->youLose(ps.getScore(), gc->at("Player1").at("highscore").as<int>());
 		}
 
 		if (hearts < 0 && !rm.gameOverMenu->render) {
 			Level->shake = true;
-			std::cout << "bool flipped" << std::endl;
+			//std::cout << "bool flipped" << std::endl;
 		}
 
 	}
@@ -674,18 +686,18 @@ public:
 		rm->playerHUD->continueText->render = false;
 
 		ps->updateHeartsBeforeDeath();	ps->updateScoreBeforeDeath(); ps->updateTreasuresBeforeDeath();
-		RemoveEntities();
+		while (!RemoveEntities()) {};
 
 		switch (currentLevel->getid()) {
 		case 1:
-			currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish());
+			while(!currentLevel->LoadMeshes(2, "../Level2.txt", "../Models/Level2", log.Relinquish()));
 			break;
 		case 2:
-			currentLevel->LoadMeshes(3, "../Level3.txt", "../Models/Level3", log.Relinquish());
+			while(!currentLevel->LoadMeshes(3, "../Level3.txt", "../Models/Level3", log.Relinquish()));
 			break;
 		}
 		Level = currentLevel;
-		AddEntities();
+		while(!AddEntities());
 		updateEnemyCount(rm, 0); updateTreasureCount(rm, 0);
 		rm->changeLevel(currentLevel);
 
@@ -710,24 +722,24 @@ public:
 
 
 		int currentLevelId = _currentLevel->getid();
-		RemoveEntities();
+		while (!RemoveEntities()) {};
 
 		//update these per level id
 		switch (currentLevelId) {
 		case 1:
-			_currentLevel->LoadMeshes(currentLevelId, "../Level1.txt", "../Models/Level1", _log.Relinquish());
+			while (!_currentLevel->LoadMeshes(currentLevelId, "../Level1.txt", "../Models/Level1", _log.Relinquish())) {};
 			break;
 		case 2:
-			_currentLevel->LoadMeshes(currentLevelId,"../Level2.txt", "../Models/Level2", _log.Relinquish());
+			while (!_currentLevel->LoadMeshes(currentLevelId,"../Level2.txt", "../Models/Level2", _log.Relinquish()));
 			break;
 		case 3:
-			_currentLevel->LoadMeshes(currentLevelId, "../Level3.txt", "../Models/Level3", _log.Relinquish());
+			while (!_currentLevel->LoadMeshes(currentLevelId, "../Level3.txt", "../Models/Level3", _log.Relinquish()));
 			break;
 
 		}
 
+		while(!AddEntities());
 		_rendererManager->reloadLevel(_currentLevel);
-		AddEntities();
 		resetHUDonRestartLevel(currentLevelId, _rendererManager, ps);
 	}
 
@@ -738,47 +750,43 @@ public:
 		return f.count();
 	}
 
-	//removes all entities from the level and reloads the meshes based on id
-	void restartGame(std::shared_ptr<Level_Objects> _lvl1, RendererManager* _rendererManager, PlayerStats* _ps, std::shared_ptr <GameConfig> _gameConfig, GW::SYSTEM::GLog _log) {
-
-		RemoveEntities();
-
-		_lvl1->LoadMeshes(1, "../Level1.txt", "../Models/Level1", _log.Relinquish());
-		_rendererManager->reloadLevel(_lvl1);
-
-		AddEntities();
-		resetHUDonRestartGame(_rendererManager, _ps, _gameConfig);
-	}
 
 	//remove entities from game
-	void RemoveEntities() {
+	bool RemoveEntities() {
 
 		game->defer_begin();
-		game->each([](flecs::entity e)
-			{
+		game->each([](flecs::entity e, DD::BulletVel) {
+			e.destruct();
+			});
+		game->each([](flecs::entity e){
 				e.destruct();
 			});
 		game->defer_end();
+
+		return 1;
 	}
 
 	//add entities to game
-	void AddEntities()
+	bool AddEntities()
 	{
 		for each (Model i in Level->allObjectsInLevel)
 		{
 			auto e = game->entity(i.name.c_str());
 			e.set<DD::Name>({ i.name });
 			e.set<Models>({ i });
-			GW::MATH::GMATRIXF edit = i.world;
+			e.set<DD::World>({ i.world });
+			e.set<DD::LastWorld>({ i.world });
 			
 			if (i.name.substr(0, 5) == "alien") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
+				e.set<DD::OGPos>({ i.world });
 				e.add<DD::Enemy>();
 				e.add<DD::BeholdEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
 			}
 			if (i.name.substr(0, 7) == "mushman") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
+				e.set<DD::OGPos>({ i.world });
 				e.add<DD::Enemy>();
 				e.add<DD::MushEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
@@ -786,12 +794,12 @@ public:
 			}
 			if (i.name.substr(0, 8) == "spikyboy") // OBVIOUSLY CHANGE THIS, JUST FOR TESTING
 			{
+				e.set<DD::OGPos>({ i.world });
 				e.add<DD::Enemy>();
 				e.add<DD::SpikeEnemy>();
 				e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{0,0,0} });
 				//GW::MATH::GMatrix::RotateYGlobalF(edit, D2R(147), edit);
 			}
-			e.set<DD::World>({ edit });
 
 			if (i.name.substr(0, 9) != "RealFloor")
 				e.set<DD::Collidable>({ i.obb });
@@ -812,9 +820,11 @@ public:
 				e.add<DD::Player>();
 			}
 		}
+
+		return 1;
 	}
 
-	//EXAMPLE SOUND METHOD
+	//Sound Methods
 	void playerShootSound(GW::AUDIO::GAudio& _audioEngine) {
 
 		GW::GReturn test = playerShoot.Create("../SoundFX/Player_Attack.wav", _audioEngine, 0.002f);
@@ -833,6 +843,11 @@ public:
 		playerTreasure.Play();
 	}
 
+	void playerDamageSound(GW::AUDIO::GAudio _audioEngine) {
+
+		GW::GReturn test = playerDamage.Create("../SoundFX/Player_Damage.wav", _audioEngine, 0.002f);
+		playerDamage.Play();
+	}
 	void enemyDeathSound(GW::AUDIO::GAudio _audioEngine)
 	{
 		GW::GReturn test = enemyDeath.Create("../SoundFX/Enemy_1_Death.wav", _audioEngine, 0.01f);
@@ -870,7 +885,7 @@ public:
 					float xaxis = 0, input = 0, zaxis = 0;
 					GW::INPUT::GInput t = immediateInput;
 
-					if (!rm->playerHUD->levelCompleteText->render) {
+					if (!rm->playerHUD->levelCompleteText->render && level->meshesLoaded && level->uploadedToGpu) {
 						t.GetState(G_KEY_A, input); xaxis -= input;
 						t.GetState(G_KEY_D, input); xaxis += input;
 						t.GetState(G_KEY_S, input); zaxis -= input;
@@ -899,7 +914,7 @@ public:
 								}
 								hit.destruct();
 								playerHeartSound(_audioEngine);
-								
+
 								UpdatePlayerHearts(*rm, *ps, gameConfig, 1);
 
 
@@ -971,6 +986,7 @@ public:
 				}
 			});
 
+
 		flecs::system SpikyEnemyMoveSystem = game->system<DD::SpikeEnemy, DD::Name, DD::Enemy>("Spiky Boi Enemy Move System")
 			.iter([speed, game, level, this, rm, ps, &gameConfig, &_audioEngine](flecs::iter it, DD::SpikeEnemy*, DD::Name* n, DD::Enemy*)
 				{
@@ -980,38 +996,41 @@ public:
 						auto e = game->lookup(n[i].name.c_str());
 						auto pl = game->lookup("MegaBee");
 						//distance from player to enemy
-						float distance = sqrt(	pow((e.get<DD::World>()->value.row4.x - pl.get<DD::World>()->value.row4.x), 2) + 
+						float distance = sqrt(	pow((e.get<DD::World>()->value.row4.x - pl.get<DD::World>()->value.row4.x), 2) +
 												pow((e.get<DD::World>()->value.row4.z - pl.get<DD::World>()->value.row4.z), 2));
 
 						DD::World* edit = game->entity(e).get_mut<DD::World>();
-						if (distance >= 10)
+						if (distance >= 20)
 						{
 							//Random Movement Vector
 							if (!e.has<DD::MoveCooldown>())
 							{
-								xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
-								zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								if (level->meshesLoaded && level->uploadedToGpu)
+								{
+									//xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									//zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								}
 								e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
 								e.set<DD::MoveCooldown>({ 4 }); // add a cooldown before the enemy can random move again
-								GW::MATH::GMATRIXF out;
+								//GW::MATH::GMATRIXF out;
 								// for some reason doesn't look in the direction that its going?? idk
-								GW::MATH::GMatrix::LookAtRHF(	GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
+								/*GW::MATH::GMatrix::LookAtRHF(	GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
 																GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z },
 																GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
 								out.row4 = e.get<DD::World>()->value.row4;
 								edit->value = out;
 								GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
-								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
+								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);*/
 
 							}
 						}
-						else if (distance < 10 && distance >= 2) // chase distance 
+						else if (distance < 15 && distance >= 2) // chase distance
 						{
 							GW::MATH::GMATRIXF out;
 							// should be getting the enemy to look at the player, want to do this in 2D, but didn't find anything to let me do that..
 							// disregard last comment.. i think this works.. hopefully.. maybe?
-							GW::MATH::GMatrix::LookAtRHF(	GW::MATH::GVECTORF{	pl.get<DD::World>()->value.row4.x, 0, pl.get<DD::World>()->value.row4.z }, 
-															GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z }, 
+							GW::MATH::GMatrix::LookAtRHF(	GW::MATH::GVECTORF{	pl.get<DD::World>()->value.row4.x, 0, pl.get<DD::World>()->value.row4.z },
+															GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z },
 															GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
 							out.row4 = e.get<DD::World>()->value.row4;
 							edit->value = out;
@@ -1026,8 +1045,8 @@ public:
 						}
 
 						GW::MATH::GVECTORF v = GW::MATH::GVECTORF{ e.get<DD::EnemyVel>()->value.x, 0 , e.get<DD::EnemyVel>()->value.z };
-			
-						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
+
+						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, speed, it](flecs::entity hit)
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
@@ -1036,10 +1055,14 @@ public:
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
+
 									e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+									float xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									float zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
 									e.set<DD::MoveCooldown>({-1});
 								}
-			
+
 								hit.remove<DD::CollidedWith>(e);
 								e.remove<DD::CollidedWith>(hit);
 							});
@@ -1066,23 +1089,27 @@ public:
 							//Random Movement Vector
 							if (!e.has<DD::MoveCooldown>())
 							{
-								xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
-								zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								if (level->meshesLoaded && level->uploadedToGpu)
+								{
+									//xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									//zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+								}
+
 								e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
 								e.set<DD::MoveCooldown>({ 4 }); // add a cooldown before the enemy can random move again
 								GW::MATH::GMATRIXF out;
 								// for some reason doesn't look in the direction that its going?? idk
-								GW::MATH::GMatrix::LookAtRHF(GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
+								/*GW::MATH::GMatrix::LookAtRHF(GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x + xaxis, 0, e.get<DD::World>()->value.row4.z + zaxis },
 									GW::MATH::GVECTORF{ e.get<DD::World>()->value.row4.x, 0, e.get<DD::World>()->value.row4.z },
 									GW::MATH::GVECTORF{ 0,-1,0,0 }, out);
 								out.row4 = e.get<DD::World>()->value.row4;
 								edit->value = out;
 								GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
-								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
+								GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);*/
 
 							}
 						}
-						else // chase distance 
+						else // chase distance
 						{
 							GW::MATH::GMATRIXF out;
 							// should be getting the enemy to look at the player, want to do this in 2D, but didn't find anything to let me do that..
@@ -1099,7 +1126,7 @@ public:
 
 						GW::MATH::GVECTORF v = GW::MATH::GVECTORF{ e.get<DD::EnemyVel>()->value.x, 0 , e.get<DD::EnemyVel>()->value.z };
 
-						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
+						e.each<DD::CollidedWith>([&e, level, this, rm, ps, &gameConfig, speed, it](flecs::entity hit)
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
@@ -1109,6 +1136,10 @@ public:
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
 									e.set<DD::World>({ e.get<DD::LastWorld>()->value });
+									float xaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									float zaxis = -1 + (rand() % 2) + (float)(rand()) / (float)(RAND_MAX);
+									e.set<DD::EnemyVel>({ GW::MATH::GVECTORF{ xaxis * it.delta_time() * speed * 0.5f, 0, zaxis * it.delta_time() * speed * 0.5f } });
+									e.set<DD::MoveCooldown>({ -1 });
 								}
 
 						hit.remove<DD::CollidedWith>(e);
@@ -1136,7 +1167,7 @@ public:
 							if (!e.has<DD::MoveCooldown>())
 							{
 								Model m;
-								m.name = "Meteor"; 
+								m.name = "Meteor";
 								auto found = std::find(level->allObjectsInLevel.begin(), level->allObjectsInLevel.end(), m);
 
 								if (found != level->allObjectsInLevel.end())
@@ -1168,7 +1199,7 @@ public:
 								e.set<DD::MoveCooldown>({ .7 });
 
 							}
-						
+
 							GW::MATH::GMATRIXF out;
 							// should be getting the enemy to look at the player, want to do this in 2D, but didn't find anything to let me do that..
 							// disregard last comment.. i think this works.. hopefully.. maybe?
@@ -1180,14 +1211,14 @@ public:
 							GW::MATH::GMatrix::RotateXLocalF(edit->value, D2R(180), edit->value);
 							GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(-90), edit->value);
 
-				
+
 						e.each<DD::CollidedWith>([&e, level, game, this, rm, ps, &gameConfig, _audioEngine](flecs::entity hit)
 							{
 								if (hit.has<DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
-					
+
 								}
 								else if (!(hit.has<DD::Treasure>() || hit.has<DD::Heart>() || hit.has<DD::IFrame>()))
 								{
@@ -1209,10 +1240,10 @@ public:
 						auto e = game->lookup(name[i].name.c_str());
 						DD::AmDead* time = game->entity(e).get_mut<DD::AmDead>();
 						DD::World* edit = game->entity(e).get_mut<DD::World>();
-						GW::MATH::GMatrix::TranslateLocalF(edit->value, GW::MATH::GVECTORF{ 0, -1.5f * it.delta_time(), 0}, edit->value);
+						GW::MATH::GMatrix::TranslateLocalF(edit->value, GW::MATH::GVECTORF{ 0, -3 * it.delta_time(), 0}, edit->value);
 						GW::MATH::GMatrix::RotateYLocalF(edit->value, D2R(700) * it.delta_time(), edit->value);
 						time->value -= it.delta_time();
-							
+
 
 						if (time->value <= 0)
 						{
@@ -1458,11 +1489,11 @@ public:
 								if (hit.has <DD::Enemy>())
 								{
 									hit.remove<DD::Enemy>();
-									hit.set<DD::AmDead>({ 3 });
+									hit.set<DD::AmDead>({ 1.5 });
 									enemyDeathSound(_audioEngine);
 									updateEnemyCount(rm, -1);
 									UpdatePlayerScore(*rm, *ps, gameConfig, 50); // update score if we hit an enemy
-							
+
 
 								}
 								else if (hit.has<DD::Destruct>())
@@ -1491,10 +1522,10 @@ public:
 				});
 
 		flecs::system enemyBulletSystem = game->system<DD::EnemyBullet>("Enemy Bullet System")
-			.each([level, rm, ps, &gameConfig, game, this](flecs::entity arrow, DD::EnemyBullet)
+			.each([level, rm, ps, &gameConfig, game, this, &_audioEngine](flecs::entity arrow, DD::EnemyBullet)
 				{
 					// damage anything we come into contact with
-					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this](flecs::entity hit)
+					arrow.each<DD::CollidedWith>([&arrow, level, rm, ps, &gameConfig, game, this, _audioEngine](flecs::entity hit)
 						{
 							if (!(hit.has<DD::Enemy>() || hit.has<DD::EnemyBullet>() || hit.has<DD::Heart>() || hit.has<DD::Treasure>()))
 							{
@@ -1502,7 +1533,7 @@ public:
 								if (hit.has <DD::Player>() && !hit.has<DD::IFrame>())
 								{
 									hit.set<DD::IFrame>({ 2 });
-									
+									playerDamageSound(_audioEngine);
 									UpdatePlayerHearts(*rm, *ps, gameConfig, -1);
 								}
 								m = arrow.get<Models>()->mod;

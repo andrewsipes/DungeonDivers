@@ -613,6 +613,11 @@ public:
 
 		if (ps.getHearts() <= 0) {
 			playGameOverMusic();
+
+			for (uiPanel* panel : rm.panels) {
+				panel->render = false;
+			}
+
 			rm.gameOverMenu->youLose(ps.getScore(), gc->at("Player1").at("highscore").as<int>());
 		}
 

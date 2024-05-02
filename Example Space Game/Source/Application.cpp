@@ -71,21 +71,28 @@ bool Application::Run() {
 	auto currentLevel = std::make_shared<Level_Objects>(); //currentLevel pointer
 	currentLevel->LoadMeshes(1, "../Level1.txt", "../Models/Level1", log.Relinquish());
 
-	gamePlayManager gpManager(currentLevel, game);
+	//Music Declaration and play main menu
+	std::vector <GW::AUDIO::GMusic> music;
+	auto& mainMenuMusic = musicTracks["MainMenu"];
+	music.push_back(mainMenuMusic);
+	auto& Level1Music = musicTracks["Level1"];
+	music.push_back(Level1Music);
+	auto& Level2Music = musicTracks["Level2"];
+	music.push_back(Level2Music);
+	auto& Level3Music = musicTracks["Level3"];
+	music.push_back(Level3Music);
+	auto& VictoryMusic = musicTracks["Victory"];
+	music.push_back(VictoryMusic);
+	auto& GameOverMusic = musicTracks["GameOver"];
+	music.push_back(GameOverMusic);
+
+	gamePlayManager gpManager(currentLevel, game, music);
 	PlayerStats playerStats(*gameConfig);
 
 	while(!gpManager.AddEntities());
 	gpManager.AddSystems(currentLevel, game, gameConfig, gInput, bufferedInput, gamePads, audioEngine, eventPusher, &playerStats, &rendererManager);
 
-	//Music Declaration and play main menu
-	auto& mainMenuMusic = musicTracks["MainMenu"];
-	auto& Level1Music = musicTracks["Level1"];
-	auto& Level2Music = musicTracks["Level2"];
-	auto& Level3Music = musicTracks["Level3"];
-	auto& VictoryMusic = musicTracks["Victory"];
-	auto& GameOverMusic = musicTracks["GameOver"];
 	mainMenuMusic.Play(true);
-
 
 	float timeReset = gameConfig->at("PostProcessing").at("shakeTime").as<float>();
 	float time = gameConfig->at("PostProcessing").at("shakeTime").as<float>();
@@ -170,6 +177,18 @@ bool Application::Run() {
 				//restarts just the level per usual
 				else {
 					gpManager.restartLevel(currentLevel, &rendererManager, &playerStats, log);
+
+					switch (currentLevel->getid()) {
+					case 1:
+						Level1Music.Play();
+						break;
+					case 2:
+						Level2Music.Play();
+						break;
+					case 3:
+						Level3Music.Play();
+						break;
+					}
 				}
 
 				rendererManager.gameOverMenu->toggleRender();

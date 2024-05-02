@@ -567,6 +567,7 @@ public:
 	std::shared_ptr<flecs::world> game;
 
 	//PUT SOUNDS HERE
+	std::vector <GW::AUDIO::GMusic> allmusic;
 	GW::AUDIO::GSound playerShoot;
 	GW::AUDIO::GSound playerHeart;
 	GW::AUDIO::GSound playerTreasure;
@@ -576,12 +577,21 @@ public:
 	GW::GReturn test;
 
 	gamePlayManager(std::shared_ptr <Level_Objects> _Level,
-	std::shared_ptr<flecs::world> _game){
+	std::shared_ptr<flecs::world> _game, std::vector <GW::AUDIO::GMusic>& _allmusic){
 
+		allmusic = _allmusic;
 		Level = _Level;
 		game = _game;
 	}
 
+	void playGameOverMusic() {
+
+		for (GW::AUDIO::GMusic& track : allmusic) {
+			track.Stop();
+		}
+
+		allmusic[5].Play();
+	}
 
 	//Updates PlayerStats and UI Score
 	void UpdatePlayerScore(RendererManager& rm, PlayerStats& ps, std::shared_ptr<GameConfig> gc, int score) {
@@ -604,7 +614,7 @@ public:
 		rm.playerHUD->updateHUDHearts(ps.getHearts());
 
 		if (ps.getHearts() <= 0) {
-
+			playGameOverMusic();
 			rm.gameOverMenu->youLose(ps.getScore(), gc->at("Player1").at("highscore").as<int>());
 		}
 
